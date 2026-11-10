@@ -199,7 +199,7 @@ export function AppProvider({ children }) {
       safeExpenses,
       safeSavings.currentDesignatedReserve ?? 0
     );
-  }, [backendCalculations?.balanceDetails, safePrefs.startingBalance, safeIncomes, safeExpenses, safeSavings.currentDesignatedReserve]);
+  }, [backendCalculations, safePrefs.startingBalance, safeIncomes, safeExpenses, safeSavings.currentDesignatedReserve]);
 
   const safeToSpend = useMemo(() => {
     if (backendCalculations?.safeToSpend) return backendCalculations.safeToSpend;
@@ -211,7 +211,7 @@ export function AppProvider({ children }) {
       horizonDays: safePrefs.defaultHorizonDays ?? 30,
       scenario: safePrefs.defaultScenario ?? 'expected'
     });
-  }, [backendCalculations?.safeToSpend, balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer, safePrefs.defaultHorizonDays, safePrefs.defaultScenario]);
+  }, [backendCalculations, balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer, safePrefs.defaultHorizonDays, safePrefs.defaultScenario]);
 
   const standardForecast = useMemo(() => {
     if (backendCalculations?.forecast) return backendCalculations.forecast;
@@ -223,7 +223,7 @@ export function AppProvider({ children }) {
       days: 30,
       scenario: 'expected'
     });
-  }, [backendCalculations?.forecast, balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer]);
+  }, [backendCalculations, balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer]);
 
   const rawDashboardInsights = useMemo(() => {
     if (backendCalculations?.dashboardInsights) return backendCalculations.dashboardInsights;
@@ -236,7 +236,7 @@ export function AppProvider({ children }) {
       firstLowBufferDate: standardForecast?.firstLowBufferDate,
       firstNegativeDate: standardForecast?.firstNegativeDate
     });
-  }, [backendCalculations?.dashboardInsights, balanceDetails?.availableCash, safePrefs.safetyBuffer, safeIncomes, safeExpenses, standardForecast]);
+  }, [backendCalculations, balanceDetails?.availableCash, safePrefs.safetyBuffer, safeIncomes, safeExpenses, standardForecast]);
 
   const dashboardInsights = useMemo(() => {
     const rawAlerts = rawDashboardInsights?.alerts || [];
@@ -249,12 +249,12 @@ export function AppProvider({ children }) {
   const billRanking = useMemo(() => {
     if (backendCalculations?.billRanking) return backendCalculations.billRanking;
     return rankBills(safeExpenses, balanceDetails?.availableCash ?? 0);
-  }, [backendCalculations?.billRanking, safeExpenses, balanceDetails?.availableCash]);
+  }, [backendCalculations, safeExpenses, balanceDetails?.availableCash]);
 
   const leanWeekCalculations = useMemo(() => {
     if (backendCalculations?.leanWeekCalculations) return backendCalculations.leanWeekCalculations;
     return calculateLeanWeekSavings(safeSavings);
-  }, [backendCalculations?.leanWeekCalculations, safeSavings]);
+  }, [backendCalculations, safeSavings]);
 
   // Derived metrics for UI
   const confirmedUpcomingIncome = useMemo(() => {

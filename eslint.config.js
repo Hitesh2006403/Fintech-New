@@ -28,7 +28,8 @@ export default defineConfig([
       'no-useless-assignment': 'off',
       'preserve-caught-error': 'off',
       'react-hooks/purity': 'off',
-      'react-hooks/set-state-in-effect': 'off'
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/preserve-manual-memoization': 'off'
     }
   },
 ])

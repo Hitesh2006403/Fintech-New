@@ -153,93 +153,108 @@ export function classifyIncomeStatus(income, currentDateStr = getCurrentLocalDat
 export function resolveDynamicNotification(notif, expenses = [], incomes = [], leanSavings = {}, today = getCurrentLocalDate()) {
   if (!notif) return notif;
 
-  // Bill / EMI notification
-  if (notif.relatedRecord && String(notif.relatedRecord).startsWith('exp_')) {
-    const bill = expenses.find(e => e.id === notif.relatedRecord);
-    if (bill) {
-      if (bill.status === 'paid' || bill.paidDate) {
-        return {
-          ...notif,
-          title: 'Payment Completed',
-          description: `${bill.title} payment of ₹${bill.amount} was completed.`,
-          severity: 'info'
-        };
-      }
-      const dueDate = toISODate(bill.dueDate);
-      const daysDiff = diffInDays(today, dueDate); // positive = future, negative = past
-      const isEMI = bill.category === 'EMI or loan';
-      const label = isEMI ? 'EMI' : 'Bill';
+  // Flexible argument handling: allow 4th argument to be currentDateStr
+  if (typeof leanSavings === 'string') {
+    today = leanSavings;
+    leanSavings = {};
+  }
 
-      if (daysDiff < 0) {
-        const days = Math.abs(daysDiff);
-        return {
-          ...notif,
-          title: `${label} Overdue by ${days} Day${days > 1 ? 's' : ''}`,
-          description: `${bill.title} of ₹${bill.amount} was due on ${bill.dueDate}. Settle immediately to avoid penalty.`,
-          severity: 'critical'
-        };
-      } else if (daysDiff === 0) {
-        return {
-          ...notif,
-          title: `${label} Due Today`,
-          description: `${bill.title} of ₹${bill.amount} is due today.`,
-          severity: 'critical'
-        };
-      } else if (daysDiff <= 3) {
-        return {
-          ...notif,
-          title: `${label} Due in ${daysDiff} Day${daysDiff > 1 ? 's' : ''}`,
-          description: `${bill.title} of ₹${bill.amount} is due on ${bill.dueDate}. Auto-debit will trigger.`,
-          severity: 'warning'
-        };
-      } else {
-        return {
-          ...notif,
-          title: `${label} Due in ${daysDiff} Days`,
-          description: `${bill.title} of ₹${bill.amount} is due on ${bill.dueDate}.`,
-          severity: 'info'
-        };
-      }
+  const recId = notif.relatedRecord || notif.referenceId || notif.recordId;
+
+  // Bill / EMI notification
+  const bill = (recId && expenses.find(e => e.id === recId)) ||
+    expenses.find(e => notif.title?.includes(e.title) || notif.description?.includes(e.title));
+
+  if (bill) {
+    const isEMI = bill.category === 'EMI or loan';
+    const label = isEMI ? 'EMI' : 'Bill';
+
+    if (bill.status === 'paid' || bill.paidDate) {
+      return {
+        ...notif,
+        title: `${label} Paid & Completed`,
+        description: `${bill.title} payment of ₹${bill.amount} was completed.`,
+        severity: 'info',
+        isPaid: true,
+        isOverdue: false
+      };
+    }
+    const dueDate = toISODate(bill.dueDate);
+    const daysDiff = diffInDays(today, dueDate); // positive = future, negative = past
+
+    if (daysDiff < 0) {
+      const days = Math.abs(daysDiff);
+      return {
+        ...notif,
+        title: `${label} Overdue by ${days} Day${days > 1 ? 's' : ''}`,
+        description: `${bill.title} of ₹${bill.amount} was due on ${bill.dueDate}. Settle immediately to avoid penalty.`,
+        severity: 'critical',
+        isOverdue: true,
+        overdueDays: days
+      };
+    } else if (daysDiff === 0) {
+      return {
+        ...notif,
+        title: `${label} Due Today`,
+        description: `${bill.title} of ₹${bill.amount} is due today.`,
+        severity: 'critical',
+        isDueToday: true,
+        isOverdue: false
+      };
+    } else if (daysDiff <= 3) {
+      return {
+        ...notif,
+        title: `${label} Due in ${daysDiff} Day${daysDiff > 1 ? 's' : ''}`,
+        description: `${bill.title} of ₹${bill.amount} is due on ${bill.dueDate}. Auto-debit will trigger.`,
+        severity: 'warning',
+        isOverdue: false
+      };
+    } else {
+      return {
+        ...notif,
+        title: `${label} Due in ${daysDiff} Days`,
+        description: `${bill.title} of ₹${bill.amount} is due on ${bill.dueDate}.`,
+        severity: 'info',
+        isOverdue: false
+      };
     }
   }
 
   // Income notification
-  if (notif.relatedRecord && String(notif.relatedRecord).startsWith('inc_')) {
-    const inc = incomes.find(i => i.id === notif.relatedRecord);
-    if (inc) {
-      if (inc.status === 'received' || inc.actualDate) {
-        return {
-          ...notif,
-          title: 'Income Received',
-          description: `${inc.title} of ₹${inc.amount} received on ${inc.actualDate || inc.expectedDate}.`,
-          severity: 'info'
-        };
-      }
-      const expDate = toISODate(inc.expectedDate);
-      const daysDiff = diffInDays(today, expDate);
-      if (daysDiff < 0) {
-        const days = Math.abs(daysDiff);
-        return {
-          ...notif,
-          title: `Income Overdue by ${days} Day${days > 1 ? 's' : ''}`,
-          description: `${inc.title} (₹${inc.amount}) was expected on ${inc.expectedDate}. Follow up with client.`,
-          severity: 'warning'
-        };
-      } else if (daysDiff === 0) {
-        return {
-          ...notif,
-          title: 'Payout Expected Today',
-          description: `${inc.title} (₹${inc.amount}) is expected today.`,
-          severity: 'info'
-        };
-      } else {
-        return {
-          ...notif,
-          title: 'Confirmed Invoice Approaching',
-          description: `${inc.title} (₹${inc.amount}) expected on ${inc.expectedDate}. Track in Delay Simulator.`,
-          severity: 'info'
-        };
-      }
+  const inc = (recId && incomes.find(i => i.id === recId)) ||
+    incomes.find(i => notif.title?.includes(i.title) || notif.description?.includes(i.title));
+
+  if (inc) {
+    if (inc.status === 'received' || inc.actualDate) {
+      return {
+        ...notif,
+        title: 'Income Received',
+        description: `${inc.title} of ₹${inc.amount} received on ${inc.actualDate || inc.expectedDate}.`,
+        severity: 'info',
+        isReceived: true,
+        isOverdue: false
+      };
+    }
+    const expectedDate = toISODate(inc.expectedDate);
+    const daysDiff = diffInDays(today, expectedDate);
+
+    if (daysDiff < 0) {
+      const days = Math.abs(daysDiff);
+      return {
+        ...notif,
+        title: `Income Overdue by ${days} Day${days > 1 ? 's' : ''}`,
+        description: `${inc.title} of ₹${inc.amount} was expected on ${inc.expectedDate}. Check status with client.`,
+        severity: 'warning',
+        isOverdue: true,
+        overdueDays: days
+      };
+    } else {
+      return {
+        ...notif,
+        title: 'Confirmed Invoice Approaching',
+        description: `${inc.title} (₹${inc.amount}) expected on ${inc.expectedDate}. Track in Delay Simulator.`,
+        severity: 'info'
+      };
     }
   }
 
