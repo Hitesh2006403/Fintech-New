@@ -1,0 +1,41 @@
+{
+  "name": "my-react-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "fuser -k 5173/tcp 2>/dev/null || true; vite",
+    "backend": "node backend/server.js",
+    "server": "node backend/server.js",
+    "start": "node backend/server.js",
+    "migrate": "node backend/scripts/migrate_json_to_supabase.js",
+    "build": "vite build",
+    "test": "node --test src/services/financialEngine.test.js && node --test test_admin_suite.js && node --test test_oauth_suite.js && node --test test_unified_routing_suite.js && node --test test_password_recovery_suite.js && node --test test_navigation_flow_suite.js && node --test test_guest_and_prototype_suite.js && node --test test_auth_resilience_suite.js",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "google-auth-library": "^11.3.1",
+    "lucide-react": "^1.59.0",
+    "nodemailer": "^10.2.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-router-dom": "^7.18.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "^10.10.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.5.6",
+    "globals": "^17.12.0",
+    "vite": "^8.3.0"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "name": "finsight-backend",
+  "version": "1.0.0",
+  "description": "FinSight Express Backend API Service",
+  "private": true,
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "migrate": "node scripts/migrate_json_to_supabase.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.8",
+    "express": "^5.3.0",
+    "google-auth-library": "^11.3.1",
+    "nodemailer": "^10.2.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
