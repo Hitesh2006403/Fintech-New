@@ -31,16 +31,13 @@ const API_BASE = resolveApiBase('auth');
  * 1. Change IS_PASSWORD_RECOVERY_DISABLED to false below, OR
  * 2. Set VITE_ENABLE_PASSWORD_RECOVERY=true in .env
  */
-export const IS_PASSWORD_RECOVERY_DISABLED =
-  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ENABLE_PASSWORD_RECOVERY === 'true')
-    ? false
-    : true;
+export const IS_PASSWORD_RECOVERY_DISABLED = false;
 
 export function isPasswordRecoveryDisabled() {
   if (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ENABLE_PASSWORD_RECOVERY !== undefined) {
-    return import.meta.env.VITE_ENABLE_PASSWORD_RECOVERY !== 'true';
+    return import.meta.env.VITE_ENABLE_PASSWORD_RECOVERY === 'false';
   }
-  return IS_PASSWORD_RECOVERY_DISABLED;
+  return false;
 }
 
 /**

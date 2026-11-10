@@ -675,26 +675,41 @@ export const db = {
     if (!email) return null;
     const normalized = email.toLowerCase().trim();
     sessions = readJSON(SESSIONS_FILE, sessions);
-    const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = Date.now() + 60 * 60 * 1000; // 1 hour
 
-    sessions[`recovery_${token}`] = {
+    // 1. Invalidate any existing outstanding tokens for this email
+    Object.keys(sessions).forEach(key => {
+      if (key.startsWith('recovery_') && sessions[key]?.email === normalized) {
+        sessions[key].used = true;
+      }
+    });
+
+    // 2. Generate secure random token and compute its SHA-256 hash for storage
+    const rawToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+    const expiresAt = Date.now() + 15 * 60 * 1000; // 15-minute security lifetime
+
+    // 3. Store ONLY the SHA-256 hash on disk
+    sessions[`recovery_${tokenHash}`] = {
       type: 'recovery',
       email: normalized,
-      token,
+      tokenHash,
       createdAt: Date.now(),
       expiresAt,
       used: false
     };
 
     writeJSON(SESSIONS_FILE, sessions);
-    return { token, expiresAt };
+    return { token: rawToken, expiresAt };
   },
 
   verifyPasswordRecoveryToken(token, email = null) {
     if (!token) return { valid: false, error: 'Recovery token is required' };
     sessions = readJSON(SESSIONS_FILE, sessions);
-    const record = sessions[`recovery_${token}`];
+
+    // Check hashed lookup first, with backward-compatible raw lookup fallback
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const record = sessions[`recovery_${tokenHash}`] || sessions[`recovery_${token}`];
+
     if (!record || record.type !== 'recovery') {
       return { valid: false, error: 'Invalid or unrecognized recovery token' };
     }
@@ -702,7 +717,7 @@ export const db = {
       return { valid: false, error: 'This recovery link has already been used. Please request a new one.' };
     }
     if (Date.now() > record.expiresAt) {
-      return { valid: false, error: 'This recovery link has expired. Please request a new one.' };
+      return { valid: false, error: 'This recovery link has expired (15-minute limit). Please request a new one.' };
     }
     if (email && record.email !== email.toLowerCase().trim()) {
       return { valid: false, error: 'Email does not match recovery session.' };
@@ -713,7 +728,8 @@ export const db = {
   consumePasswordRecoveryToken(token) {
     if (!token) return false;
     sessions = readJSON(SESSIONS_FILE, sessions);
-    const record = sessions[`recovery_${token}`];
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+    const record = sessions[`recovery_${tokenHash}`] || sessions[`recovery_${token}`];
     if (record) {
       record.used = true;
       writeJSON(SESSIONS_FILE, sessions);

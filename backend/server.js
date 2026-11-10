@@ -18,7 +18,7 @@ import {
   supabaseUrl,
   testSupabaseCloudConnection
 } from './supabase.js';
-import { sendPasswordRecoveryEmail, isPasswordRecoveryEnabled } from './emailService.js';
+import { isPasswordRecoveryEnabled, sendPasswordRecoveryEmail } from './emailService.js';
 import {
   calculateCurrentBalance,
   calculateSafeToSpend,
@@ -500,80 +500,71 @@ app.get('/api/auth/password-recovery-status', (req, res) => {
   });
 });
 
-// 7b. Password Recovery - Request Reset Link
+// Rate limiting map for forgot-password
+const recoveryRateLimitMap = new Map();
+
+// 7b. Password Recovery - Request Reset Link (Resend Integration)
 app.post('/api/auth/forgot-password', async (req, res) => {
   try {
-    // 1. Backend-Enforced Feature Flag (5-Day Maintenance Disablement)
-    if (!isPasswordRecoveryEnabled()) {
-      const email = typeof req.body?.email === 'string' ? req.body.email.trim().toLowerCase() : 'unspecified';
-      db.addSecurityLog({
-        event: 'Password Recovery Attempt Blocked',
-        details: `Password recovery submission blocked (temporarily disabled for maintenance) for ${email}`,
-        actor: email,
-        ip: req.ip || '127.0.0.1',
-        status: 'blocked',
-        severity: 'info'
-      });
-      return res.status(503).json({
-        success: false,
-        disabled: true,
-        error: 'Password recovery is temporarily unavailable. Please try again later.',
-        message: 'Password recovery is temporarily unavailable. Please try again later.'
-      });
-    }
-
-    const { email, redirectTo } = req.body;
+    const { email } = req.body;
     if (!email || typeof email !== 'string') {
-      return res.status(400).json({ error: 'Email address is required.' });
+      return res.status(400).json({ error: 'Valid email address is required.' });
     }
 
-    const trimmedEmail = email.trim();
+    const normalizedEmail = email.toLowerCase().trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
+    if (!emailRegex.test(normalizedEmail)) {
       return res.status(400).json({ error: 'Please enter a valid email address format.' });
     }
 
-    const normalizedEmail = trimmedEmail.toLowerCase();
-    const targetRedirect = redirectTo || `${APP_ORIGIN}/update-password`;
+    // Rate Limiting Protection (Max 5 requests per 5 minutes per email/IP)
+    const rateLimitKey = `${req.ip || '127.0.0.1'}_${normalizedEmail}`;
+    const now = Date.now();
+    const rateRecord = recoveryRateLimitMap.get(rateLimitKey) || { count: 0, resetAt: now + 5 * 60 * 1000 };
 
-    // 1. Direct Email Delivery via Nodemailer (Guarantees delivery from sender to recipient)
+    if (now > rateRecord.resetAt) {
+      rateRecord.count = 0;
+      rateRecord.resetAt = now + 5 * 60 * 1000;
+    }
+
+    if (rateRecord.count >= 5) {
+      return res.status(429).json({
+        error: 'Too many recovery requests. Please wait a few minutes before trying again.'
+      });
+    }
+
+    rateRecord.count += 1;
+    recoveryRateLimitMap.set(rateLimitKey, rateRecord);
+
+    // Look up user (Enumeration-protected: always return identical generic success)
     const existingUser = db.getUserByEmail(normalizedEmail);
-    const recoveryData = db.createPasswordRecoveryToken(normalizedEmail);
-    if (recoveryData?.token) {
-      const directRecoveryLink = `${targetRedirect}?token=${recoveryData.token}&email=${encodeURIComponent(normalizedEmail)}`;
+
+    if (existingUser) {
+      const { token } = db.createPasswordRecoveryToken(normalizedEmail);
+      const frontendBase = process.env.FRONTEND_URL || APP_ORIGIN || 'http://localhost:5173';
+      const recoveryLink = `${frontendBase}/update-password?token=${token}&email=${encodeURIComponent(normalizedEmail)}`;
+
       try {
         await sendPasswordRecoveryEmail({
           toEmail: normalizedEmail,
-          recoveryLink: directRecoveryLink,
-          recipientName: existingUser?.name || 'FinSight User'
+          recoveryLink,
+          recipientName: existingUser.name || 'FinSight User'
         });
       } catch (mailErr) {
-        console.warn('[Direct Mailer Error]:', mailErr.message);
+        console.error('[Recovery Mailer Error]:', mailErr.message);
       }
     }
 
-    // 2. Also trigger Supabase Auth recovery if configured
-    if (isSupabaseConfigured && supabase) {
-      try {
-        await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-          redirectTo: targetRedirect
-        });
-      } catch (sbErr) {
-        console.warn('[Supabase Auth recovery notice]:', sbErr.message);
-      }
-    }
-
-    // Record security audit log
     db.addSecurityLog({
       event: 'Password Recovery Requested',
-      details: `Password recovery request initiated for ${normalizedEmail}`,
+      details: `Password recovery requested for ${normalizedEmail}`,
       actor: normalizedEmail,
       ip: req.ip || '127.0.0.1',
       status: 'success',
       severity: 'info'
     });
 
-    // Generic response: do not reveal whether an account exists
+    // Consistent response whether user exists or not (Zero email enumeration)
     return res.json({
       success: true,
       message: 'If an account exists for this email address, a password recovery link will be sent.'

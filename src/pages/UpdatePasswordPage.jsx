@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import {
   Lock,
@@ -16,16 +16,80 @@ import { Background3D } from '../components/common/Background3D.jsx';
 import { supabase, isSupabaseConfigured } from '../services/supabaseClient.js';
 import { authService } from '../services/authService.js';
 
+function extractRecoveryDataFromUrl() {
+  if (typeof window === 'undefined') return { token: null, email: '', isReady: false, error: null };
+  try {
+    const hash = window.location.hash || '';
+    const search = window.location.search || '';
+
+    // Check for error in hash or search query
+    if (hash.includes('error=') || search.includes('error=')) {
+      const params = new URLSearchParams(hash.replace(/^#/, '') || search.replace(/^\?/, ''));
+      const desc = params.get('error_description') || params.get('error') || 'Recovery link has expired or is invalid.';
+      return { token: null, email: '', isReady: false, error: decodeURIComponent(desc.replace(/\+/g, ' ')) };
+    }
+
+    // Direct token in query parameters (?token=...&email=...)
+    if (search.includes('token=')) {
+      const queryParams = new URLSearchParams(search);
+      const token = queryParams.get('token');
+      const email = queryParams.get('email');
+      if (token) {
+        return {
+          token,
+          email: email ? decodeURIComponent(email) : '',
+          isReady: true,
+          error: null
+        };
+      }
+    }
+
+    // Direct token in hash (#access_token=...&type=recovery)
+    if (hash.includes('access_token=')) {
+      const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
+      const token = hashParams.get('access_token');
+      const type = hashParams.get('type');
+      if (token && (type === 'recovery' || !type)) {
+        return {
+          token,
+          email: '',
+          isReady: true,
+          error: null
+        };
+      }
+    }
+  } catch (err) {
+    console.warn('Error reading recovery parameters:', err);
+  }
+
+  return { token: null, email: '', isReady: false, error: null };
+}
+
 export function UpdatePasswordPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  // Extract tokens immediately during render to eliminate race conditions and spinner lag
+  const initialParams = useMemo(() => extractRecoveryDataFromUrl(), []);
+
   // Verification & Form State
   // status: 'verifying' | 'ready' | 'success' | 'invalid'
-  const [status, setStatus] = useState('verifying');
-  const [errorMessage, setErrorMessage] = useState(null);
-  const [recoveryEmail, setRecoveryEmail] = useState('');
-  const [recoveryToken, setRecoveryToken] = useState(null);
+  const [status, setStatus] = useState(() => {
+    if (initialParams.error) return 'invalid';
+    if (initialParams.isReady) return 'ready';
+    return 'verifying';
+  });
+  const [errorMessage, setErrorMessage] = useState(() => initialParams.error || null);
+  const [recoveryEmail, setRecoveryEmail] = useState(() => initialParams.email);
+  const [recoveryToken, setRecoveryToken] = useState(() => initialParams.token);
+
+  // Keep a persistent ref to the recovery token to ensure it survives StrictMode remounts and re-renders
+  const tokenRef = useRef(initialParams.token);
+  useEffect(() => {
+    if (recoveryToken) {
+      tokenRef.current = recoveryToken;
+    }
+  }, [recoveryToken]);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -33,6 +97,16 @@ export function UpdatePasswordPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState(null);
+
+  const cleanUrl = () => {
+    try {
+      if (typeof window !== 'undefined' && window.history?.replaceState) {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    } catch (e) {
+      // Safe fallback
+    }
+  };
 
   // Password strength calculation
   const getPasswordStrength = (pass) => {
@@ -53,41 +127,17 @@ export function UpdatePasswordPage() {
   const passwordsMatch = Boolean(password && confirmPassword && password === confirmPassword);
   const passwordMismatch = Boolean(confirmPassword && password !== confirmPassword);
 
-  // 1. Process Recovery Token from URL hash, search params, or Supabase Auth session
+  // 1. Process Async Recovery Token if not already resolved synchronously
   useEffect(() => {
+    if (initialParams.isReady) {
+      return;
+    }
+
     let authSubscription = null;
     let isCancelled = false;
 
     async function processRecoveryFlow() {
-      // Check for error in hash or search query
-      const hash = window.location.hash || '';
       const search = window.location.search || '';
-
-      if (hash.includes('error=') || search.includes('error=')) {
-        const params = new URLSearchParams(hash.replace(/^#/, '') || search.replace(/^\?/, ''));
-        const desc = params.get('error_description') || params.get('error') || 'Recovery link has expired or is invalid.';
-        if (!isCancelled) {
-          setErrorMessage(decodeURIComponent(desc.replace(/\+/g, ' ')));
-          setStatus('invalid');
-        }
-        return;
-      }
-
-      // Check for direct recovery token in query string (?token=...&email=...)
-      if (search.includes('token=')) {
-        const queryParams = new URLSearchParams(search);
-        const token = queryParams.get('token');
-        const email = queryParams.get('email');
-        if (token) {
-          if (!isCancelled) {
-            setRecoveryToken(token);
-            if (email) setRecoveryEmail(decodeURIComponent(email));
-            setStatus('ready');
-            cleanUrl();
-          }
-          return;
-        }
-      }
 
       // Check for PKCE code in query string
       if (search.includes('code=') && isSupabaseConfigured && supabase) {
@@ -99,9 +149,9 @@ export function UpdatePasswordPage() {
             if (!error && data?.session) {
               if (!isCancelled) {
                 setRecoveryToken(data.session.access_token);
+                tokenRef.current = data.session.access_token;
                 setRecoveryEmail(data.session.user?.email || '');
                 setStatus('ready');
-                cleanUrl();
               }
               return;
             }
@@ -118,9 +168,9 @@ export function UpdatePasswordPage() {
 
           if (event === 'PASSWORD_RECOVERY' || (session && session.user)) {
             setRecoveryToken(session?.access_token || null);
+            tokenRef.current = session?.access_token || null;
             setRecoveryEmail(session?.user?.email || '');
             setStatus('ready');
-            cleanUrl();
           }
         });
         authSubscription = sub?.subscription;
@@ -131,9 +181,9 @@ export function UpdatePasswordPage() {
           if (!error && session?.user) {
             if (!isCancelled) {
               setRecoveryToken(session.access_token);
+              tokenRef.current = session.access_token;
               setRecoveryEmail(session.user.email || '');
               setStatus('ready');
-              cleanUrl();
               return;
             }
           }
@@ -142,40 +192,16 @@ export function UpdatePasswordPage() {
         }
       }
 
-      // Check direct hash parameters (implicit recovery flow: #access_token=...&type=recovery)
-      if (hash.includes('access_token=')) {
-        const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
-        const token = hashParams.get('access_token');
-        const type = hashParams.get('type');
-
-        if (token && (type === 'recovery' || !type)) {
-          if (!isCancelled) {
-            setRecoveryToken(token);
-            setStatus('ready');
-            cleanUrl();
-          }
-          return;
-        }
-      }
-
       // If no valid tokens after short delay, transition out of verifying state
       setTimeout(() => {
-        if (!isCancelled && status === 'verifying') {
-          // If already set to ready, do not overwrite
-          setStatus(prev => (prev === 'verifying' ? 'invalid' : prev));
-          setErrorMessage('No valid password recovery token was found. Your recovery link may have expired or already been used.');
+        if (!isCancelled) {
+          setStatus(prev => {
+            if (prev === 'ready' || prev === 'success') return prev;
+            setErrorMessage('No valid password recovery token was found. Your recovery link may have expired or already been used.');
+            return 'invalid';
+          });
         }
-      }, 2000);
-    }
-
-    function cleanUrl() {
-      try {
-        if (typeof window !== 'undefined' && window.history?.replaceState) {
-          window.history.replaceState(null, '', window.location.pathname);
-        }
-      } catch (e) {
-        // Safe fallback
-      }
+      }, 1500);
     }
 
     processRecoveryFlow();
@@ -186,12 +212,18 @@ export function UpdatePasswordPage() {
         authSubscription.unsubscribe();
       }
     };
-  }, []);
+  }, [initialParams.isReady]);
 
   // 2. Handle New Password Submission
   const handleSubmitNewPassword = async (e) => {
     e.preventDefault();
     setSubmitError(null);
+
+    const activeToken = recoveryToken || tokenRef.current;
+    if (!activeToken) {
+      setSubmitError('Recovery token is missing or has expired. Please request a new recovery link.');
+      return;
+    }
 
     if (!password || password.length < 8) {
       setSubmitError('Password must be at least 8 characters long.');
@@ -209,10 +241,12 @@ export function UpdatePasswordPage() {
       await authService.updatePassword({
         password,
         email: recoveryEmail,
-        recoveryToken
+        recoveryToken: activeToken
       });
 
       setStatus('success');
+      // Clean token from browser URL only after successful password update
+      cleanUrl();
     } catch (err) {
       console.error('Password update failure:', err);
       setSubmitError(err.message || 'Failed to update password. Your recovery link may have expired. Please request a new link.');
