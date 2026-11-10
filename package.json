@@ -10,7 +10,7 @@
     "start": "node backend/server.js",
     "migrate": "node backend/scripts/migrate_json_to_supabase.js",
     "build": "vite build",
-    "test": "node --test src/services/financialEngine.test.js && node --test test_admin_suite.js && node --test test_oauth_suite.js && node --test test_unified_routing_suite.js && node --test test_password_recovery_suite.js && node --test test_navigation_flow_suite.js && node --test test_guest_and_prototype_suite.js && node --test test_auth_resilience_suite.js",
+    "test": "node --test src/services/financialEngine.test.js && node --test test_admin_suite.js && node --test test_oauth_suite.js && node --test test_unified_routing_suite.js && node --test test_password_recovery_suite.js && node --test test_navigation_flow_suite.js && node --test test_guest_and_prototype_suite.js && node --test test_auth_resilience_suite.js && node --test test_e2e_workflow.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../context/AppContext.jsx';
-import { formatINR, toISODate } from '../services/financialEngine.js';
+import { formatINR } from '../services/financialEngine.js';
+import { classifyIncomeStatus, getCurrentLocalDate, toISODate } from '../services/dateService.js';
 import {
   TrendingUp,
   Plus,
@@ -12,7 +13,8 @@ import {
   Trash2,
   Edit3,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle
 } from 'lucide-react';
 
 export function IncomeManagement() {
@@ -26,28 +28,34 @@ export function IncomeManagement() {
   const [receiveDate, setReceiveDate] = useState(toISODate(new Date()));
 
   const safeIncomes = Array.isArray(incomes) ? incomes : [];
+  const today = getCurrentLocalDate();
 
-  // Summary Metrics
+  // Summary Metrics using dynamic classification
   const totalReceived = safeIncomes
-    .filter(i => i && i.status === 'received')
+    .filter(i => i && (i.status === 'received' || i.actualDate))
     .reduce((s, i) => s + Number(i.amount || 0), 0);
 
   const totalConfirmed = safeIncomes
-    .filter(i => i && i.status === 'confirmed')
+    .filter(i => i && classifyIncomeStatus(i, today) === 'confirmed')
+    .reduce((s, i) => s + Number(i.amount || 0), 0);
+
+  const totalOverdue = safeIncomes
+    .filter(i => i && classifyIncomeStatus(i, today) === 'overdue')
     .reduce((s, i) => s + Number(i.amount || 0), 0);
 
   const totalUncertain = safeIncomes
-    .filter(i => i && i.status === 'uncertain')
+    .filter(i => i && classifyIncomeStatus(i, today) === 'uncertain')
     .reduce((s, i) => s + Number(i.amount || 0), 0);
 
-  const totalPipeline = totalReceived + totalConfirmed + totalUncertain;
+  const totalPipeline = totalReceived + totalConfirmed + totalOverdue + totalUncertain;
 
   // Filtered List
   const filteredIncomes = safeIncomes.filter(inc => {
     if (!inc) return false;
     const matchesSearch = (inc.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (inc.source && inc.source.toLowerCase().includes(searchQuery.toLowerCase()));
-    const matchesStatus = statusFilter === 'all' || inc.status === statusFilter;
+    const opStatus = classifyIncomeStatus(inc, today);
+    const matchesStatus = statusFilter === 'all' || opStatus === statusFilter || inc.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
 
@@ -158,7 +166,8 @@ export function IncomeManagement() {
           {[
             { id: 'all', label: 'All Streams' },
             { id: 'received', label: 'Received' },
-            { id: 'confirmed', label: 'Confirmed' },
+            { id: 'confirmed', label: 'Confirmed (Future)' },
+            { id: 'overdue', label: `Overdue (${safeIncomes.filter(i => classifyIncomeStatus(i, today) === 'overdue').length})` },
             { id: 'uncertain', label: 'Uncertain' }
           ].map(tab => (
             <button
@@ -225,20 +234,27 @@ export function IncomeManagement() {
                     </td>
 
                     <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
-                      {inc.status === 'received' ? (
+                      {classifyIncomeStatus(inc, today) === 'received' ? (
                         <span>Received {inc.actualDate || inc.expectedDate}</span>
+                      ) : classifyIncomeStatus(inc, today) === 'overdue' ? (
+                        <span style={{ color: '#F87171', fontWeight: 600 }}>Expected {inc.expectedDate} (Past Due)</span>
                       ) : (
                         <span>Expected {inc.expectedDate}</span>
                       )}
                     </td>
 
                     <td>
-                      {inc.status === 'received' ? (
+                      {classifyIncomeStatus(inc, today) === 'received' ? (
                         <span className="badge badge-success">
                           <CheckCircle2 size={12} />
                           <span>Received</span>
                         </span>
-                      ) : inc.status === 'confirmed' ? (
+                      ) : classifyIncomeStatus(inc, today) === 'overdue' ? (
+                        <span className="badge badge-danger">
+                          <AlertTriangle size={12} />
+                          <span>Overdue</span>
+                        </span>
+                      ) : classifyIncomeStatus(inc, today) === 'confirmed' ? (
                         <span className="badge badge-purple">
                           <Clock size={12} />
                           <span>Confirmed</span>

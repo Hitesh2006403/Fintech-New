@@ -19,6 +19,15 @@ import {
   testSupabaseCloudConnection
 } from './supabase.js';
 import { sendPasswordRecoveryEmail, isPasswordRecoveryEnabled } from './emailService.js';
+import {
+  calculateCurrentBalance,
+  calculateSafeToSpend,
+  generateCashFlowForecast,
+  rankBills,
+  calculateLeanWeekSavings,
+  generateDashboardInsights,
+  getCurrentLocalDate
+} from './financialService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -597,8 +606,10 @@ app.post('/api/auth/update-password', async (req, res) => {
 });
 
 // 8. Health and Configuration Diagnostic
+const DEFAULT_GOOGLE_CLIENT_ID = '261321779368-ruajq5gea9jtv1lkrqqa2cupa6jsim9a.apps.googleusercontent.com';
+
 app.get('/api/health', (req, res) => {
-  const effectiveClientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || '';
+  const effectiveClientId = process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID;
   const adminEmailConfigured = Boolean(process.env.ADMIN_EMAIL && process.env.ADMIN_EMAIL.trim());
   return res.json({
     status: 'healthy',
@@ -975,6 +986,119 @@ app.get('/api/financials', requireAuth, (req, res) => {
   res.json({ success: true, data });
 });
 
+// Centralized Financial Calculations API Endpoint
+app.get('/api/financials/calculations', requireAuth, (req, res) => {
+  const data = db.getUserFinancials(req.user.id);
+  const prefs = data.preferences || {};
+  const incomes = data.incomes || [];
+  const expenses = data.expenses || [];
+  const savings = data.leanSavings || {};
+
+  const balanceDetails = calculateCurrentBalance(
+    prefs.startingBalance ?? 45000,
+    incomes,
+    expenses,
+    savings.currentDesignatedReserve ?? 0
+  );
+
+  const safeToSpend = calculateSafeToSpend({
+    availableCash: balanceDetails.availableCash,
+    incomes,
+    expenses,
+    safetyBuffer: prefs.safetyBuffer ?? 25000,
+    horizonDays: prefs.defaultHorizonDays ?? 30,
+    scenario: prefs.defaultScenario ?? 'expected'
+  });
+
+  const forecast = generateCashFlowForecast({
+    availableCash: balanceDetails.availableCash,
+    incomes,
+    expenses,
+    safetyBuffer: prefs.safetyBuffer ?? 25000,
+    days: 30,
+    scenario: 'expected'
+  });
+
+  const billRanking = rankBills(expenses, balanceDetails.availableCash);
+  const leanWeekCalculations = calculateLeanWeekSavings(savings);
+  const dashboardInsights = generateDashboardInsights({
+    availableCash: balanceDetails.availableCash,
+    safetyBuffer: prefs.safetyBuffer ?? 25000,
+    incomes,
+    expenses,
+    forecast: forecast.forecast,
+    firstLowBufferDate: forecast.firstLowBufferDate,
+    firstNegativeDate: forecast.firstNegativeDate
+  });
+
+  res.json({
+    success: true,
+    data: {
+      balanceDetails,
+      safeToSpend,
+      forecast,
+      billRanking,
+      leanWeekCalculations,
+      dashboardInsights
+    }
+  });
+});
+
+// Centralized Cash Flow Forecast API Endpoint
+app.get('/api/forecast', requireAuth, (req, res) => {
+  const data = db.getUserFinancials(req.user.id);
+  const days = Number(req.query.days || 30);
+  const scenario = req.query.scenario || 'expected';
+  const startDate = req.query.startDate || getCurrentLocalDate();
+
+  const balanceDetails = calculateCurrentBalance(
+    data.preferences?.startingBalance ?? 45000,
+    data.incomes,
+    data.expenses,
+    data.leanSavings?.currentDesignatedReserve ?? 0
+  );
+
+  const result = generateCashFlowForecast({
+    availableCash: balanceDetails.availableCash,
+    incomes: data.incomes,
+    expenses: data.expenses,
+    safetyBuffer: data.preferences?.safetyBuffer ?? 25000,
+    days,
+    startDateStr: startDate,
+    scenario
+  });
+
+  res.json({ success: true, ...result });
+});
+
+// Centralized Safe-to-Spend API Endpoint
+app.get('/api/safe-to-spend', requireAuth, (req, res) => {
+  const data = db.getUserFinancials(req.user.id);
+  const horizonDays = Number(req.query.horizonDays || data.preferences?.defaultHorizonDays || 30);
+  const safetyBuffer = Number(req.query.safetyBuffer || data.preferences?.safetyBuffer || 25000);
+  const scenario = req.query.scenario || data.preferences?.defaultScenario || 'conservative';
+  const includeDiscretionary = req.query.includeDiscretionary !== 'false';
+
+  const balanceDetails = calculateCurrentBalance(
+    data.preferences?.startingBalance ?? 45000,
+    data.incomes,
+    data.expenses,
+    data.leanSavings?.currentDesignatedReserve ?? 0
+  );
+
+  const result = calculateSafeToSpend({
+    availableCash: balanceDetails.availableCash,
+    incomes: data.incomes,
+    expenses: data.expenses,
+    safetyBuffer,
+    horizonDays,
+    scenario,
+    includeDiscretionary
+  });
+
+  res.json({ success: true, ...result });
+});
+
 // 2. Update user planning preferences
 app.put('/api/preferences', requireAuth, (req, res) => {
   const updated = db.updateUserPreferences(req.user.id, req.body);
@@ -1101,7 +1225,7 @@ if (!process.env.VERCEL && isMainModule) {
   app.listen(PORT, () => {
     console.log(`[FinSight Auth Server] Running on http://localhost:${PORT}`);
     console.log(`[FinSight Auth Server] Authorized origin: ${APP_ORIGIN}`);
-    console.log(`[FinSight Auth Server] Google Client ID loaded: ${process.env.GOOGLE_CLIENT_ID ? 'YES' : 'NO'}`);
+    console.log(`[FinSight Auth Server] Google Client ID loaded: ${(process.env.GOOGLE_CLIENT_ID || process.env.VITE_GOOGLE_CLIENT_ID || DEFAULT_GOOGLE_CLIENT_ID) ? 'YES' : 'NO'}`);
     console.log(`[FinSight Auth Server] Supabase Cloud configured: ${isSupabaseConfigured ? 'YES (' + supabaseUrl + ')' : 'NO (Local JSON mode)'}`);
   });
 }

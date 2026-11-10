@@ -7,7 +7,7 @@ const AdminContext = createContext(null);
 const AUTHORIZED_ADMIN_EMAILS = ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'];
 
 export function AdminProvider({ children }) {
-  const appContext = useApp ? useApp() : null;
+  const appContext = useApp();
   const contextUser = appContext?.user;
 
   const isUserAdmin = Boolean(

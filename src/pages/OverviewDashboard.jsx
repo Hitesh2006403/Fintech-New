@@ -1,6 +1,7 @@
 import React from 'react';
 import { useApp } from '../context/AppContext.jsx';
 import { formatINR } from '../services/financialEngine.js';
+import { getCurrentLocalDate, toISODate } from '../services/dateService.js';
 import { CashFlowChart } from '../components/charts/CashFlowChart.jsx';
 import {
   Wallet,
@@ -41,17 +42,25 @@ export function OverviewDashboard() {
   const safeInsights = dashboardInsights || { alerts: [], primaryInsight: null };
 
   const hasRecords = safeIncomes.length > 0 || safeExpenses.length > 0;
+  const today = getCurrentLocalDate();
 
-  // Unpaid bills up to 5
+  // Overdue bills: unpaid with due date strictly earlier than today's local date
+  const overdueBills = safeExpenses
+    .filter(e => e && e.status !== 'paid' && !e.paidDate && toISODate(e.dueDate) < today)
+    .sort((a, b) => (a?.dueDate || '').localeCompare(b?.dueDate || ''));
+
+  // Upcoming bills: unpaid with due date equal to or after today's local date (overdue strictly excluded!)
   const upcomingBills = safeExpenses
-    .filter(e => e && e.status !== 'paid')
+    .filter(e => e && e.status !== 'paid' && !e.paidDate && toISODate(e.dueDate) >= today)
     .sort((a, b) => (a?.dueDate || '').localeCompare(b?.dueDate || ''))
     .slice(0, 5);
 
+  const totalOverdueAmount = overdueBills.reduce((sum, b) => sum + Number(b.amount || 0), 0);
+
   // Combined recent activity (last 5 transactions)
   const recentTransactions = [
-    ...safeIncomes.filter(i => i && i.status === 'received').map(i => ({
-      id: i.id || `inc_${Math.random()}`,
+    ...safeIncomes.filter(i => i && i.status === 'received').map((i, idx) => ({
+      id: i.id || `inc_${idx}`,
       title: i.title || 'Income Received',
       category: i.source || 'Client Payout',
       date: i.actualDate || i.expectedDate || 'Cleared',
@@ -59,8 +68,8 @@ export function OverviewDashboard() {
       type: 'income',
       status: 'Received'
     })),
-    ...safeExpenses.map(e => ({
-      id: e.id || `exp_${Math.random()}`,
+    ...safeExpenses.map((e, idx) => ({
+      id: e.id || `exp_${idx}`,
       title: e.title || 'Expense',
       category: e.category || 'General',
       date: e.paidDate || e.dueDate || 'Committed',
@@ -339,10 +348,62 @@ export function OverviewDashboard() {
           />
         </div>
 
-        {/* Right Column: Upcoming Bills & High Priority Alerts */}
+        {/* Right Column: Overdue Liabilities, Upcoming Bills & High Priority Alerts */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           
-          {/* Upcoming Bills (Max 5) */}
+          {/* Overdue Bills Card (Highlighted when overdue liabilities exist) */}
+          {overdueBills.length > 0 && (
+            <div className="card" style={{ border: '1px solid rgba(239, 68, 68, 0.35)', background: 'rgba(239, 68, 68, 0.08)' }}>
+              <div className="card-header-flex" style={{ marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <AlertTriangle size={16} color="#EF4444" />
+                  <h3 className="card-title-h3" style={{ fontSize: 14.5, color: '#FCA5A5' }}>
+                    Overdue Bills ({overdueBills.length})
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                  onClick={() => setActiveRoute('expenses')}
+                >
+                  Pay Now ({formatINR(totalOverdueAmount)})
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {overdueBills.slice(0, 3).map(bill => (
+                  <div
+                    key={bill.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '9px 12px',
+                      background: 'rgba(15, 23, 42, 0.85)',
+                      borderRadius: 8,
+                      border: '1px solid rgba(239, 68, 68, 0.25)'
+                    }}
+                  >
+                    <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {bill.title}
+                      </div>
+                      <div style={{ fontSize: 11, color: '#F87171', marginTop: 1 }}>
+                        Due {bill.dueDate} (Past Due)
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: '#EF4444', fontFeatureSettings: 'tnum' }}>
+                        {formatINR(bill.amount)}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Upcoming Bills (Strictly future/due-today bills) */}
           <div className="card">
             <div className="card-header-flex" style={{ marginBottom: 14 }}>
               <h3 className="card-title-h3" style={{ fontSize: 15 }}>Upcoming Bills</h3>
@@ -351,12 +412,12 @@ export function OverviewDashboard() {
                 style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                 onClick={() => setActiveRoute('expenses')}
               >
-                View all ({safeExpenses.filter(e => e && e.status !== 'paid').length})
+                View all ({safeExpenses.filter(e => e && e.status !== 'paid' && !e.paidDate && toISODate(e.dueDate) >= today).length})
               </button>
             </div>
 
             {upcomingBills.length === 0 ? (
-              <p style={{ color: '#64748B', fontSize: 13, margin: '14px 0' }}>No unpaid bills on schedule.</p>
+              <p style={{ color: '#64748B', fontSize: 13, margin: '14px 0' }}>No upcoming bills on schedule.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {upcomingBills.map(bill => (

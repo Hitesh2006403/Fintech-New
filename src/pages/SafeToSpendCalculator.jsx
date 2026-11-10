@@ -68,7 +68,7 @@ export function SafeToSpendCalculator() {
         <p className="safe-spend-explainer">
           {calculation.safeToSpendToday > 0 ? (
             <>
-              You can safely spend up to <strong>{formatINR(calculation.safeToSpendToday)}</strong> today. We have fully reserved <strong>{formatINR(calculation.safetyBuffer)}</strong> for your minimum safety buffer and quarantined <strong>{formatINR(calculation.totalObligationsProtected)}</strong> to guarantee your essential bills before your next reliable payout on <strong>{calculation.nextIncomeDate || 'schedule'}</strong>.
+              You can safely spend up to <strong>{formatINR(calculation.safeToSpendToday)}</strong> today. We have fully reserved <strong>{formatINR(calculation.safetyBuffer)}</strong> for your minimum safety buffer and quarantined <strong>{formatINR(calculation.totalObligationsProtected)}</strong> to guarantee your essential liabilities ({calculation.essentialOverdue > 0 ? `${formatINR(calculation.essentialOverdue)} overdue + ` : ''}{formatINR(calculation.upcomingEssential)} upcoming before your next payout on <strong>{calculation.nextIncomeDate || 'schedule'}</strong>).
             </>
           ) : (
             <>
@@ -237,11 +237,33 @@ export function SafeToSpendCalculator() {
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                 <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)' }}></span>
                 <span>
-                  Essential Commitments (before next payout: {calculation.nextIncomeDate || 'horizon'})
+                  Essential Overdue Commitments (Past Due Unpaid)
                 </span>
               </div>
               <span className="num-val" style={{ color: '#EF4444' }}>
-                -{formatINR(calculation.essentialBeforeIncome)}
+                -{formatINR(calculation.essentialOverdue)}
+              </span>
+            </div>
+
+            <div className="breakdown-row-item">
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F87171', boxShadow: '0 0 8px rgba(248, 113, 113, 0.6)' }}></span>
+                <span>
+                  Upcoming Essential Commitments (before next payout: {calculation.nextIncomeDate || 'horizon'})
+                </span>
+              </div>
+              <span className="num-val" style={{ color: '#F87171' }}>
+                -{formatINR(calculation.upcomingEssential)}
+              </span>
+            </div>
+
+            <div className="breakdown-row-item" style={{ background: 'rgba(239, 68, 68, 0.08)', borderRadius: 8, margin: '2px 0' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }}></span>
+                <span style={{ fontWeight: 600 }}>Total Essential Commitments (Overdue + Upcoming)</span>
+              </div>
+              <span className="num-val" style={{ color: '#EF4444', fontWeight: 700 }}>
+                -{formatINR(calculation.totalEssentialCommitments)}
               </span>
             </div>
 

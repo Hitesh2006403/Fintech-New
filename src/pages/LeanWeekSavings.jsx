@@ -121,19 +121,19 @@ export function LeanWeekSavings() {
               {formatINR(calculation.remainingGoal)}
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-              {calculation.remainingGoal === 0 ? 'Goal Achieved!' : `Deficit: ${formatINR(calculation.weeklyDeficit)}/wk`}
+              {calculation.isFullyFunded ? 'Goal Fully Funded!' : `Need ${formatINR(calculation.weeklySavingsRequired)} / week`}
             </div>
           </div>
 
           <div>
             <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
-              Time to Full Target
+              Weekly Savings Required
             </div>
             <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', fontFeatureSettings: 'tnum' }}>
-              {calculation.weeksToGoal} Weeks
+              {formatINR(calculation.weeklySavingsRequired)}
             </div>
             <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
-              At {formatINR(calculation.weeklyContribution)} / week
+              {calculation.isFullyFunded ? 'Goal Completed' : `To reach goal across ${calculation.numWeeks} remaining weeks`}
             </div>
           </div>
         </div>

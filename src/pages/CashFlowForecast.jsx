@@ -171,8 +171,9 @@ export function CashFlowForecast() {
             <thead>
               <tr>
                 <th>Date</th>
-                <th>Inflow Events</th>
-                <th>Outflow Events</th>
+                <th>Opening Balance</th>
+                <th>Daily Inflow</th>
+                <th>Daily Outflow</th>
                 <th>Projected Closing Balance</th>
                 <th>Buffer Status</th>
               </tr>
@@ -191,6 +192,10 @@ export function CashFlowForecast() {
                   >
                     <td style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
                       {day.date} {idx === 0 && <span style={{ color: 'var(--accent-primary)', fontSize: 11, fontWeight: 700 }}>(Today)</span>}
+                    </td>
+
+                    <td className="num-val" style={{ color: 'var(--text-secondary)', fontSize: 13, fontFeatureSettings: 'tnum' }}>
+                      {formatINR(day.openingBalance)}
                     </td>
 
                     <td>

@@ -17,8 +17,10 @@ import {
   calculateLeanWeekSavings,
   generateDashboardInsights,
   toISODate,
-  addDays
+  addDays,
+  getCurrentLocalDate
 } from '../services/financialEngine.js';
+import { resolveDynamicNotification } from '../services/dateService.js';
 import { authService } from '../services/authService.js';
 import { adminService } from '../services/adminService.js';
 import { apiService } from '../services/apiService.js';
@@ -127,19 +129,29 @@ export function AppProvider({ children }) {
     };
   }, []);
 
-  // Load user-specific dataset from backend / user-scoped storage when user.id changes
+  const [backendCalculations, setBackendCalculations] = useState(null);
+
+  // Load user-specific dataset and authoritative backend calculations
   useEffect(() => {
     let isCancelled = false;
     async function loadFinancialData() {
       if (!user?.id) return;
       try {
-        const data = await apiService.getFinancials(user.id);
-        if (isCancelled || !data) return;
-        if (data.preferences) setPreferencesState(prev => ({ ...prev, ...data.preferences }));
-        if (Array.isArray(data.incomes)) setIncomes(data.incomes);
-        if (Array.isArray(data.expenses)) setExpenses(data.expenses);
-        if (data.savingsGoals) setLeanSavings(prev => ({ ...prev, ...data.savingsGoals }));
-        if (Array.isArray(data.notifications)) setNotifications(data.notifications);
+        const [data, calcs] = await Promise.all([
+          apiService.getFinancials(user.id),
+          apiService.getCalculations(user.id)
+        ]);
+        if (isCancelled) return;
+        if (data) {
+          if (data.preferences) setPreferencesState(prev => ({ ...prev, ...data.preferences }));
+          if (Array.isArray(data.incomes)) setIncomes(data.incomes);
+          if (Array.isArray(data.expenses)) setExpenses(data.expenses);
+          if (data.savingsGoals) setLeanSavings(prev => ({ ...prev, ...data.savingsGoals }));
+          if (Array.isArray(data.notifications)) setNotifications(data.notifications);
+        }
+        if (calcs) {
+          setBackendCalculations(calcs);
+        }
       } catch (err) {
         console.warn('Financial data load error:', err);
       }
@@ -180,15 +192,17 @@ export function AppProvider({ children }) {
   const safeSavings = leanSavings || INITIAL_LEAN_SAVINGS;
 
   const balanceDetails = useMemo(() => {
+    if (backendCalculations?.balanceDetails) return backendCalculations.balanceDetails;
     return calculateCurrentBalance(
       safePrefs.startingBalance ?? 45000,
       safeIncomes,
       safeExpenses,
       safeSavings.currentDesignatedReserve ?? 0
     );
-  }, [safePrefs.startingBalance, safeIncomes, safeExpenses, safeSavings.currentDesignatedReserve]);
+  }, [backendCalculations?.balanceDetails, safePrefs.startingBalance, safeIncomes, safeExpenses, safeSavings.currentDesignatedReserve]);
 
   const safeToSpend = useMemo(() => {
+    if (backendCalculations?.safeToSpend) return backendCalculations.safeToSpend;
     return calculateSafeToSpend({
       availableCash: balanceDetails?.availableCash ?? 0,
       incomes: safeIncomes,
@@ -197,9 +211,10 @@ export function AppProvider({ children }) {
       horizonDays: safePrefs.defaultHorizonDays ?? 30,
       scenario: safePrefs.defaultScenario ?? 'expected'
     });
-  }, [balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer, safePrefs.defaultHorizonDays, safePrefs.defaultScenario]);
+  }, [backendCalculations?.safeToSpend, balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer, safePrefs.defaultHorizonDays, safePrefs.defaultScenario]);
 
   const standardForecast = useMemo(() => {
+    if (backendCalculations?.forecast) return backendCalculations.forecast;
     return generateCashFlowForecast({
       availableCash: balanceDetails?.availableCash ?? 0,
       incomes: safeIncomes,
@@ -208,9 +223,10 @@ export function AppProvider({ children }) {
       days: 30,
       scenario: 'expected'
     });
-  }, [balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer]);
+  }, [backendCalculations?.forecast, balanceDetails?.availableCash, safeIncomes, safeExpenses, safePrefs.safetyBuffer]);
 
   const rawDashboardInsights = useMemo(() => {
+    if (backendCalculations?.dashboardInsights) return backendCalculations.dashboardInsights;
     return generateDashboardInsights({
       availableCash: balanceDetails?.availableCash ?? 0,
       safetyBuffer: safePrefs.safetyBuffer ?? 25000,
@@ -220,7 +236,7 @@ export function AppProvider({ children }) {
       firstLowBufferDate: standardForecast?.firstLowBufferDate,
       firstNegativeDate: standardForecast?.firstNegativeDate
     });
-  }, [balanceDetails?.availableCash, safePrefs.safetyBuffer, safeIncomes, safeExpenses, standardForecast]);
+  }, [backendCalculations?.dashboardInsights, balanceDetails?.availableCash, safePrefs.safetyBuffer, safeIncomes, safeExpenses, standardForecast]);
 
   const dashboardInsights = useMemo(() => {
     const rawAlerts = rawDashboardInsights?.alerts || [];
@@ -231,33 +247,40 @@ export function AppProvider({ children }) {
   }, [rawDashboardInsights, dismissedAlertIds]);
 
   const billRanking = useMemo(() => {
+    if (backendCalculations?.billRanking) return backendCalculations.billRanking;
     return rankBills(safeExpenses, balanceDetails?.availableCash ?? 0);
-  }, [safeExpenses, balanceDetails?.availableCash]);
+  }, [backendCalculations?.billRanking, safeExpenses, balanceDetails?.availableCash]);
 
   const leanWeekCalculations = useMemo(() => {
+    if (backendCalculations?.leanWeekCalculations) return backendCalculations.leanWeekCalculations;
     return calculateLeanWeekSavings(safeSavings);
-  }, [safeSavings]);
+  }, [backendCalculations?.leanWeekCalculations, safeSavings]);
 
   // Derived metrics for UI
   const confirmedUpcomingIncome = useMemo(() => {
-    const today = toISODate(new Date());
+    const today = getCurrentLocalDate();
     return safeIncomes
-      .filter(inc => inc.status === 'confirmed' && inc.expectedDate >= today)
+      .filter(inc => inc && (inc.status === 'confirmed' || inc.status === 'scheduled') && toISODate(inc.expectedDate) >= today)
       .reduce((sum, inc) => sum + Number(inc.amount || 0), 0);
   }, [safeIncomes]);
 
   const upcomingBillsNext7Days = useMemo(() => {
-    const today = toISODate(new Date());
+    const today = getCurrentLocalDate();
     const sevenDaysLater = addDays(today, 7);
     return safeExpenses
-      .filter(exp => exp.status !== 'paid' && exp.dueDate >= today && exp.dueDate <= sevenDaysLater)
+      .filter(exp => exp && exp.status !== 'paid' && !exp.paidDate && toISODate(exp.dueDate) >= today && toISODate(exp.dueDate) <= sevenDaysLater)
       .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
   }, [safeExpenses]);
 
-  const unreadNotificationCount = useMemo(() => {
+  const resolvedNotifications = useMemo(() => {
+    const today = getCurrentLocalDate();
     const safeNotifications = Array.isArray(notifications) ? notifications : [];
-    return safeNotifications.filter(n => !n.isRead).length;
-  }, [notifications]);
+    return safeNotifications.map(n => resolveDynamicNotification(n, safeExpenses, safeIncomes, safeSavings, today));
+  }, [notifications, safeExpenses, safeIncomes, safeSavings]);
+
+  const unreadNotificationCount = useMemo(() => {
+    return resolvedNotifications.filter(n => !n.isRead).length;
+  }, [resolvedNotifications]);
 
   // 3. Mutating Actions (Wrapped in useCallback to maintain reference equality)
   const userId = user?.id;
@@ -573,7 +596,7 @@ export function AppProvider({ children }) {
     incomes,
     expenses,
     leanSavings,
-    notifications,
+    notifications: resolvedNotifications,
     dismissedAlertIds,
     activeRoute,
     setActiveRoute,
@@ -631,7 +654,7 @@ export function AppProvider({ children }) {
     incomes,
     expenses,
     leanSavings,
-    notifications,
+    resolvedNotifications,
     dismissedAlertIds,
     activeRoute,
     setActiveRoute,

@@ -3,6 +3,12 @@ import path from 'path';
 import crypto from 'crypto';
 import { fileURLToPath } from 'url';
 import { supabase } from './supabase.js';
+import {
+  getCurrentLocalDate,
+  toISODate,
+  diffInDays,
+  formatINR
+} from './financialService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -288,11 +294,20 @@ const INITIAL_DEMO_USERS = [
 function readJSON(file, fallback) {
   try {
     if (!fs.existsSync(file)) {
-      writeJSON(file, fallback);
+      if (fallback !== null && fallback !== undefined) {
+        writeJSON(file, fallback);
+      }
       return fallback;
     }
     const data = fs.readFileSync(file, 'utf8');
-    return JSON.parse(data);
+    const parsed = JSON.parse(data);
+    if (parsed === null || parsed === undefined) {
+      if (fallback !== null && fallback !== undefined) {
+        writeJSON(file, fallback);
+      }
+      return fallback;
+    }
+    return parsed;
   } catch (err) {
     console.error(`Error reading ${file}:`, err);
     return fallback;
@@ -464,6 +479,125 @@ async function syncScenarioToSupabase(userId, scen) {
   } catch (err) {
     // Non-blocking
   }
+}
+
+function syncDynamicNotifications(userFinancials) {
+  if (!userFinancials || !Array.isArray(userFinancials.notifications)) return;
+  const today = getCurrentLocalDate();
+  const expenses = Array.isArray(userFinancials.expenses) ? userFinancials.expenses : [];
+  const incomes = Array.isArray(userFinancials.incomes) ? userFinancials.incomes : [];
+  const leanSavings = userFinancials.leanSavings || {};
+
+  userFinancials.notifications = userFinancials.notifications.map(notif => {
+    if (!notif) return notif;
+
+    // Bill / EMI notification
+    if (notif.relatedRecord && notif.relatedRecord.startsWith('exp_')) {
+      const bill = expenses.find(e => e.id === notif.relatedRecord);
+      if (bill) {
+        if (bill.status === 'paid' || bill.paidDate) {
+          return {
+            ...notif,
+            title: 'Payment Completed',
+            description: `${bill.title} payment of ${formatINR(bill.amount)} was completed.`,
+            severity: 'info'
+          };
+        }
+        const dueDate = toISODate(bill.dueDate);
+        const daysDiff = diffInDays(today, dueDate); // positive if due in future, negative if overdue
+        const isEMI = bill.category === 'EMI or loan';
+        const label = isEMI ? 'EMI' : 'Bill';
+
+        if (daysDiff < 0) {
+          const days = Math.abs(daysDiff);
+          return {
+            ...notif,
+            title: `${label} Overdue by ${days} Day${days > 1 ? 's' : ''}`,
+            description: `${bill.title} of ${formatINR(bill.amount)} was due on ${bill.dueDate}. Settle immediately to avoid late penalties.`,
+            severity: 'critical'
+          };
+        } else if (daysDiff === 0) {
+          return {
+            ...notif,
+            title: `${label} Due Today`,
+            description: `${bill.title} of ${formatINR(bill.amount)} is due today.`,
+            severity: 'critical'
+          };
+        } else if (daysDiff <= 3) {
+          return {
+            ...notif,
+            title: `${label} Due in ${daysDiff} Day${daysDiff > 1 ? 's' : ''}`,
+            description: `${bill.title} of ${formatINR(bill.amount)} is due on ${bill.dueDate}. Auto-debit will trigger.`,
+            severity: 'warning'
+          };
+        } else {
+          return {
+            ...notif,
+            title: `${label} Due in ${daysDiff} Days`,
+            description: `${bill.title} of ${formatINR(bill.amount)} is due on ${bill.dueDate}.`,
+            severity: 'info'
+          };
+        }
+      }
+    }
+
+    // Income notification
+    if (notif.relatedRecord && notif.relatedRecord.startsWith('inc_')) {
+      const inc = incomes.find(i => i.id === notif.relatedRecord);
+      if (inc) {
+        if (inc.status === 'received' || inc.actualDate) {
+          return {
+            ...notif,
+            title: 'Income Received',
+            description: `${inc.title} of ${formatINR(inc.amount)} received on ${inc.actualDate || inc.expectedDate}.`,
+            severity: 'info'
+          };
+        }
+        const expDate = toISODate(inc.expectedDate);
+        const daysDiff = diffInDays(today, expDate);
+        if (daysDiff < 0) {
+          const days = Math.abs(daysDiff);
+          return {
+            ...notif,
+            title: `Income Overdue by ${days} Day${days > 1 ? 's' : ''}`,
+            description: `${inc.title} (${formatINR(inc.amount)}) was expected on ${inc.expectedDate}. Follow up with client.`,
+            severity: 'warning'
+          };
+        } else if (daysDiff === 0) {
+          return {
+            ...notif,
+            title: 'Payout Expected Today',
+            description: `${inc.title} (${formatINR(inc.amount)}) is expected today.`,
+            severity: 'info'
+          };
+        } else {
+          return {
+            ...notif,
+            title: 'Confirmed Invoice Approaching',
+            description: `${inc.title} (${formatINR(inc.amount)}) expected on ${inc.expectedDate}. Track in Delay Simulator.`,
+            severity: 'info'
+          };
+        }
+      }
+    }
+
+    // Lean-Week savings notification
+    if (notif.relatedRecord === 'lean_savings') {
+      const weeks = leanSavings.weeks || 4;
+      const weeklyDeficit = Math.max(0, (leanSavings.essentialWeeklyExpenses || 12000) - (leanSavings.expectedLowIncomePerWeek || 5000));
+      const target = weeklyDeficit * weeks;
+      const funded = leanSavings.currentDesignatedReserve || 0;
+      const pct = target > 0 ? Math.min(100, Math.round((funded / target) * 100)) : 100;
+      return {
+        ...notif,
+        title: 'Lean-Week Savings Update',
+        description: `Your designated reserve is ${formatINR(funded)} (${pct}% of your ${weeks}-week target of ${formatINR(target)}).`,
+        severity: 'info'
+      };
+    }
+
+    return notif;
+  });
 }
 
 export const db = {
@@ -753,6 +887,7 @@ export const db = {
       };
       writeJSON(FINANCIALS_FILE, financials);
     }
+    syncDynamicNotifications(financials[userId]);
     return financials[userId];
   },
 
@@ -1362,7 +1497,7 @@ export const db = {
     ].filter(Boolean);
     const uniqueDefaultEmails = [...new Set(defaultEmails)];
 
-    const settings = readJSON(SETTINGS_FILE, {
+    const defaultSettings = {
       platformName: 'FinSight Treasury Platform',
       maintenanceMode: false,
       allowRegistrations: true,
@@ -1370,8 +1505,15 @@ export const db = {
       defaultCurrency: 'INR (₹)',
       sessionTimeoutHours: 72,
       systemAlert: 'All backend clusters and authentication services operating nominally.'
-    });
-    if (!settings.authorizedAdminEmails || settings.authorizedAdminEmails.length === 0) {
+    };
+
+    let settings = readJSON(SETTINGS_FILE, defaultSettings);
+    if (!settings || typeof settings !== 'object') {
+      settings = { ...defaultSettings };
+      writeJSON(SETTINGS_FILE, settings);
+    }
+
+    if (!Array.isArray(settings.authorizedAdminEmails) || settings.authorizedAdminEmails.length === 0) {
       settings.authorizedAdminEmails = uniqueDefaultEmails;
     } else {
       for (const admin of ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com']) {

@@ -286,7 +286,7 @@ export function ExpensesBills() {
                       <td style={{ fontSize: 12, color: 'var(--text-secondary)' }}>
                         {exp.lateFee > 0 ? (
                           <span style={{ color: '#EF4444', fontWeight: 600 }}>
-                            ₹{formatINR(exp.lateFee)} penalty
+                            {formatINR(exp.lateFee)} penalty
                           </span>
                         ) : (
                           <span style={{ color: 'var(--text-muted)' }}>No penalty</span>

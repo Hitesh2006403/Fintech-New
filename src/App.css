@@ -1248,13 +1248,13 @@ body {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(7, 11, 20, 0.78);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(3, 7, 18, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
+  z-index: 9999;
   padding: 16px;
   animation: fadeIn 0.2s ease-out;
 }
@@ -1265,19 +1265,19 @@ body {
 }
 
 .modal-content-card {
-  background: rgba(15, 23, 42, 0.94);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: #0F172A;
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-modal);
+  box-shadow: 0 25px 60px -10px rgba(0, 0, 0, 0.95), 0 0 35px rgba(56, 189, 248, 0.18);
   width: 100%;
   max-width: 540px;
   max-height: 90vh;
   overflow-y: auto;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(56, 189, 248, 0.25);
   border-top: 1px solid var(--border-glass-highlight);
   color: var(--text-primary);
   animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  z-index: 10000;
 }
 
 @keyframes slideUp {
@@ -1287,25 +1287,29 @@ body {
 
 .modal-header-bar {
   padding: 18px 24px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(255, 255, 255, 0.02);
+  background: #0B1220;
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
 .modal-body-area {
   padding: 24px;
+  background: #0F172A;
 }
 
 .modal-footer-bar {
   padding: 16px 24px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-  background: rgba(11, 18, 32, 0.5);
+  background: #0B1220;
   border-bottom-left-radius: var(--radius-lg);
   border-bottom-right-radius: var(--radius-lg);
 }

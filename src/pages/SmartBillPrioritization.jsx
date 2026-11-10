@@ -144,7 +144,7 @@ export function SmartBillPrioritization() {
                 </div>
                 {bill.lateFee > 0 && (
                   <div style={{ fontSize: 11.5, color: '#EF4444', fontWeight: 600, marginTop: 3 }}>
-                    Penalty: ₹{formatINR(bill.lateFee)} after grace
+                    Penalty: {formatINR(bill.lateFee)} after grace
                   </div>
                 )}
               </div>

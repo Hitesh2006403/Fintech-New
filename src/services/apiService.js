@@ -412,5 +412,74 @@ export const apiService = {
       activeDatabase: 'Browser Local Storage',
       supabaseConfigured: false
     };
+  },
+
+  /**
+   * Fetches centralized authoritative financial calculations from backend
+   */
+  async getCalculations(userId) {
+    try {
+      const res = await fetch(`${API_BASE}/financials/calculations`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          return json.data;
+        }
+      }
+    } catch (err) {
+      console.warn('API /financials/calculations network error:', err);
+    }
+    return null;
+  },
+
+  /**
+   * Fetches authoritative forecast trajectory from backend
+   */
+  async getForecast(userId, { days = 30, scenario = 'expected', startDate = '' } = {}) {
+    try {
+      const query = new URLSearchParams({ days, scenario, startDate }).toString();
+      const res = await fetch(`${API_BASE}/forecast?${query}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) return json;
+      }
+    } catch (err) {
+      console.warn('API /forecast network error:', err);
+    }
+    return null;
+  },
+
+  /**
+   * Fetches authoritative Safe-to-Spend calculations from backend
+   */
+  async getSafeToSpend(userId, { horizonDays = 30, safetyBuffer = 25000, scenario = 'conservative', includeDiscretionary = true } = {}) {
+    try {
+      const query = new URLSearchParams({
+        horizonDays,
+        safetyBuffer,
+        scenario,
+        includeDiscretionary: String(includeDiscretionary)
+      }).toString();
+      const res = await fetch(`${API_BASE}/safe-to-spend?${query}`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success) return json;
+      }
+    } catch (err) {
+      console.warn('API /safe-to-spend network error:', err);
+    }
+    return null;
   }
 };

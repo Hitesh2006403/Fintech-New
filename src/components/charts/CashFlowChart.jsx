@@ -14,26 +14,41 @@ export function CashFlowChart({
 
   // Memoize scales, coordinates and SVG paths to avoid recalculating on every hover tick
   const metrics = useMemo(() => {
-    if (!forecastData || forecastData.length === 0) return null;
+    if (!Array.isArray(forecastData) || forecastData.length === 0) return null;
 
-    const balances = forecastData.map(d => d.closingBalance);
-    const minBal = Math.min(0, Math.min(...balances), safetyBuffer);
-    const maxBal = Math.max(startingBalance * 1.25, Math.max(...balances), safetyBuffer * 1.5, 50000);
+    const balances = forecastData.map(d => {
+      const v = Number(d?.closingBalance !== undefined ? d.closingBalance : (d?.balance !== undefined ? d.balance : 0));
+      return isNaN(v) ? 0 : v;
+    });
 
-    const range = maxBal - minBal || 1;
-    const paddingY = 30;
-    const chartHeight = height - paddingY * 2;
+    const numSafetyBuffer = Number(safetyBuffer || 0);
+    const numStartingBalance = Number(startingBalance || 0);
+
+    const minBal = Math.min(0, ...balances, numSafetyBuffer);
+    const maxBal = Math.max(numStartingBalance * 1.2, ...balances, numSafetyBuffer * 1.4, 50000);
+
+    const range = (maxBal - minBal) > 0 ? (maxBal - minBal) : 1;
+    const paddingY = 32;
+    const chartHeight = Math.max(80, height - paddingY * 2);
     const chartWidth = 720;
     const paddingX = 40;
     const usableWidth = chartWidth - paddingX * 2;
 
     const getX = (index) => paddingX + (index / (forecastData.length - 1 || 1)) * usableWidth;
-    const getY = (val) => paddingY + chartHeight - ((val - minBal) / range) * chartHeight;
+    const getY = (val) => {
+      const num = Number(val !== undefined && val !== null ? val : 0);
+      const safeVal = isNaN(num) ? 0 : num;
+      return paddingY + chartHeight - ((safeVal - minBal) / range) * chartHeight;
+    };
 
     const yZero = getY(0);
-    const yBuffer = getY(safetyBuffer);
+    const yBuffer = getY(numSafetyBuffer);
 
-    const points = forecastData.map((d, i) => `${getX(i)},${getY(d.closingBalance)}`);
+    const points = forecastData.map((d, i) => {
+      const val = d?.closingBalance !== undefined ? d.closingBalance : d?.balance;
+      return `${getX(i)},${getY(val)}`;
+    });
+
     const linePath = points.join(' L ');
     const areaPath = `${linePath} L ${getX(forecastData.length - 1)},${getY(minBal)} L ${getX(0)},${getY(minBal)} Z`;
 
@@ -50,21 +65,21 @@ export function CashFlowChart({
       yZero,
       yBuffer,
       linePath,
-      areaPath
+      areaPath,
+      numSafetyBuffer
     };
   }, [forecastData, safetyBuffer, startingBalance, height]);
 
-  if (!forecastData || forecastData.length === 0 || !metrics) {
+  if (!Array.isArray(forecastData) || forecastData.length === 0 || !metrics) {
     return (
       <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 12, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
-        No forecast points available
+        No forecast data points available to plot.
       </div>
     );
   }
 
   const {
     minBal,
-    maxBal,
     paddingY,
     chartHeight,
     chartWidth,
@@ -75,31 +90,40 @@ export function CashFlowChart({
     yZero,
     yBuffer,
     linePath,
-    areaPath
+    areaPath,
+    numSafetyBuffer
   } = metrics;
 
-  // Hover point details
-  const activePoint = hoverIndex !== null && forecastData[hoverIndex] ? forecastData[hoverIndex] : forecastData[Math.floor(forecastData.length / 2)];
-  const activeX = hoverIndex !== null ? getX(hoverIndex) : getX(Math.floor(forecastData.length / 2));
-  const activeY = hoverIndex !== null ? getY(activePoint.closingBalance) : getY(activePoint.closingBalance);
+  // Active hover point details
+  const activeIdx = hoverIndex !== null && forecastData[hoverIndex]
+    ? hoverIndex
+    : Math.floor(forecastData.length / 2);
+  const activePoint = forecastData[activeIdx] || forecastData[0];
+  const activeVal = activePoint ? (activePoint.closingBalance !== undefined ? activePoint.closingBalance : activePoint.balance) : 0;
+  const activeX = getX(activeIdx);
+  const activeY = getY(activeVal);
 
   return (
     <div style={{ width: '100%', position: 'relative' }}>
       
       {/* Top Chart Header / Controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#F8FAFC' }}>
-            <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#38BDF8', boxShadow: '0 0 8px #38BDF8' }}></span>
-            <span>Projected Balance</span>
+            <span style={{ width: 12, height: 3, borderRadius: 2, background: '#38BDF8', boxShadow: '0 0 8px #38BDF8' }}></span>
+            <span>Projected Closing Balance</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#F59E0B' }}>
-            <span style={{ width: 12, height: 2, background: '#F59E0B' }}></span>
-            <span>Safety Buffer ({formatINR(safetyBuffer)})</span>
+            <span style={{ width: 12, height: 2, background: '#F59E0B', borderTop: '2px dashed #F59E0B' }}></span>
+            <span>Safety Buffer ({formatINR(numSafetyBuffer)})</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#10B981' }}>
             <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }}></span>
             <span>Income Event</span>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#EF4444' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', boxShadow: '0 0 6px #EF4444' }}></span>
+            <span>Expense Event</span>
           </div>
         </div>
 
@@ -140,18 +164,14 @@ export function CashFlowChart({
           <defs>
             <linearGradient id="balanceAreaGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.25" />
-              <stop offset="60%" stopColor="#38BDF8" stopOpacity="0.06" />
-              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0" />
+              <stop offset="60%" stopColor="#38BDF8" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.0" />
             </linearGradient>
 
             <linearGradient id="deficitAreaGrad" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#EF4444" stopOpacity="0.3" />
               <stop offset="100%" stopColor="#EF4444" stopOpacity="0.05" />
             </linearGradient>
-
-            <filter id="neonGlow" x="-20%" y="-20%" width="140%" height="140%">
-              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#38BDF8" floodOpacity="0.6" />
-            </filter>
           </defs>
 
           {/* Horizontal Grid lines */}
@@ -172,7 +192,7 @@ export function CashFlowChart({
                 strokeDasharray="4 4"
               />
               <text x={chartWidth - paddingX - 4} y={yZero + 4} fill="#EF4444" fontSize="10" fontWeight="600" textAnchor="end">
-                ₹0
+                ₹0 Deficit
               </text>
             </g>
           )}
@@ -185,44 +205,65 @@ export function CashFlowChart({
               x2={chartWidth - paddingX}
               y2={yBuffer}
               stroke="#F59E0B"
-              strokeWidth="1.5"
-              strokeDasharray="4 4"
+              strokeWidth="1.75"
+              strokeDasharray="5 4"
             />
-            <text x={chartWidth - paddingX - 4} y={yBuffer + 4} fill="#F59E0B" fontSize="10" fontWeight="600" textAnchor="end">
-              Buffer
+            <text x={chartWidth - paddingX - 4} y={yBuffer - 5} fill="#F59E0B" fontSize="10.5" fontWeight="700" textAnchor="end">
+              Buffer ({formatINR(numSafetyBuffer)})
             </text>
           </g>
 
-          {/* Shaded Area */}
+          {/* Shaded Area Under Balance Curve */}
           <path d={`M ${areaPath}`} fill="url(#balanceAreaGrad)" />
 
-          {/* Main Curve with Neon Glow */}
+          {/* Main Balance Line Curve with High-Contrast Blue Stroke */}
           <path
             d={`M ${linePath}`}
             fill="none"
             stroke="#38BDF8"
-            strokeWidth="2.75"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeLinejoin="round"
-            filter="url(#neonGlow)"
+            style={{ filter: 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.65))' }}
           />
 
-          {/* Event Markers on Curve */}
+          {/* Day Points Along Curve */}
           {forecastData.map((d, i) => {
-            const hasIncome = d.incomes && d.incomes.length > 0;
-            const hasExpense = d.expenses && d.expenses.length > 0;
+            const val = d?.closingBalance !== undefined ? d.closingBalance : d?.balance;
             const cx = getX(i);
-            const cy = getY(d.closingBalance);
+            const cy = getY(val);
+            const isHovered = activeIdx === i;
+
+            return (
+              <circle
+                key={`pt-${i}`}
+                cx={cx}
+                cy={cy}
+                r={isHovered ? 4.5 : 2}
+                fill={isHovered ? '#FFFFFF' : '#38BDF8'}
+                stroke="#0B1220"
+                strokeWidth={isHovered ? 2 : 1}
+              />
+            );
+          })}
+
+          {/* Event Markers on Curve (Incomes and Expenses) */}
+          {forecastData.map((d, i) => {
+            const hasIncome = Array.isArray(d.incomes) && d.incomes.length > 0;
+            const hasExpense = Array.isArray(d.expenses) && d.expenses.length > 0;
+            const val = d?.closingBalance !== undefined ? d.closingBalance : d?.balance;
+            const cx = getX(i);
+            const cy = getY(val);
 
             if (!hasIncome && !hasExpense) return null;
 
             return (
-              <g key={i}>
+              <g key={`marker-${i}`}>
                 {hasIncome && (
-                  <circle cx={cx} cy={cy} r="4.5" fill="#10B981" stroke="#0B1220" strokeWidth="2" />
+                  <circle cx={cx} cy={cy} r="5.5" fill="#10B981" stroke="#0B1220" strokeWidth="2" />
                 )}
                 {hasExpense && !hasIncome && (
-                  <circle cx={cx} cy={cy} r="3.5" fill="#EF4444" stroke="#0B1220" strokeWidth="1.5" />
+                  <circle cx={cx} cy={cy} r="4.5" fill="#EF4444" stroke="#0B1220" strokeWidth="2" />
                 )}
               </g>
             );
@@ -237,10 +278,10 @@ export function CashFlowChart({
                 x2={activeX}
                 y2={paddingY + chartHeight}
                 stroke="rgba(56, 189, 248, 0.4)"
-                strokeWidth="1"
+                strokeWidth="1.5"
                 strokeDasharray="3 3"
               />
-              <circle cx={activeX} cy={activeY} r="6" fill="#38BDF8" stroke="#0B1220" strokeWidth="2.5" />
+              <circle cx={activeX} cy={activeY} r="7" fill="#38BDF8" stroke="#0B1220" strokeWidth="2.5" />
             </g>
           )}
 
@@ -249,7 +290,7 @@ export function CashFlowChart({
             const stepWidth = (usableWidth || (chartWidth - paddingX * 2)) / (forecastData.length || 1);
             return (
               <rect
-                key={i}
+                key={`trigger-${i}`}
                 x={getX(i) - stepWidth / 2}
                 y={0}
                 width={stepWidth}
@@ -264,7 +305,7 @@ export function CashFlowChart({
           {/* Date Axis Labels */}
           <g fill="#94A3B8" fontSize="10.5" fontWeight="500">
             <text x={paddingX} y={height - 6} textAnchor="start">
-              {forecastData[0]?.date?.slice(5)} (Start)
+              {forecastData[0]?.date?.slice(5) || 'Start'} (Today)
             </text>
             <text x={chartWidth * 0.5} y={height - 6} textAnchor="middle">
               {forecastData[Math.floor(forecastData.length * 0.5)]?.date?.slice(5)}
@@ -281,11 +322,11 @@ export function CashFlowChart({
         <div
           style={{
             marginTop: 12,
-            background: 'rgba(15, 23, 42, 0.88)',
+            background: 'rgba(15, 23, 42, 0.95)',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+            borderTop: '1px solid rgba(56, 189, 248, 0.25)',
             borderRadius: 10,
             padding: '10px 16px',
             display: 'flex',
@@ -311,18 +352,18 @@ export function CashFlowChart({
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {activePoint.incomes?.length > 0 && (
               <span style={{ color: '#10B981', fontWeight: 600 }}>
-                Inflow: +{formatINR(activePoint.incomes.reduce((s, i) => s + (i.effectiveAmount || i.amount), 0))}
+                Inflow: +{formatINR(activePoint.incomes.reduce((s, i) => s + (i.effectiveAmount || i.amount || 0), 0))}
               </span>
             )}
             {activePoint.expenses?.length > 0 && (
               <span style={{ color: '#EF4444', fontWeight: 600 }}>
-                Outflow: -{formatINR(activePoint.expenses.reduce((s, e) => s + Number(e.amount), 0))}
+                Outflow: -{formatINR(activePoint.expenses.reduce((s, e) => s + Number(e.amount || 0), 0))}
               </span>
             )}
             <div>
               <span style={{ color: '#94A3B8' }}>Projected Balance: </span>
               <strong style={{ color: activePoint.isNegative ? '#EF4444' : '#38BDF8', fontSize: 14 }}>
-                {formatINR(activePoint.closingBalance)}
+                {formatINR(activeVal)}
               </strong>
             </div>
           </div>

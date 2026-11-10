@@ -3,14 +3,45 @@
  * 
  * Authoritative financial math service for irregular income planning.
  * Guarantees mathematical correctness, avoids double-counting, clamps safe-to-spend,
- * and powers date-aware cash flow projections.
+ * powers date-aware cash flow projections, and strictly eliminates duplicate rupee symbols.
  */
 
-// Formats number to Indian Currency (e.g. ₹1,25,000)
+import {
+  getCurrentLocalDate,
+  parseDate,
+  toISODate,
+  addDays,
+  diffInDays,
+  isPastDue
+} from './dateService.js';
+
+export { getCurrentLocalDate, parseDate, toISODate, addDays, diffInDays, isPastDue };
+
+/**
+ * Formats a number or existing formatted string into Indian Currency (e.g. ₹1,25,000).
+ * Strictly avoids duplicate rupee symbols (e.g. never outputs ₹₹1,500).
+ */
 export function formatINR(amount, includeDecimals = false) {
-  if (amount === undefined || amount === null || isNaN(amount)) return '₹0';
-  const isNegative = amount < 0;
-  const absVal = Math.abs(amount);
+  if (amount === undefined || amount === null) return '₹0';
+  
+  if (typeof amount === 'string') {
+    const trimmed = amount.trim();
+    if (trimmed.startsWith('₹') || trimmed.startsWith('-₹')) {
+      // Clean any pre-existing duplicate ₹₹ occurrences
+      return trimmed.replace(/^₹+/, '₹').replace(/^-₹+/, '-₹');
+    }
+    const cleanNum = Number(trimmed.replace(/[^0-9.-]/g, ''));
+    if (!isNaN(cleanNum)) {
+      amount = cleanNum;
+    } else {
+      return '₹0';
+    }
+  }
+
+  if (isNaN(amount)) return '₹0';
+
+  const isNegative = Number(amount) < 0;
+  const absVal = Math.abs(Number(amount));
   
   const formatted = new Intl.NumberFormat('en-IN', {
     maximumFractionDigits: includeDecimals ? 2 : 0,
@@ -20,55 +51,21 @@ export function formatINR(amount, includeDecimals = false) {
   return `${isNegative ? '-' : ''}₹${formatted}`;
 }
 
-// Parses ISO date string (YYYY-MM-DD) safely
-export function parseDate(dateStr) {
-  if (!dateStr) return new Date();
-  if (typeof dateStr !== 'string') {
-    return dateStr instanceof Date ? new Date(dateStr.getTime()) : new Date(dateStr);
-  }
-  const parts = dateStr.split('-');
-  if (parts.length >= 3) {
-    const [year, month, day] = parts.map(Number);
-    return new Date(year, month - 1, day);
-  }
-  return new Date(dateStr);
-}
-
-// Formats date to YYYY-MM-DD
-export function toISODate(date) {
-  const d = new Date(date);
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-// Adds days to a date string YYYY-MM-DD
-export function addDays(dateStr, days) {
-  const d = parseDate(dateStr);
-  d.setDate(d.getDate() + Number(days));
-  return toISODate(d);
-}
-
-// Calculates difference in days between two date strings (b - a)
-export function diffInDays(dateStrA, dateStrB) {
-  const a = parseDate(dateStrA);
-  const b = parseDate(dateStrB);
-  const diffTime = b.getTime() - a.getTime();
-  return Math.round(diffTime / (1000 * 60 * 60 * 24));
-}
-
 /**
  * 1. Calculate Actual Cash Balance
- * Balance = Starting Balance + all 'received' income - all 'paid' expenses - designated savings reserve
+ * Gross Balance = Starting Balance + all 'received' income - all 'paid' expenses
+ * Available Cash = max(0, Gross Cash - designated savings reserve)
  */
 export function calculateCurrentBalance(startingBalance, incomes = [], expenses = [], designatedSavings = 0) {
-  const totalReceived = incomes
-    .filter(inc => inc.status === 'received')
+  const safeIncomes = Array.isArray(incomes) ? incomes : [];
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+
+  const totalReceived = safeIncomes
+    .filter(inc => inc && (inc.status === 'received' || inc.actualDate))
     .reduce((sum, inc) => sum + Number(inc.amount || 0), 0);
 
-  const totalPaid = expenses
-    .filter(exp => exp.status === 'paid')
+  const totalPaid = safeExpenses
+    .filter(exp => exp && (exp.status === 'paid' || exp.paidDate))
     .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
 
   // Available cash in bank (excluding earmarked designated savings reserve)
@@ -85,14 +82,23 @@ export function calculateCurrentBalance(startingBalance, incomes = [], expenses 
 }
 
 /**
- * 2. Calculate Safe-to-Spend Today
+ * 2. Calculate Safe-to-Spend Today (ISSUE 4 FIX)
  * 
- * Conservative Baseline:
- * Available Cash
- * - Essential unpaid obligations before next reliable confirmed income (or within horizon)
- * - Other committed expenses in the planning horizon
- * - Minimum safety buffer
- * = Remaining spendable amount (clamped to 0).
+ * Consistent Financial Rule:
+ * Safe-to-Spend = Available Cash - Safety Buffer - Outstanding Essential Commitments
+ * 
+ * Crucial: Outstanding Essential Commitments MUST include unpaid overdue essential bills
+ * (dueDate < today) as well as upcoming essential obligations before next reliable payout.
+ * 
+ * Returns transparent breakdown:
+ * - availableCash
+ * - safetyBuffer
+ * - essentialOverdue
+ * - upcomingEssential
+ * - totalEssentialCommitments
+ * - otherCommittedInHorizon
+ * - totalObligationsProtected
+ * - final safeToSpendToday (clamped to 0)
  */
 export function calculateSafeToSpend({
   availableCash = 0,
@@ -100,59 +106,78 @@ export function calculateSafeToSpend({
   expenses = [],
   safetyBuffer = 25000,
   horizonDays = 30,
-  currentDateStr = toISODate(new Date()),
+  currentDateStr = getCurrentLocalDate(),
   scenario = 'conservative',
   includeDiscretionary = true
 }) {
-  const horizonEndDate = addDays(currentDateStr, horizonDays);
+  const today = currentDateStr || getCurrentLocalDate();
+  const horizonEndDate = addDays(today, horizonDays);
 
-  // Find next reliable confirmed income date within horizon
-  const upcomingConfirmed = incomes
-    .filter(inc => inc.status === 'confirmed' && inc.expectedDate >= currentDateStr)
-    .sort((a, b) => a.expectedDate.localeCompare(b.expectedDate));
+  const safeIncomes = Array.isArray(incomes) ? incomes : [];
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+
+  // Find next reliable confirmed income date within planning horizon
+  const upcomingConfirmed = safeIncomes
+    .filter(inc => inc && (inc.status === 'confirmed' || inc.status === 'scheduled') && inc.expectedDate >= today)
+    .sort((a, b) => (a.expectedDate || '').localeCompare(b.expectedDate || ''));
 
   const nextIncome = upcomingConfirmed[0];
   const nextIncomeDate = nextIncome ? nextIncome.expectedDate : horizonEndDate;
 
-  // Obligations due before next reliable income (or horizon if no income)
-  const unpaidExpenses = expenses.filter(exp => exp.status !== 'paid');
+  // Unpaid bills only (exclude already marked paid)
+  const unpaidExpenses = safeExpenses.filter(exp => exp && exp.status !== 'paid' && !exp.paidDate);
 
-  // Essential obligations before next reliable income
-  const essentialBeforeIncome = unpaidExpenses
-    .filter(exp => exp.isEssential && exp.dueDate <= nextIncomeDate && exp.dueDate >= currentDateStr)
+  // A. Essential Overdue Commitments (dueDate < today)
+  const essentialOverdue = unpaidExpenses
+    .filter(exp => exp.isEssential && exp.dueDate < today)
     .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
 
-  // Other committed obligations within planning horizon
+  // B. Upcoming Essential Commitments before next reliable payout (or horizon)
+  const upcomingEssential = unpaidExpenses
+    .filter(exp => exp.isEssential && exp.dueDate >= today && exp.dueDate <= nextIncomeDate)
+    .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+
+  // C. Total Outstanding Essential Commitments
+  const totalEssentialCommitments = essentialOverdue + upcomingEssential;
+
+  // D. Other Committed Obligations within planning horizon
   const otherCommittedInHorizon = unpaidExpenses
     .filter(exp => {
-      const inHorizon = exp.dueDate <= horizonEndDate && exp.dueDate >= currentDateStr;
+      const inHorizon = exp.dueDate <= horizonEndDate;
       if (!inHorizon) return false;
-      if (exp.isEssential && exp.dueDate <= nextIncomeDate) return false; // already counted above
-      if (!includeDiscretionary && !exp.isEssential) return false;
-      return true;
+      // Already counted in essential commitments above
+      if (exp.isEssential && (exp.dueDate < today || exp.dueDate <= nextIncomeDate)) return false;
+      // If essential between nextIncomeDate and horizonEndDate
+      if (exp.isEssential && exp.dueDate > nextIncomeDate && exp.dueDate <= horizonEndDate) return true;
+      // Discretionary expenses (only upcoming within horizon; overdue non-essential bills are excluded from automatic essential deduction)
+      if (!exp.isEssential) {
+        if (!includeDiscretionary) return false;
+        return exp.dueDate >= today;
+      }
+      return false;
     })
     .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
 
-  const totalObligationsProtected = essentialBeforeIncome + otherCommittedInHorizon;
+  const totalObligationsProtected = totalEssentialCommitments + otherCommittedInHorizon;
 
-  // Eligible future income in horizon (if expected scenario selected)
+  // Eligible future income credit
   let eligibleFutureIncome = 0;
   if (scenario === 'expected') {
     eligibleFutureIncome = upcomingConfirmed
       .filter(inc => inc.expectedDate <= horizonEndDate)
       .reduce((sum, inc) => sum + Number(inc.amount || 0), 0);
   } else if (scenario === 'optimistic') {
-    const upcomingUncertain = incomes
-      .filter(inc => inc.status === 'uncertain' && inc.expectedDate >= currentDateStr && inc.expectedDate <= horizonEndDate)
+    const upcomingUncertain = safeIncomes
+      .filter(inc => inc.status === 'uncertain' && inc.expectedDate >= today && inc.expectedDate <= horizonEndDate)
       .reduce((sum, inc) => sum + Number(inc.amount || 0), 0);
     eligibleFutureIncome = upcomingConfirmed
       .filter(inc => inc.expectedDate <= horizonEndDate)
       .reduce((sum, inc) => sum + Number(inc.amount || 0), 0) + upcomingUncertain;
   }
 
-  // Pure conservative safe-to-spend: Available cash - obligations - buffer
-  const rawSpendable = (availableCash + (scenario === 'conservative' ? 0 : eligibleFutureIncome * 0.5)) 
-    - totalObligationsProtected 
+  // Pure conservative calculation
+  const rawSpendable = (Number(availableCash || 0) + (scenario === 'conservative' ? 0 : eligibleFutureIncome * 0.5))
+    - totalObligationsProtected
     - Number(safetyBuffer || 0);
 
   const safeToSpendToday = Math.max(0, rawSpendable);
@@ -162,24 +187,33 @@ export function calculateSafeToSpend({
     safeToSpendToday,
     rawSpendable,
     projectedShortfall,
-    availableCash,
-    essentialBeforeIncome,
+    availableCash: Number(availableCash || 0),
+    safetyBuffer: Number(safetyBuffer || 0),
+    essentialOverdue,
+    upcomingEssential,
+    totalEssentialCommitments,
     otherCommittedInHorizon,
     totalObligationsProtected,
-    safetyBuffer: Number(safetyBuffer || 0),
     eligibleFutureIncome,
     nextIncomeDate: nextIncome ? nextIncome.expectedDate : null,
     nextIncomeAmount: nextIncome ? Number(nextIncome.amount) : 0,
     nextIncomeTitle: nextIncome ? nextIncome.title : 'None scheduled',
     horizonDays,
-    scenario
+    scenario,
+    includeDiscretionary
   };
 }
 
 /**
- * 3. Daily Cash-Flow Forecast Engine
- * Generates day-by-day projected balance for N days (7, 14, 30, 60, 90).
- * Supports Conservative, Expected, and Optimistic scenarios, plus simulated delay overrides.
+ * 3. Daily Cash-Flow Forecast Engine (ISSUE 6 & 3 FIX)
+ * Generates day-by-day projected balance from Day 0 (today) to Day N.
+ * 
+ * Daily Calculation:
+ * Opening Balance (Day 1) = Current Available Balance
+ * Daily Inflows = sum of eligible scheduled income arriving on that day
+ * Daily Outflows = sum of unpaid expenses due on that day
+ * Daily Closing Balance = Opening Balance + Daily Inflows - Daily Outflows
+ * Next Day Opening Balance = Previous Day Closing Balance
  */
 export function generateCashFlowForecast({
   availableCash = 0,
@@ -187,10 +221,15 @@ export function generateCashFlowForecast({
   expenses = [],
   safetyBuffer = 25000,
   days = 30,
-  startDateStr = toISODate(new Date()),
+  startDateStr,
+  currentDateStr,
   scenario = 'expected',
   delayConfig = null // { incomeId, delayDays, unexpectedExpense, incomeReductionPct }
 }) {
+  const safeIncomes = Array.isArray(incomes) ? incomes : [];
+  const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const today = currentDateStr || startDateStr || getCurrentLocalDate();
+
   const forecast = [];
   let runningBalance = Number(availableCash || 0);
   let minimumBalance = runningBalance;
@@ -200,9 +239,9 @@ export function generateCashFlowForecast({
   let daysBelowBuffer = 0;
   let daysNegative = 0;
 
-  // Process income copy with potential delay simulation
-  const processedIncomes = incomes.map(inc => {
-    let expectedDate = inc.expectedDate;
+  // Process income copy with potential simulated delay overrides
+  const processedIncomes = safeIncomes.map(inc => {
+    let expectedDate = toISODate(inc.expectedDate);
     let amount = Number(inc.amount || 0);
 
     if (delayConfig && delayConfig.incomeId && inc.id === delayConfig.incomeId) {
@@ -217,58 +256,66 @@ export function generateCashFlowForecast({
     return { ...inc, expectedDate, effectiveAmount: amount };
   });
 
-  // Check for unexpected simulated expense on Day 1
   const simUnexpectedExpense = (delayConfig && delayConfig.unexpectedExpense) ? Number(delayConfig.unexpectedExpense) : 0;
 
   for (let i = 0; i <= days; i++) {
-    const currentDate = addDays(startDateStr, i);
+    const currentDate = addDays(today, i);
+    const dayOpeningBalance = runningBalance;
     const dayIncomes = [];
     const dayExpenses = [];
 
-    // On day 1 of simulation, add unexpected expense if present
+    // On day 1 of delay simulation, inject unexpected expense if present
     if (i === 1 && simUnexpectedExpense > 0) {
-      dayExpenses.push({
+      const simExp = {
         id: 'sim_unexpected',
         title: 'Unexpected Expense (Simulated)',
         amount: simUnexpectedExpense,
         isEssential: true,
         category: 'Emergency'
-      });
+      };
+      dayExpenses.push(simExp);
       runningBalance -= simUnexpectedExpense;
     }
 
-    // Filter incomes arriving on this date
+    // Filter incomes arriving on this calendar date
     processedIncomes.forEach(inc => {
-      // If already received in past, it's already in starting availableCash
-      if (inc.status === 'received') return;
+      // Already received in bank: already counted in starting availableCash
+      if (inc.status === 'received' || inc.actualDate) return;
 
-      if (inc.expectedDate === currentDate) {
+      if (toISODate(inc.expectedDate) === currentDate) {
         if (inc.status === 'confirmed') {
-          // Included in expected & optimistic scenarios; excluded in conservative
+          // Included in expected & optimistic scenarios
           if (scenario === 'expected' || scenario === 'optimistic') {
             dayIncomes.push(inc);
             runningBalance += inc.effectiveAmount;
           }
         } else if (inc.status === 'uncertain') {
-          // Included ONLY in optimistic scenario
+          // Excluded from expected and conservative, included in optimistic scenario
           if (scenario === 'optimistic') {
             dayIncomes.push(inc);
             runningBalance += inc.effectiveAmount;
           }
+        } else if (scenario === 'optimistic') {
+          // Default unreceived speculative income included only in optimistic
+          dayIncomes.push(inc);
+          runningBalance += inc.effectiveAmount;
         }
       }
     });
 
-    // Filter unpaid expenses due on this date
-    expenses.forEach(exp => {
-      if (exp.status !== 'paid' && exp.dueDate === currentDate) {
+    // Filter unpaid expenses due on this calendar date
+    safeExpenses.forEach(exp => {
+      if (exp.status !== 'paid' && !exp.paidDate && toISODate(exp.dueDate) === currentDate) {
         dayExpenses.push(exp);
         runningBalance -= Number(exp.amount || 0);
       }
     });
 
+    const dayInflowTotal = dayIncomes.reduce((sum, inc) => sum + (inc.effectiveAmount || inc.amount || 0), 0);
+    const dayOutflowTotal = dayExpenses.reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+
     // Check thresholds
-    const isBelowBuffer = runningBalance < safetyBuffer;
+    const isBelowBuffer = runningBalance < Number(safetyBuffer || 0);
     const isNegative = runningBalance < 0;
 
     if (isBelowBuffer) {
@@ -294,7 +341,11 @@ export function generateCashFlowForecast({
     forecast.push({
       dayIndex: i,
       date: currentDate,
+      openingBalance: dayOpeningBalance,
+      inflow: dayInflowTotal,
+      outflow: dayOutflowTotal,
       closingBalance: runningBalance,
+      balance: runningBalance, // Dual key to guarantee chart and report compatibility
       incomes: dayIncomes,
       expenses: dayExpenses,
       isBelowBuffer,
@@ -328,8 +379,25 @@ export function simulatePaymentDelay({
   expenses = [],
   safetyBuffer = 25000,
   delayConfig = { incomeId: '', delayDays: 10, unexpectedExpense: 0, incomeReductionPct: 0 },
-  scenario = 'expected'
+  scenario = 'expected',
+  startDateStr = null
 }) {
+  // Determine baseline date: use provided startDateStr or earliest transaction date if before today
+  let baseDate = startDateStr;
+  if (!baseDate) {
+    const today = getCurrentLocalDate();
+    const dates = [
+      ...incomes.map(i => toISODate(i.expectedDate)),
+      ...expenses.map(e => toISODate(e.dueDate))
+    ].filter(Boolean);
+    if (dates.length > 0) {
+      dates.sort();
+      baseDate = dates[0] < today ? dates[0] : today;
+    } else {
+      baseDate = today;
+    }
+  }
+
   // Baseline (without delay)
   const baseline = generateCashFlowForecast({
     availableCash,
@@ -337,7 +405,8 @@ export function simulatePaymentDelay({
     expenses,
     safetyBuffer,
     days: 45,
-    scenario
+    scenario,
+    startDateStr: baseDate
   });
 
   // Simulated (with delay config)
@@ -348,16 +417,20 @@ export function simulatePaymentDelay({
     safetyBuffer,
     days: 45,
     scenario,
-    delayConfig
+    delayConfig,
+    startDateStr: baseDate
   });
 
-  // Find contributing bills during the shortage window
+  // Find contributing bills during shortage window
   const contributingBills = [];
   if (simulated.firstLowBufferDate || simulated.firstNegativeDate) {
     const shortageStartDate = simulated.firstNegativeDate || simulated.firstLowBufferDate;
     expenses.forEach(exp => {
-      if (exp.status !== 'paid' && exp.dueDate >= shortageStartDate && exp.dueDate <= addDays(shortageStartDate, 14)) {
-        contributingBills.push(exp);
+      if (exp.status !== 'paid' && !exp.paidDate) {
+        const d = toISODate(exp.dueDate);
+        if (d >= shortageStartDate && d <= addDays(shortageStartDate, 14)) {
+          contributingBills.push(exp);
+        }
       }
     });
   }
@@ -368,7 +441,7 @@ export function simulatePaymentDelay({
     recommendations.push({
       id: 'rec_shortfall',
       type: 'critical',
-      title: `Cover ₹${formatINR(simulated.maxShortfall)} peak deficit`,
+      title: `Cover ${formatINR(simulated.maxShortfall)} peak deficit`,
       detail: `Your balance goes negative on ${simulated.firstNegativeDate}. Defer non-critical expenses or negotiate payment dates.`
     });
   }
@@ -378,11 +451,10 @@ export function simulatePaymentDelay({
       id: 'rec_buffer',
       type: 'warning',
       title: `Safety buffer compromised for ${simulated.daysBelowBuffer} days`,
-      detail: `Balance drops below ₹${formatINR(safetyBuffer)} safety cushion starting ${simulated.firstLowBufferDate}.`
+      detail: `Balance drops below ${formatINR(safetyBuffer)} safety cushion starting ${simulated.firstLowBufferDate}.`
     });
   }
 
-  // Look for discretionary bills that can be postponed
   const deferrableBills = contributingBills.filter(b => !b.isEssential);
   if (deferrableBills.length > 0) {
     const totalDeferrable = deferrableBills.reduce((sum, b) => sum + Number(b.amount || 0), 0);
@@ -413,34 +485,39 @@ export function simulatePaymentDelay({
 }
 
 /**
- * 5. Smart Bill Prioritization Engine
+ * 5. Smart Bill Prioritization Engine (ISSUE 2 FIX)
  * Ranks unpaid bills by urgency, penalties, essential status, and shortage impact.
  */
-export function rankBills(expenses = [], availableCash = 0, currentDateStr = toISODate(new Date())) {
-  const unpaid = expenses.filter(exp => exp.status !== 'paid');
+export function rankBills(expenses = [], availableCash = 0, currentDateStr = getCurrentLocalDate()) {
+  const today = currentDateStr || getCurrentLocalDate();
+  const unpaid = (Array.isArray(expenses) ? expenses : []).filter(exp => exp && exp.status !== 'paid' && !exp.paidDate);
 
   const scoredBills = unpaid.map(bill => {
     let score = 0;
     const reasons = [];
-    const daysUntilDue = diffInDays(currentDateStr, bill.dueDate);
+    const dueDate = toISODate(bill.dueDate);
+    const daysUntilDue = diffInDays(today, dueDate);
     const isOverdue = daysUntilDue < 0;
 
     // Factor 1: Overdue status & due date proximity
     if (isOverdue) {
       score += 100 + Math.abs(daysUntilDue) * 5;
       reasons.push(`Overdue by ${Math.abs(daysUntilDue)} days`);
+    } else if (daysUntilDue === 0) {
+      score += 85;
+      reasons.push('Due today');
     } else if (daysUntilDue <= 3) {
       score += 70;
-      reasons.push(`Due in ${daysUntilDue === 0 ? 'today' : daysUntilDue + ' days'}`);
+      reasons.push(`Due in ${daysUntilDue} days`);
     } else if (daysUntilDue <= 7) {
       score += 40;
       reasons.push(`Due in ${daysUntilDue} days`);
     } else {
       score += 10;
-      reasons.push(`Due on ${bill.dueDate}`);
+      reasons.push(`Due on ${dueDate}`);
     }
 
-    // Factor 2: Loan / EMI obligations (credit score impact)
+    // Factor 2: Loan / EMI obligations
     if (bill.category === 'EMI or loan' || bill.category === 'Rent') {
       score += 50;
       reasons.push('High-risk debt/housing obligation with severe credit impact');
@@ -454,11 +531,11 @@ export function rankBills(expenses = [], availableCash = 0, currentDateStr = toI
       reasons.push('Discretionary expense');
     }
 
-    // Factor 4: Late payment penalties
+    // Factor 4: Late payment penalties (Format without duplicate ₹)
     const lateFee = Number(bill.lateFee || 0);
     if (lateFee > 0) {
       score += 25;
-      reasons.push(`Late penalty of ₹${formatINR(lateFee)} applies if missed`);
+      reasons.push(`Late penalty of ${formatINR(lateFee)} applies if missed`);
     }
 
     // Factor 5: Grace period awareness
@@ -474,10 +551,8 @@ export function rankBills(expenses = [], availableCash = 0, currentDateStr = toI
     else if (score >= 80) priority = 'high';
     else if (score >= 40) priority = 'medium';
 
-    // Projected effect on balance
-    const postPaymentBalance = availableCash - Number(bill.amount || 0);
+    const postPaymentBalance = Number(availableCash || 0) - Number(bill.amount || 0);
 
-    // Suggested next action
     let suggestedAction = 'Schedule payment';
     if (priority === 'critical') suggestedAction = 'Pay immediately today';
     else if (priority === 'high') suggestedAction = 'Pay before due date to prevent penalty';
@@ -496,10 +571,8 @@ export function rankBills(expenses = [], availableCash = 0, currentDateStr = toI
     };
   });
 
-  // Sort descending by priority score
   scoredBills.sort((a, b) => b.score - a.score);
 
-  // Top 3 actionable recommendations
   const topRecommendations = [];
   const criticalBills = scoredBills.filter(b => b.priority === 'critical');
   const highBills = scoredBills.filter(b => b.priority === 'high');
@@ -536,40 +609,56 @@ export function rankBills(expenses = [], availableCash = 0, currentDateStr = toI
 }
 
 /**
- * 6. Lean-Week Savings Buffer Planner
- * Inputs:
- * - Number of weeks to prepare for (e.g. 4 weeks)
- * - Expected low-income amount per week (e.g. ₹5,000)
- * - Essential weekly expenses (e.g. ₹12,000)
- * - Current designated reserve (e.g. ₹14,000)
+ * 6. Lean-Week Savings Buffer Planner (ISSUE 5 FIX)
+ * 
+ * Required Formula:
+ * Remaining Amount = Target Amount - Funded Amount
+ * Weekly Savings Required = Remaining Amount / Remaining Weeks
+ * 
+ * Edge Cases Handled:
+ * - Goal fully funded (remaining <= 0) -> weeklySavingsRequired = 0
+ * - No weeks remaining (weeks <= 0) -> weeklySavingsRequired = remainingAmount
+ * - Negative remaining amount -> clamped to 0
+ * - Missing or invalid goal data -> defaulted safely
  */
 export function calculateLeanWeekSavings({
   weeks = 4,
   expectedLowIncomePerWeek = 5000,
   essentialWeeklyExpenses = 12000,
   currentDesignatedReserve = 14000,
-  weeklyContribution = 3000
+  weeklyContribution = 3500
 }) {
-  const numWeeks = Number(weeks || 1);
-  const lowIncome = Number(expectedLowIncomePerWeek || 0);
-  const weeklyExpenses = Number(essentialWeeklyExpenses || 0);
-  const currentReserve = Number(currentDesignatedReserve || 0);
-  const contribution = Number(weeklyContribution || 0);
+  const numWeeks = Math.max(0, Number(weeks || 0));
+  const lowIncome = Math.max(0, Number(expectedLowIncomePerWeek || 0));
+  const weeklyExpenses = Math.max(0, Number(essentialWeeklyExpenses || 0));
+  const currentReserve = Math.max(0, Number(currentDesignatedReserve || 0));
+  const contribution = Math.max(0, Number(weeklyContribution || 0));
 
-  // Weekly deficit = max(0, essential weekly expenses - expected low income)
+  // Weekly deficit during a dry spell
   const weeklyDeficit = Math.max(0, weeklyExpenses - lowIncome);
 
-  // Target reserve = weekly deficit * selected weeks
+  // Target Reserve = Weekly Deficit * Number of Weeks
   const targetReserve = weeklyDeficit * numWeeks;
 
-  // Remaining goal = max(0, target reserve - existing designated reserve)
+  // Remaining Amount = Target Amount - Funded Amount
   const remainingGoal = Math.max(0, targetReserve - currentReserve);
+  const isFullyFunded = targetReserve > 0 ? currentReserve >= targetReserve : true;
+
+  // Weekly Savings Required = Remaining Amount / Remaining Weeks
+  const weeklySavingsRequired = (isFullyFunded || remainingGoal <= 0)
+    ? 0
+    : (numWeeks > 0 ? Math.ceil(remainingGoal / numWeeks) : remainingGoal);
 
   // Progress percentage (capped at 100%)
-  const progressPct = targetReserve > 0 ? Math.min(100, Math.round((currentReserve / targetReserve) * 100)) : 100;
+  const progressPct = targetReserve > 0
+    ? Math.min(100, Math.round((currentReserve / targetReserve) * 100))
+    : 100;
 
-  // Estimated weeks to reach goal
-  const weeksToGoal = (contribution > 0 && remainingGoal > 0) ? Math.ceil(remainingGoal / contribution) : 0;
+  // Estimated weeks to reach goal at contribution rate
+  const effectiveContrib = contribution > 0 ? contribution : weeklySavingsRequired;
+  const weeksToGoal = (effectiveContrib > 0 && remainingGoal > 0)
+    ? Math.ceil(remainingGoal / effectiveContrib)
+    : 0;
 
   return {
     numWeeks,
@@ -578,11 +667,15 @@ export function calculateLeanWeekSavings({
     weeklyDeficit,
     targetReserve,
     currentDesignatedReserve: currentReserve,
+    currentReserve,
+    fundedAmount: currentReserve,
     remainingGoal,
+    remainingAmount: remainingGoal,
     weeklyContribution: contribution,
+    weeklySavingsRequired,
     progressPct,
     weeksToGoal,
-    isFullyFunded: remainingGoal === 0
+    isFullyFunded
   };
 }
 
@@ -599,21 +692,23 @@ export function generateDashboardInsights({
   firstLowBufferDate = null,
   firstNegativeDate = null
 }) {
-  const currentDateStr = toISODate(new Date());
-  const unpaidExpenses = expenses.filter(exp => exp.status !== 'paid');
-  const overdueBills = unpaidExpenses.filter(exp => exp.dueDate < currentDateStr);
-  const billsIn7Days = unpaidExpenses.filter(exp => exp.dueDate >= currentDateStr && exp.dueDate <= addDays(currentDateStr, 7));
-  const confirmedIncomes = incomes.filter(inc => inc.status === 'confirmed');
+  const currentDateStr = getCurrentLocalDate();
+  const unpaidExpenses = (Array.isArray(expenses) ? expenses : []).filter(exp => exp && exp.status !== 'paid' && !exp.paidDate);
+  const overdueBills = unpaidExpenses.filter(exp => toISODate(exp.dueDate) < currentDateStr);
+  const billsIn7Days = unpaidExpenses.filter(exp => {
+    const d = toISODate(exp.dueDate);
+    return d >= currentDateStr && d <= addDays(currentDateStr, 7);
+  });
+  const confirmedIncomes = (Array.isArray(incomes) ? incomes : []).filter(inc => inc && inc.status === 'confirmed');
 
-  // Prominent single financial insight
   let primaryInsight = {
     title: 'Cash Flow Stable',
     message: 'Your current balance comfortably covers all planned essential expenses over the next 14 days.',
     type: 'positive'
   };
 
-  const detectedDeficitDate = firstNegativeDate || (forecast || []).find(f => f.balance < 0)?.date;
-  const detectedLowBufferDate = firstLowBufferDate || (forecast || []).find(f => f.balance < safetyBuffer)?.date;
+  const detectedDeficitDate = firstNegativeDate || (forecast || []).find(f => (f.closingBalance ?? f.balance ?? 0) < 0)?.date;
+  const detectedLowBufferDate = firstLowBufferDate || (forecast || []).find(f => (f.closingBalance ?? f.balance ?? 0) < Number(safetyBuffer || 0))?.date;
 
   if (availableCash < 0) {
     primaryInsight = {
@@ -634,13 +729,14 @@ export function generateDashboardInsights({
       type: 'warning'
     };
   } else if (overdueBills.length > 0) {
+    const overdueTotal = overdueBills.reduce((s, b) => s + Number(b.amount || 0), 0);
     primaryInsight = {
       title: `${overdueBills.length} Bill${overdueBills.length > 1 ? 's' : ''} Overdue`,
-      message: `You have overdue commitments totaling ${formatINR(overdueBills.reduce((s, b) => s + Number(b.amount || 0), 0))}. Settle immediately to avoid penalties.`,
+      message: `You have overdue commitments totaling ${formatINR(overdueTotal)}. Settle immediately to avoid penalties.`,
       type: 'danger'
     };
   } else if (confirmedIncomes.length > 0) {
-    const nextInc = confirmedIncomes.sort((a, b) => a.expectedDate.localeCompare(b.expectedDate))[0];
+    const nextInc = [...confirmedIncomes].sort((a, b) => (a.expectedDate || '').localeCompare(b.expectedDate || ''))[0];
     primaryInsight = {
       title: 'Next Confirmed Payout',
       message: `${formatINR(nextInc.amount)} from ${nextInc.title} expected on ${nextInc.expectedDate}.`,
@@ -648,7 +744,6 @@ export function generateDashboardInsights({
     };
   }
 
-  // Exactly up to 3 high-priority alerts
   const alerts = [];
 
   if (availableCash < 0) {
@@ -702,7 +797,6 @@ export function generateDashboardInsights({
     });
   }
 
-  // Fallback alert if everything is calm
   if (alerts.length === 0) {
     alerts.push({
       id: 'alert_lean_week',

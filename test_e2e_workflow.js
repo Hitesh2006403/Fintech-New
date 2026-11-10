@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import http from 'node:http';
+import app from './backend/server.js';
 import {
   calculateCurrentBalance,
   calculateSafeToSpend,
@@ -10,9 +12,23 @@ import {
   addDays
 } from './src/services/financialEngine.js';
 
-const BASE_URL = 'http://localhost:3001';
+const BASE_URL = 'http://127.0.0.1:3001';
 
 test('FinTech E2E Integration & Financial Rules Suite', async (t) => {
+  let server = null;
+  try {
+    const health = await fetch(`${BASE_URL}/api/health`);
+    if (health.status !== 200) throw new Error('Not ready');
+  } catch (err) {
+    server = http.createServer(app);
+    await new Promise((resolve) => server.listen(3001, '127.0.0.1', resolve));
+  }
+
+  t.after(() => {
+    if (server) {
+      server.close();
+    }
+  });
 
   let userAToken = '';
   let userAId = '';

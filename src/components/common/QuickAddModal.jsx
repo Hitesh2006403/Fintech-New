@@ -76,7 +76,7 @@ export function QuickAddModal() {
       <div className="modal-content-card" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="modal-header-bar">
-          <div className="modal-tab-group" style={{ display: 'flex', gap: 6, background: 'rgba(11, 18, 32, 0.75)', padding: 4, borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <div className="modal-tab-group" style={{ display: 'flex', gap: 6, background: '#0B1220', padding: 4, borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
             <button
               type="button"
               style={{
