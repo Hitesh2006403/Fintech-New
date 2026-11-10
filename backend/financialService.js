@@ -33,12 +33,11 @@ export function formatINR(amount, includeDecimals = false) {
   if (amount === undefined || amount === null) return '₹0';
   if (typeof amount === 'string') {
     const trimmed = amount.trim();
-    if (trimmed.startsWith('₹') || trimmed.startsWith('-₹')) {
-      return trimmed.replace(/^₹+/, '₹').replace(/^-₹+/, '-₹');
-    }
-    const cleanNum = Number(trimmed.replace(/[^0-9.-]/g, ''));
+    const isNeg = trimmed.startsWith('-') || trimmed.includes('-₹');
+    const cleanStr = trimmed.replace(/[^0-9.]/g, '');
+    const cleanNum = Number(cleanStr);
     if (!isNaN(cleanNum)) {
-      amount = cleanNum;
+      amount = isNeg ? -cleanNum : cleanNum;
     } else {
       return '₹0';
     }

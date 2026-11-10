@@ -1045,11 +1045,12 @@ app.get('/api/financials/calculations', requireAuth, (req, res) => {
 });
 
 // Centralized Cash Flow Forecast API Endpoint
-app.get('/api/forecast', requireAuth, (req, res) => {
+app.all(['/api/forecast', '/api/api/forecast'], requireAuth, (req, res) => {
   const data = db.getUserFinancials(req.user.id);
-  const days = Number(req.query.days || 30);
-  const scenario = req.query.scenario || 'expected';
-  const startDate = req.query.startDate || getCurrentLocalDate();
+  const params = { ...req.query, ...req.body };
+  const days = Number(params.days || 30);
+  const scenario = params.scenario || 'expected';
+  const startDate = params.startDate || params.startDateStr || params.currentDateStr || getCurrentLocalDate();
 
   const balanceDetails = calculateCurrentBalance(
     data.preferences?.startingBalance ?? 45000,
@@ -1072,12 +1073,13 @@ app.get('/api/forecast', requireAuth, (req, res) => {
 });
 
 // Centralized Safe-to-Spend API Endpoint
-app.get('/api/safe-to-spend', requireAuth, (req, res) => {
+app.all(['/api/safe-to-spend', '/api/api/safe-to-spend'], requireAuth, (req, res) => {
   const data = db.getUserFinancials(req.user.id);
-  const horizonDays = Number(req.query.horizonDays || data.preferences?.defaultHorizonDays || 30);
-  const safetyBuffer = Number(req.query.safetyBuffer || data.preferences?.safetyBuffer || 25000);
-  const scenario = req.query.scenario || data.preferences?.defaultScenario || 'conservative';
-  const includeDiscretionary = req.query.includeDiscretionary !== 'false';
+  const params = { ...req.query, ...req.body };
+  const horizonDays = Number(params.horizonDays || data.preferences?.defaultHorizonDays || 30);
+  const safetyBuffer = Number(params.safetyBuffer || data.preferences?.safetyBuffer || 25000);
+  const scenario = params.scenario || data.preferences?.defaultScenario || 'conservative';
+  const includeDiscretionary = params.includeDiscretionary !== false && params.includeDiscretionary !== 'false';
 
   const balanceDetails = calculateCurrentBalance(
     data.preferences?.startingBalance ?? 45000,
@@ -1097,6 +1099,26 @@ app.get('/api/safe-to-spend', requireAuth, (req, res) => {
   });
 
   res.json({ success: true, ...result });
+});
+
+// Centralized Bill Prioritization API Endpoint
+app.all(['/api/bills/prioritization', '/api/api/bills/prioritization'], requireAuth, (req, res) => {
+  const data = db.getUserFinancials(req.user.id);
+  const balanceDetails = calculateCurrentBalance(
+    data.preferences?.startingBalance ?? 45000,
+    data.incomes,
+    data.expenses,
+    data.leanSavings?.currentDesignatedReserve ?? 0
+  );
+  const ranking = rankBills(data.expenses, balanceDetails.availableCash);
+  res.json({ success: true, ...ranking });
+});
+
+// Centralized Lean-Week Savings API Endpoint
+app.all(['/api/savings/calculations', '/api/api/savings/calculations'], requireAuth, (req, res) => {
+  const data = db.getUserFinancials(req.user.id);
+  const calcs = calculateLeanWeekSavings(data.leanSavings || data.savingsGoals || {});
+  res.json({ success: true, data: calcs });
 });
 
 // 2. Update user planning preferences

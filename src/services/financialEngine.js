@@ -26,13 +26,11 @@ export function formatINR(amount, includeDecimals = false) {
   
   if (typeof amount === 'string') {
     const trimmed = amount.trim();
-    if (trimmed.startsWith('₹') || trimmed.startsWith('-₹')) {
-      // Clean any pre-existing duplicate ₹₹ occurrences
-      return trimmed.replace(/^₹+/, '₹').replace(/^-₹+/, '-₹');
-    }
-    const cleanNum = Number(trimmed.replace(/[^0-9.-]/g, ''));
+    const isNeg = trimmed.startsWith('-') || trimmed.includes('-$') || trimmed.includes('-₹');
+    const cleanStr = trimmed.replace(/[^0-9.]/g, '');
+    const cleanNum = Number(cleanStr);
     if (!isNaN(cleanNum)) {
-      amount = cleanNum;
+      amount = isNeg ? -cleanNum : cleanNum;
     } else {
       return '₹0';
     }
