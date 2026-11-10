@@ -50,10 +50,10 @@ export function AdminUsersView() {
         gap: 16
       }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
             User Management
           </h2>
-          <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
             Manage platform members, adjust access permissions, and monitor activity.
           </p>
         </div>
@@ -62,11 +62,11 @@ export function AdminUsersView() {
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          background: 'rgba(99, 102, 241, 0.12)',
-          border: '1px solid rgba(129, 140, 248, 0.3)',
+          background: 'rgba(79, 70, 229, 0.08)',
+          border: '1px solid rgba(79, 70, 229, 0.2)',
           padding: '6px 14px',
           borderRadius: 10,
-          color: '#818CF8',
+          color: '#4338CA',
           fontSize: 12.5,
           fontWeight: 700
         }}>
@@ -82,11 +82,13 @@ export function AdminUsersView() {
         justifyContent: 'space-between',
         gap: 14,
         flexWrap: 'wrap',
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
         borderRadius: 14,
-        padding: '14px 18px'
+        padding: '14px 18px',
+        boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
       }}>
         <div style={{ position: 'relative', flex: '1 1 280px' }}>
           <Search size={16} color="#64748B" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
@@ -98,10 +100,10 @@ export function AdminUsersView() {
             style={{
               width: '100%',
               padding: '9px 14px 9px 40px',
-              background: 'rgba(10, 15, 25, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.09)',
+              background: '#FFFFFF',
+              border: '1px solid rgba(203, 213, 225, 0.8)',
               borderRadius: 8,
-              color: '#F8FAFC',
+              color: '#0F172A',
               fontSize: 13,
               outline: 'none',
               boxSizing: 'border-box'
@@ -118,9 +120,9 @@ export function AdminUsersView() {
               style={{
                 padding: '7px 14px',
                 borderRadius: 8,
-                border: 'none',
-                background: statusFilter === st ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                color: statusFilter === st ? '#818CF8' : '#94A3B8',
+                border: statusFilter === st ? '1px solid rgba(79, 70, 229, 0.25)' : '1px solid rgba(226, 232, 240, 0.8)',
+                background: statusFilter === st ? 'rgba(79, 70, 229, 0.12)' : 'rgba(241, 245, 249, 0.8)',
+                color: statusFilter === st ? '#4338CA' : '#475569',
                 fontSize: 12,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -135,23 +137,24 @@ export function AdminUsersView() {
 
       {/* Users Table */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
-        borderRadius: 16,
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderRadius: 20,
         padding: '20px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.05)'
       }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>User</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Identifier</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Status</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Platform Role</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Registered</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8', textAlign: 'right' }}>Actions</th>
+              <tr style={{ borderBottom: '1px solid rgba(226, 232, 240, 0.9)', background: 'rgba(241, 245, 249, 0.6)' }}>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>User</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Identifier</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Status</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Platform Role</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Registered</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -168,10 +171,10 @@ export function AdminUsersView() {
                     <tr
                       key={u.id}
                       style={{
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderBottom: '1px solid rgba(241, 245, 249, 0.9)',
                         transition: 'background 0.15s ease'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.04)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248, 250, 252, 0.8)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <td style={{ padding: '14px' }}>
@@ -180,25 +183,25 @@ export function AdminUsersView() {
                             width: 36,
                             height: 36,
                             borderRadius: '50%',
-                            background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(129, 140, 248, 0.15) 100%)',
-                            border: '1px solid rgba(129, 140, 248, 0.25)',
+                            background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.15) 0%, rgba(99, 102, 241, 0.08) 100%)',
+                            border: '1px solid rgba(99, 102, 241, 0.25)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            color: '#F8FAFC',
+                            color: '#4338CA',
                             fontWeight: 700,
                             fontSize: 13
                           }}>
                             {u.avatarInitials || (u.name ? u.name.slice(0, 2).toUpperCase() : 'U')}
                           </div>
                           <div>
-                            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#F8FAFC' }}>{u.name}</div>
-                            <div style={{ fontSize: 12, color: '#94A3B8' }}>{u.email}</div>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0F172A' }}>{u.name}</div>
+                            <div style={{ fontSize: 12, color: '#64748B' }}>{u.email}</div>
                           </div>
                         </div>
                       </td>
 
-                      <td style={{ padding: '14px', fontSize: 13, color: '#94A3B8', fontWeight: 600 }}>
+                      <td style={{ padding: '14px', fontSize: 13, color: '#475569', fontWeight: 600, fontFamily: 'monospace' }}>
                         {u.id}
                       </td>
 
@@ -208,19 +211,19 @@ export function AdminUsersView() {
                           fontWeight: 700,
                           padding: '3px 8px',
                           borderRadius: 6,
-                          background: isBlocked ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                          color: isBlocked ? '#F87171' : '#34D399',
-                          border: `1px solid ${isBlocked ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                          background: isBlocked ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                          color: isBlocked ? '#DC2626' : '#059669',
+                          border: `1px solid ${isBlocked ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)'}`
                         }}>
                           {u.status}
                         </span>
                       </td>
 
-                      <td style={{ padding: '14px', fontSize: 13, color: '#F8FAFC' }}>
+                      <td style={{ padding: '14px', fontSize: 13, color: '#334155' }}>
                         {u.role || 'Treasury Planner'}
                       </td>
 
-                      <td style={{ padding: '14px', fontSize: 12.5, color: '#94A3B8' }}>
+                      <td style={{ padding: '14px', fontSize: 12.5, color: '#64748B' }}>
                         {u.joinedOn || '18 Oct 2025'}
                       </td>
 
@@ -231,16 +234,16 @@ export function AdminUsersView() {
                             title="View Profile"
                             onClick={() => setSelectedUser(u)}
                             style={{
-                              background: 'rgba(255, 255, 255, 0.05)',
-                              border: '1px solid rgba(255, 255, 255, 0.08)',
-                              color: '#94A3B8',
+                              background: 'rgba(241, 245, 249, 0.8)',
+                              border: '1px solid rgba(203, 213, 225, 0.8)',
+                              color: '#334155',
                               borderRadius: 6,
                               padding: 6,
                               cursor: 'pointer',
                               transition: 'all 0.15s ease'
                             }}
-                            onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; }}
+                            onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.borderColor = 'rgba(79, 70, 229, 0.4)'; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.color = '#334155'; e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.8)'; }}
                           >
                             <Eye size={14} />
                           </button>
@@ -252,7 +255,7 @@ export function AdminUsersView() {
                             style={{
                               background: isBlocked ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
                               border: `1px solid ${isBlocked ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
-                              color: isBlocked ? '#34D399' : '#F87171',
+                              color: isBlocked ? '#059669' : '#DC2626',
                               borderRadius: 6,
                               padding: 6,
                               cursor: 'pointer',
@@ -269,7 +272,7 @@ export function AdminUsersView() {
                             style={{
                               background: 'rgba(239, 68, 68, 0.08)',
                               border: '1px solid rgba(239, 68, 68, 0.2)',
-                              color: '#F87171',
+                              color: '#DC2626',
                               borderRadius: 6,
                               padding: 6,
                               cursor: 'pointer',
@@ -294,8 +297,9 @@ export function AdminUsersView() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
+          background: 'rgba(15, 23, 42, 0.55)',
           backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           zIndex: 1000,
           display: 'flex',
           alignItems: 'center',
@@ -303,26 +307,26 @@ export function AdminUsersView() {
           padding: 16
         }}>
           <div style={{
-            background: 'rgba(14, 21, 34, 0.98)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: 18,
-            padding: 24,
+            background: 'rgba(255, 255, 255, 0.98)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
+            borderRadius: 20,
+            padding: 28,
             maxWidth: 440,
             width: '100%',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.75)'
+            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)'
           }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#F8FAFC', margin: '0 0 16px 0' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: '0 0 16px 0' }}>
               User Overview
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13 }}>
-              <div><span style={{ color: '#94A3B8' }}>Identifier:</span> <strong style={{ color: '#F8FAFC' }}>{selectedUser.id}</strong></div>
-              <div><span style={{ color: '#94A3B8' }}>Full Name:</span> <strong style={{ color: '#F8FAFC' }}>{selectedUser.name}</strong></div>
-              <div><span style={{ color: '#94A3B8' }}>Email:</span> <strong style={{ color: '#818CF8' }}>{selectedUser.email}</strong></div>
-              <div><span style={{ color: '#94A3B8' }}>Role:</span> <strong style={{ color: '#F8FAFC' }}>{selectedUser.role}</strong></div>
-              <div><span style={{ color: '#94A3B8' }}>Auth Provider:</span> <strong style={{ color: '#A5B4FC' }}>{selectedUser.authProvider || 'google'}</strong></div>
-              <div><span style={{ color: '#94A3B8' }}>Status:</span> <strong style={{ color: selectedUser.status === 'Blocked' ? '#F87171' : '#34D399' }}>{selectedUser.status}</strong></div>
-              <div><span style={{ color: '#94A3B8' }}>Joined:</span> <strong style={{ color: '#F8FAFC' }}>{selectedUser.joinedOn}</strong></div>
+              <div><span style={{ color: '#64748B' }}>Identifier:</span> <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{selectedUser.id}</strong></div>
+              <div><span style={{ color: '#64748B' }}>Full Name:</span> <strong style={{ color: '#0F172A' }}>{selectedUser.name}</strong></div>
+              <div><span style={{ color: '#64748B' }}>Email:</span> <strong style={{ color: '#2563EB' }}>{selectedUser.email}</strong></div>
+              <div><span style={{ color: '#64748B' }}>Role:</span> <strong style={{ color: '#0F172A' }}>{selectedUser.role}</strong></div>
+              <div><span style={{ color: '#64748B' }}>Auth Provider:</span> <strong style={{ color: '#4338CA' }}>{selectedUser.authProvider || 'google'}</strong></div>
+              <div><span style={{ color: '#64748B' }}>Status:</span> <strong style={{ color: selectedUser.status === 'Blocked' ? '#DC2626' : '#059669' }}>{selectedUser.status}</strong></div>
+              <div><span style={{ color: '#64748B' }}>Joined:</span> <strong style={{ color: '#0F172A' }}>{selectedUser.joinedOn}</strong></div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 24 }}>
@@ -330,14 +334,19 @@ export function AdminUsersView() {
                 type="button"
                 onClick={() => setSelectedUser(null)}
                 style={{
-                  padding: '8px 16px',
-                  background: 'rgba(255, 255, 255, 0.1)',
+                  padding: '9px 20px',
+                  background: '#0F172A',
                   border: 'none',
-                  borderRadius: 8,
-                  color: '#F8FAFC',
+                  borderRadius: 10,
+                  color: '#FFFFFF',
                   fontSize: 13,
-                  cursor: 'pointer'
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
+                  transition: 'background 0.15s ease'
                 }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#1E293B'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#0F172A'; }}
               >
                 Close
               </button>
@@ -351,8 +360,9 @@ export function AdminUsersView() {
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
+          background: 'rgba(15, 23, 42, 0.55)',
           backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           zIndex: 1000,
           display: 'flex',
           alignItems: 'center',
@@ -360,31 +370,32 @@ export function AdminUsersView() {
           padding: 16
         }}>
           <div style={{
-            background: 'rgba(14, 21, 34, 0.98)',
+            background: 'rgba(255, 255, 255, 0.98)',
             border: '1px solid rgba(239, 68, 68, 0.35)',
-            borderRadius: 18,
-            padding: 24,
-            maxWidth: 400,
+            borderRadius: 20,
+            padding: 28,
+            maxWidth: 420,
             width: '100%',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.75)'
+            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)'
           }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#F87171', margin: '0 0 12px 0' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#DC2626', margin: '0 0 12px 0' }}>
               Confirm Account Purge
             </h3>
-            <p style={{ fontSize: 13.5, color: '#94A3B8', lineHeight: 1.5, marginBottom: 20 }}>
-              Are you sure you want to permanently delete the account for <strong style={{ color: '#F8FAFC' }}>{confirmDelete.name}</strong> ({confirmDelete.email})? This action cannot be reversed.
+            <p style={{ fontSize: 13.5, color: '#475569', lineHeight: 1.5, marginBottom: 20 }}>
+              Are you sure you want to permanently delete the account for <strong style={{ color: '#0F172A' }}>{confirmDelete.name}</strong> ({confirmDelete.email})? This action cannot be reversed.
             </p>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
               <button
                 type="button"
                 onClick={() => setConfirmDelete(null)}
                 style={{
-                  padding: '8px 14px',
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: 'none',
-                  borderRadius: 8,
-                  color: '#F8FAFC',
+                  padding: '9px 16px',
+                  background: 'rgba(241, 245, 249, 0.8)',
+                  border: '1px solid rgba(203, 213, 225, 0.8)',
+                  borderRadius: 10,
+                  color: '#334155',
                   fontSize: 13,
+                  fontWeight: 600,
                   cursor: 'pointer'
                 }}
               >
@@ -397,14 +408,15 @@ export function AdminUsersView() {
                   setConfirmDelete(null);
                 }}
                 style={{
-                  padding: '8px 16px',
+                  padding: '9px 18px',
                   background: '#EF4444',
                   border: 'none',
-                  borderRadius: 8,
+                  borderRadius: 10,
                   color: '#FFFFFF',
                   fontSize: 13,
                   fontWeight: 700,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(239, 68, 68, 0.25)'
                 }}
               >
                 Delete Account

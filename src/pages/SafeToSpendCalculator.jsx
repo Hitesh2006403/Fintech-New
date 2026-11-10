@@ -99,7 +99,7 @@ export function SafeToSpendCalculator() {
               <label className="form-label-title" style={{ margin: 0 }}>
                 Safety Buffer Target
               </label>
-              <strong style={{ color: 'var(--accent-primary)', fontFeatureSettings: 'tnum', fontSize: 16, textShadow: '0 0 12px rgba(56, 189, 248, 0.35)' }}>
+              <strong style={{ color: 'var(--neu-brand-primary, #059669)', fontVariantNumeric: 'tabular-nums', fontSize: 16 }}>
                 {formatINR(bufferInput)}
               </strong>
             </div>
@@ -112,7 +112,7 @@ export function SafeToSpendCalculator() {
               value={bufferInput}
               onChange={(e) => setBufferInput(Number(e.target.value))}
             />
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginTop: 6 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--neu-text-muted, #94A3B8)', marginTop: 6 }}>
               <span>₹5,000 (Lean)</span>
               <span>₹50,000</span>
               <span>₹1,00,000 (Conservative)</span>
@@ -123,27 +123,30 @@ export function SafeToSpendCalculator() {
           <div style={{ marginBottom: 24 }}>
             <label className="form-label-title">Planning Horizon</label>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
-              {[7, 14, 30, 45].map(days => (
-                <button
-                  key={days}
-                  type="button"
-                  style={{
-                    border: horizonDays === days ? '1px solid rgba(56, 189, 248, 0.5)' : '1px solid var(--border-glass)',
-                    background: horizonDays === days ? 'linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(167, 139, 250, 0.25) 100%)' : 'rgba(255, 255, 255, 0.03)',
-                    color: horizonDays === days ? '#FFFFFF' : 'var(--text-secondary)',
-                    fontWeight: 600,
-                    fontSize: 12.5,
-                    padding: '9px 0',
-                    borderRadius: 10,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                    boxShadow: horizonDays === days ? '0 0 16px rgba(56, 189, 248, 0.25)' : 'none'
-                  }}
-                  onClick={() => setHorizonDays(days)}
-                >
-                  {days} Days
-                </button>
-              ))}
+              {[7, 14, 30, 45].map(days => {
+                const isActive = horizonDays === days;
+                return (
+                  <button
+                    key={days}
+                    type="button"
+                    style={{
+                      border: isActive ? '1px solid var(--neu-brand-primary, #059669)' : '1px solid var(--neu-border, #DCE4EB)',
+                      background: isActive ? 'var(--neu-brand-gradient, linear-gradient(135deg, #059669 0%, #047857 100%))' : 'var(--neu-bg-primary, #E9EEF3)',
+                      color: isActive ? '#FFFFFF' : 'var(--neu-text-secondary, #64748B)',
+                      fontWeight: 600,
+                      fontSize: 12.5,
+                      padding: '9px 0',
+                      borderRadius: 10,
+                      cursor: 'pointer',
+                      transition: 'all 0.18s ease',
+                      boxShadow: isActive ? '2px 2px 6px rgba(5, 150, 105, 0.35), -1px -1px 4px rgba(255, 255, 255, 0.7)' : 'var(--neu-shadow-raised-sm)'
+                    }}
+                    onClick={() => setHorizonDays(days)}
+                  >
+                    {days} Days
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -154,56 +157,65 @@ export function SafeToSpendCalculator() {
               <button
                 type="button"
                 style={{
-                  border: scenario === 'conservative' ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid var(--border-glass)',
-                  background: scenario === 'conservative' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.6)',
-                  color: scenario === 'conservative' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  border: scenario === 'conservative' ? '1.5px solid var(--neu-brand-primary, #059669)' : '1px solid var(--neu-border, #DCE4EB)',
+                  background: 'var(--neu-bg-primary, #E9EEF3)',
+                  color: scenario === 'conservative' ? 'var(--neu-brand-primary, #059669)' : 'var(--neu-text-secondary, #64748B)',
                   fontWeight: 600,
                   fontSize: 12.5,
                   padding: '12px 14px',
-                  borderRadius: 10,
+                  borderRadius: 12,
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: scenario === 'conservative' ? '0 0 20px rgba(56, 189, 248, 0.15)' : 'none'
+                  transition: 'all 0.18s ease',
+                  boxShadow: scenario === 'conservative' ? 'var(--neu-shadow-inset-sm)' : 'var(--neu-shadow-raised-sm)'
                 }}
                 onClick={() => setScenario('conservative')}
               >
-                <div style={{ fontWeight: 700, color: scenario === 'conservative' ? '#F8FAFC' : 'var(--text-primary)' }}>Conservative</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 3 }}>Only current cash counted</div>
+                <div style={{ fontWeight: 700, color: scenario === 'conservative' ? 'var(--neu-brand-primary, #059669)' : 'var(--neu-text-primary, #172033)' }}>Conservative</div>
+                <div style={{ fontSize: 11, color: 'var(--neu-text-secondary, #64748B)', marginTop: 3 }}>Only current cash counted</div>
               </button>
 
               <button
                 type="button"
                 style={{
-                  border: scenario === 'expected' ? '1px solid rgba(56, 189, 248, 0.45)' : '1px solid var(--border-glass)',
-                  background: scenario === 'expected' ? 'rgba(56, 189, 248, 0.12)' : 'rgba(15, 23, 42, 0.6)',
-                  color: scenario === 'expected' ? 'var(--accent-primary)' : 'var(--text-secondary)',
+                  border: scenario === 'expected' ? '1.5px solid var(--neu-brand-primary, #059669)' : '1px solid var(--neu-border, #DCE4EB)',
+                  background: 'var(--neu-bg-primary, #E9EEF3)',
+                  color: scenario === 'expected' ? 'var(--neu-brand-primary, #059669)' : 'var(--neu-text-secondary, #64748B)',
                   fontWeight: 600,
                   fontSize: 12.5,
                   padding: '12px 14px',
-                  borderRadius: 10,
+                  borderRadius: 12,
                   cursor: 'pointer',
                   textAlign: 'left',
-                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: scenario === 'expected' ? '0 0 20px rgba(56, 189, 248, 0.15)' : 'none'
+                  transition: 'all 0.18s ease',
+                  boxShadow: scenario === 'expected' ? 'var(--neu-shadow-inset-sm)' : 'var(--neu-shadow-raised-sm)'
                 }}
                 onClick={() => setScenario('expected')}
               >
-                <div style={{ fontWeight: 700, color: scenario === 'expected' ? '#F8FAFC' : 'var(--text-primary)' }}>Expected</div>
-                <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 3 }}>Includes confirmed invoices</div>
+                <div style={{ fontWeight: 700, color: scenario === 'expected' ? 'var(--neu-brand-primary, #059669)' : 'var(--neu-text-primary, #172033)' }}>Expected</div>
+                <div style={{ fontSize: 11, color: 'var(--neu-text-secondary, #64748B)', marginTop: 3 }}>Includes confirmed invoices</div>
               </button>
             </div>
           </div>
 
           {/* Expense Assumption Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', background: 'rgba(15, 23, 42, 0.6)', borderRadius: 10, border: '1px solid var(--border-glass)' }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 16px',
+            background: 'var(--neu-bg-primary, #E9EEF3)',
+            borderRadius: 12,
+            border: '1px solid var(--neu-border, #DCE4EB)',
+            boxShadow: 'var(--neu-shadow-raised-sm)'
+          }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)' }}>Include Discretionary Bills</div>
-              <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 2 }}>Protect subscriptions & non-essentials</div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--neu-text-primary, #172033)' }}>Include Discretionary Bills</div>
+              <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 2 }}>Protect subscriptions & non-essentials</div>
             </div>
             <input
               type="checkbox"
-              style={{ width: 18, height: 18, accentColor: 'var(--accent-primary)', cursor: 'pointer' }}
+              style={{ width: 18, height: 18, accentColor: 'var(--neu-brand-primary, #059669)', cursor: 'pointer' }}
               checked={includeDiscretionary}
               onChange={(e) => setIncludeDiscretionary(e.target.checked)}
             />
@@ -217,7 +229,7 @@ export function SafeToSpendCalculator() {
               <h3 className="card-title-h3">Transparent Mathematical Breakdown</h3>
               <p className="card-subtitle-p">Zero guesswork. Every rupee accounted for.</p>
             </div>
-            <span className="badge badge-purple">
+            <span className="status-badge neutral">
               <span>Auditable Math</span>
             </span>
           </div>
@@ -225,64 +237,64 @@ export function SafeToSpendCalculator() {
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <div className="breakdown-row-item">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)', boxShadow: '0 0 8px var(--accent-primary)' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-brand-primary, #059669)', boxShadow: '0 0 6px rgba(5, 150, 105, 0.4)' }}></span>
                 <span>Current Recorded Available Cash</span>
               </div>
-              <span className="num-val" style={{ color: 'var(--accent-primary)' }}>
+              <span className="num-val" style={{ color: 'var(--neu-brand-primary, #059669)', fontVariantNumeric: 'tabular-nums' }}>
                 +{formatINR(calculation.availableCash)}
               </span>
             </div>
 
             <div className="breakdown-row-item">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-danger, #EF4444)', boxShadow: '0 0 6px rgba(239, 68, 68, 0.4)' }}></span>
                 <span>
                   Essential Overdue Commitments (Past Due Unpaid)
                 </span>
               </div>
-              <span className="num-val" style={{ color: '#EF4444' }}>
+              <span className="num-val" style={{ color: 'var(--neu-danger-dark, #B91C1C)', fontVariantNumeric: 'tabular-nums' }}>
                 -{formatINR(calculation.essentialOverdue)}
               </span>
             </div>
 
             <div className="breakdown-row-item">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F87171', boxShadow: '0 0 8px rgba(248, 113, 113, 0.6)' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F87171', boxShadow: '0 0 6px rgba(248, 113, 113, 0.4)' }}></span>
                 <span>
                   Upcoming Essential Commitments (before next payout: {calculation.nextIncomeDate || 'horizon'})
                 </span>
               </div>
-              <span className="num-val" style={{ color: '#F87171' }}>
+              <span className="num-val" style={{ color: 'var(--neu-danger-dark, #B91C1C)', fontVariantNumeric: 'tabular-nums' }}>
                 -{formatINR(calculation.upcomingEssential)}
               </span>
             </div>
 
-            <div className="breakdown-row-item" style={{ background: 'rgba(239, 68, 68, 0.08)', borderRadius: 8, margin: '2px 0' }}>
+            <div className="breakdown-row-item" style={{ background: 'var(--neu-danger-bg, rgba(239, 68, 68, 0.08))', borderRadius: 10, margin: '2px 0' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-danger, #EF4444)' }}></span>
                 <span style={{ fontWeight: 600 }}>Total Essential Commitments (Overdue + Upcoming)</span>
               </div>
-              <span className="num-val" style={{ color: '#EF4444', fontWeight: 700 }}>
+              <span className="num-val" style={{ color: 'var(--neu-danger-dark, #B91C1C)', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                 -{formatINR(calculation.totalEssentialCommitments)}
               </span>
             </div>
 
             <div className="breakdown-row-item">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', boxShadow: '0 0 8px rgba(245, 158, 11, 0.6)' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-warning, #F59E0B)', boxShadow: '0 0 6px rgba(245, 158, 11, 0.4)' }}></span>
                 <span>Other Committed Expenses in {horizonDays}-Day Horizon</span>
               </div>
-              <span className="num-val" style={{ color: '#F59E0B' }}>
+              <span className="num-val" style={{ color: 'var(--neu-warning-dark, #B45309)', fontVariantNumeric: 'tabular-nums' }}>
                 -{formatINR(calculation.otherCommittedInHorizon)}
               </span>
             </div>
 
             <div className="breakdown-row-item">
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#A78BFA', boxShadow: '0 0 8px rgba(167, 139, 250, 0.6)' }}></span>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-info, #3B82F6)', boxShadow: '0 0 6px rgba(59, 130, 246, 0.4)' }}></span>
                 <span>Quarantined Minimum Safety Buffer</span>
               </div>
-              <span className="num-val" style={{ color: '#A78BFA' }}>
+              <span className="num-val" style={{ color: 'var(--neu-info-dark, #1D4ED8)', fontVariantNumeric: 'tabular-nums' }}>
                 -{formatINR(calculation.safetyBuffer)}
               </span>
             </div>
@@ -290,21 +302,32 @@ export function SafeToSpendCalculator() {
             {scenario !== 'conservative' && (
               <div className="breakdown-row-item">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px rgba(16, 185, 129, 0.6)' }}></span>
+                  <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-success, #10B981)', boxShadow: '0 0 6px rgba(16, 185, 129, 0.4)' }}></span>
                   <span>Discounted Confirmed Income Credit (Expected Mode)</span>
                 </div>
-                <span className="num-val" style={{ color: '#10B981' }}>
+                <span className="num-val" style={{ color: 'var(--neu-success-dark, #047857)', fontVariantNumeric: 'tabular-nums' }}>
                   +{formatINR(calculation.eligibleFutureIncome * 0.5)}
                 </span>
               </div>
             )}
 
-            <div className="breakdown-row-item" style={{ background: 'rgba(56, 189, 248, 0.06)', borderTop: '1px solid rgba(56, 189, 248, 0.2)', margin: '0 -24px -24px -24px', padding: '20px 24px', borderRadius: '0 0 var(--radius-lg) var(--radius-lg)' }}>
+            <div className="breakdown-row-item" style={{
+              background: 'var(--neu-bg-secondary, #F1F5F9)',
+              borderTop: '1px solid var(--neu-border, #DCE4EB)',
+              margin: '0 -24px -24px -24px',
+              padding: '20px 24px',
+              borderRadius: '0 0 var(--neu-radius-lg, 18px) var(--neu-radius-lg, 18px)'
+            }}>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)' }}>Safe-to-Spend Today</div>
-                <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 2 }}>Clamped to ₹0 minimum (never negative)</div>
+                <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--neu-text-primary, #172033)' }}>Safe-to-Spend Today</div>
+                <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 2 }}>Clamped to ₹0 minimum (never negative)</div>
               </div>
-              <span className="num-val" style={{ fontSize: 24, fontWeight: 800, color: calculation.safeToSpendToday > 0 ? 'var(--accent-primary)' : '#EF4444', textShadow: calculation.safeToSpendToday > 0 ? '0 0 16px rgba(56, 189, 248, 0.4)' : '0 0 16px rgba(239, 68, 68, 0.4)' }}>
+              <span className="num-val" style={{
+                fontSize: 24,
+                fontWeight: 800,
+                color: calculation.safeToSpendToday > 0 ? 'var(--neu-brand-primary, #059669)' : 'var(--neu-danger, #EF4444)',
+                fontVariantNumeric: 'tabular-nums'
+              }}>
                 {formatINR(calculation.safeToSpendToday)}
               </span>
             </div>

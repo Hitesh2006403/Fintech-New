@@ -4,22 +4,40 @@ import { useApp } from './AppContext.jsx';
 
 const AdminContext = createContext(null);
 
-const AUTHORIZED_ADMIN_EMAILS = ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'];
+const AUTHORIZED_ADMIN_EMAILS = [
+  'hiteshav2006@gmail.com',
+  'dishankbs04@gmail.com',
+  ...(typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_EMAIL ? [import.meta.env.VITE_ADMIN_EMAIL.toLowerCase().trim()] : [])
+];
 
 export function AdminProvider({ children }) {
-  const appContext = useApp();
-  const contextUser = appContext?.user;
+  const storedAdminUser = useMemo(() => {
+    try {
+      const raw = localStorage.getItem('finsight_admin_user');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const adminToken = useMemo(() => {
+    try {
+      return localStorage.getItem('finsight_admin_token');
+    } catch {
+      return null;
+    }
+  }, []);
 
   const isUserAdmin = Boolean(
-    contextUser && (
-      contextUser.isAdmin ||
-      contextUser.role === 'Super Administrator' ||
-      contextUser.role === 'admin' ||
-      (contextUser.email && AUTHORIZED_ADMIN_EMAILS.includes(contextUser.email.toLowerCase().trim()))
+    adminToken && storedAdminUser && (
+      storedAdminUser.isAdmin ||
+      storedAdminUser.role === 'Super Administrator' ||
+      storedAdminUser.role === 'admin' ||
+      (storedAdminUser.email && AUTHORIZED_ADMIN_EMAILS.includes(storedAdminUser.email.toLowerCase().trim()))
     )
   );
 
-  const [adminUser, setAdminUser] = useState(() => isUserAdmin ? contextUser : null);
+  const [adminUser, setAdminUser] = useState(() => isUserAdmin ? storedAdminUser : null);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(() => isUserAdmin);
   const [adminLoading, setAdminLoading] = useState(() => !isUserAdmin);
   const [adminActiveTab, setAdminActiveTab] = useState('dashboard');
@@ -48,14 +66,20 @@ export function AdminProvider({ children }) {
           setIsAdminAuthenticated(true);
         } else if (isUserAdmin) {
           // If server call fails temporarily (cold start) but client holds verified admin session
-          setAdminUser(contextUser);
+          setAdminUser(storedAdminUser);
           setIsAdminAuthenticated(true);
+        } else {
+          setAdminUser(null);
+          setIsAdminAuthenticated(false);
         }
       } catch (err) {
         console.warn('Admin session check notice:', err);
         if (isUserAdmin && !isCancelled) {
-          setAdminUser(contextUser);
+          setAdminUser(storedAdminUser);
           setIsAdminAuthenticated(true);
+        } else {
+          setAdminUser(null);
+          setIsAdminAuthenticated(false);
         }
       } finally {
         if (!isCancelled) {
@@ -66,7 +90,7 @@ export function AdminProvider({ children }) {
     initAdminAuth();
 
     return () => { isCancelled = true; };
-  }, [contextUser, isUserAdmin]);
+  }, [isUserAdmin, storedAdminUser]);
 
   // Fetch admin datasets when authenticated
   const loadAdminData = useCallback(async () => {
@@ -118,6 +142,20 @@ export function AdminProvider({ children }) {
     if (result?.user) {
       setAdminUser(result.user);
       setIsAdminAuthenticated(true);
+      try {
+        if (result.token) {
+          localStorage.setItem('finsight_admin_token', result.token);
+          localStorage.removeItem('uip_auth_token');
+        }
+        const adminProfile = {
+          ...result.user,
+          isAdmin: true,
+          role: 'Super Administrator',
+          isAuthenticated: true
+        };
+        localStorage.setItem('finsight_admin_user', JSON.stringify(adminProfile));
+        localStorage.removeItem('uip_user_profile');
+      } catch {}
       return result.user;
     }
     throw new Error('Admin login failed');
@@ -129,6 +167,21 @@ export function AdminProvider({ children }) {
     if (result?.user) {
       setAdminUser(result.user);
       setIsAdminAuthenticated(true);
+      try {
+        if (result.token) {
+          localStorage.setItem('uip_auth_token', result.token);
+          localStorage.setItem('finsight_admin_token', result.token);
+        }
+        const adminProfile = {
+          ...result.user,
+          isAdmin: true,
+          role: 'Super Administrator',
+          isAuthenticated: true
+        };
+        localStorage.setItem('finsight_admin_user', JSON.stringify(adminProfile));
+        localStorage.removeItem('uip_user_profile');
+        localStorage.removeItem('uip_auth_token');
+      } catch {}
       return result.user;
     }
     throw new Error('Admin email authorization failed');
@@ -145,21 +198,13 @@ export function AdminProvider({ children }) {
     setIsAdminAuthenticated(false);
     setAdminActiveTab('dashboard');
 
-    if (appContext && typeof appContext.logout === 'function') {
-      await appContext.logout();
-    } else {
-      try {
-        localStorage.removeItem('finsight_admin_token');
-        localStorage.removeItem('finsight_admin_user');
-        localStorage.removeItem('uip_auth_token');
-        localStorage.removeItem('uip_fallback_user');
-        localStorage.removeItem('uip_guest_session');
-        localStorage.removeItem('uip_user_profile');
-        sessionStorage.clear();
-      } catch {}
-      if (typeof window !== 'undefined') {
-        window.location.replace('/login');
-      }
+    try {
+      localStorage.removeItem('finsight_admin_token');
+      localStorage.removeItem('finsight_admin_user');
+      sessionStorage.clear();
+    } catch {}
+    if (typeof window !== 'undefined') {
+      window.location.replace('/login');
     }
   };
 

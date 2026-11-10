@@ -222,53 +222,21 @@ export function UpdatePasswordPage() {
   };
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '32px 16px',
-      position: 'relative',
-      background: '#090D14'
-    }}>
+    <div className="auth-page-root user-neumorphic-root update-password-page-root">
       {/* 3D Visual Atmosphere */}
       <Background3D />
 
-      <div style={{
-        width: '100%',
-        maxWidth: 460,
-        background: 'rgba(14, 21, 34, 0.92)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
-        borderTop: '1px solid rgba(56, 189, 248, 0.4)',
-        borderRadius: 22,
-        boxShadow: '0 25px 60px -10px rgba(0, 0, 0, 0.85), 0 0 35px rgba(56, 189, 248, 0.1)',
-        padding: '36px 32px',
-        position: 'relative',
-        zIndex: 10
-      }}>
-
+      <div className="auth-card-surface update-password-card">
         {/* Brand Header */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
-          <div style={{
-            width: 42,
-            height: 42,
-            borderRadius: 12,
-            background: 'linear-gradient(135deg, #38BDF8 0%, #6366F1 50%, #A78BFA 100%)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(56, 189, 248, 0.45)',
-            border: '1px solid rgba(255, 255, 255, 0.3)'
-          }}>
-            <KeyRound size={22} color="#0B1220" />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 26 }}>
+          <div className="logo-badge" style={{ width: 42, height: 42, borderRadius: 12 }}>
+            <KeyRound size={22} color="#FFFFFF" />
           </div>
           <div>
-            <div style={{ fontSize: 19, fontWeight: 800, color: '#F8FAFC', letterSpacing: -0.3 }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: 'var(--neu-text-primary)', letterSpacing: -0.3 }}>
               FinSight
             </div>
-            <div style={{ fontSize: 11.5, color: '#94A3B8', fontWeight: 500 }}>
+            <div style={{ fontSize: 12, color: 'var(--neu-text-secondary)', fontWeight: 500 }}>
               Secure Password Recovery
             </div>
           </div>
@@ -280,16 +248,16 @@ export function UpdatePasswordPage() {
             <div style={{
               width: 44,
               height: 44,
-              border: '3px solid rgba(56, 189, 248, 0.2)',
-              borderTopColor: '#38BDF8',
+              border: '3px solid rgba(5, 150, 105, 0.2)',
+              borderTopColor: 'var(--neu-brand-primary)',
               borderRadius: '50%',
               margin: '0 auto 16px',
               animation: 'spin 0.8s linear infinite'
             }} />
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: '#F8FAFC', margin: '0 0 6px 0' }}>
+            <h2 style={{ fontSize: 18, fontWeight: 800, color: 'var(--neu-text-primary)', margin: '0 0 6px 0' }}>
               Verifying Recovery Link
             </h2>
-            <p style={{ fontSize: 13, color: '#94A3B8', margin: 0, lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13, color: 'var(--neu-text-secondary)', margin: 0, lineHeight: 1.5 }}>
               Cryptographically validating your authentication token...
             </p>
           </div>
@@ -298,32 +266,20 @@ export function UpdatePasswordPage() {
         {/* STATE 2: Form Ready for New Password */}
         {status === 'ready' && (
           <div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, color: '#F8FAFC', margin: '0 0 6px 0', letterSpacing: -0.4 }}>
+            <h1 style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-text-primary)', margin: '0 0 6px 0', letterSpacing: -0.4 }}>
               Set New Password
             </h1>
-            <p style={{ fontSize: 13.5, color: '#94A3B8', margin: '0 0 22px 0', lineHeight: 1.5 }}>
+            <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary)', margin: '0 0 22px 0', lineHeight: 1.5 }}>
               {recoveryEmail ? (
-                <>Updating password for <strong style={{ color: '#38BDF8' }}>{recoveryEmail}</strong>.</>
+                <>Updating password for <strong style={{ color: 'var(--neu-brand-primary)' }}>{recoveryEmail}</strong>.</>
               ) : (
                 'Choose a secure new password for your FinSight account.'
               )}
             </p>
 
             {submitError && (
-              <div style={{
-                background: 'rgba(239, 68, 68, 0.14)',
-                border: '1px solid rgba(239, 68, 68, 0.35)',
-                borderRadius: 12,
-                padding: '12px 14px',
-                marginBottom: 18,
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: 10,
-                color: '#FCA5A5',
-                fontSize: 13,
-                lineHeight: 1.45
-              }}>
-                <AlertCircle size={18} color="#EF4444" style={{ flexShrink: 0, marginTop: 1 }} />
+              <div className="auth-alert-error" role="alert">
+                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
                 <div>{submitError}</div>
               </div>
             )}
@@ -331,28 +287,19 @@ export function UpdatePasswordPage() {
             <form onSubmit={handleSubmitNewPassword} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* New Password Field */}
               <div>
-                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#CBD5E1', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--neu-text-primary)', marginBottom: 6 }}>
                   New Password
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <Lock size={16} color="#64748B" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+                  <Lock size={16} color="var(--neu-text-secondary)" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="At least 8 characters"
                     required
-                    style={{
-                      width: '100%',
-                      padding: '11px 40px 11px 40px',
-                      background: 'rgba(8, 12, 20, 0.85)',
-                      border: '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: 10,
-                      color: '#F8FAFC',
-                      fontSize: 13.5,
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
+                    className="form-input-control auth-neu-input"
+                    style={{ paddingLeft: 40, paddingRight: 40 }}
                   />
                   <button
                     type="button"
@@ -364,7 +311,7 @@ export function UpdatePasswordPage() {
                       transform: 'translateY(-50%)',
                       background: 'none',
                       border: 'none',
-                      color: '#64748B',
+                      color: 'var(--neu-text-secondary)',
                       cursor: 'pointer',
                       padding: 4
                     }}
@@ -377,14 +324,15 @@ export function UpdatePasswordPage() {
                 {password && (
                   <div style={{ marginTop: 8 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginBottom: 4 }}>
-                      <span style={{ color: '#94A3B8' }}>Strength:</span>
+                      <span style={{ color: 'var(--neu-text-secondary)' }}>Strength:</span>
                       <span style={{ color: passwordStrength.color, fontWeight: 700 }}>{passwordStrength.label}</span>
                     </div>
-                    <div style={{ height: 4, width: '100%', background: 'rgba(255, 255, 255, 0.08)', borderRadius: 2, overflow: 'hidden' }}>
+                    <div style={{ height: 4, width: '100%', background: 'var(--neu-border)', borderRadius: 2, overflow: 'hidden' }}>
                       <div style={{
                         height: '100%',
                         width: `${(passwordStrength.score / 4) * 100}%`,
                         background: passwordStrength.color,
+                        boxShadow: `0 0 6px ${passwordStrength.color}40`,
                         transition: 'all 0.3s ease'
                       }} />
                     </div>
@@ -394,31 +342,26 @@ export function UpdatePasswordPage() {
 
               {/* Confirm Password Field */}
               <div>
-                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: '#CBD5E1', marginBottom: 6 }}>
+                <label style={{ display: 'block', fontSize: 12.5, fontWeight: 700, color: 'var(--neu-text-primary)', marginBottom: 6 }}>
                   Confirm New Password
                 </label>
                 <div style={{ position: 'relative' }}>
-                  <Lock size={16} color="#64748B" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
+                  <Lock size={16} color="var(--neu-text-secondary)" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
                   <input
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Repeat new password"
                     required
+                    className="form-input-control auth-neu-input"
                     style={{
-                      width: '100%',
-                      padding: '11px 40px 11px 40px',
-                      background: 'rgba(8, 12, 20, 0.85)',
-                      border: passwordMismatch
-                        ? '1px solid #EF4444'
+                      paddingLeft: 40,
+                      paddingRight: 40,
+                      borderColor: passwordMismatch
+                        ? 'var(--neu-danger)'
                         : passwordsMatch
-                        ? '1px solid #10B981'
-                        : '1px solid rgba(255, 255, 255, 0.1)',
-                      borderRadius: 10,
-                      color: '#F8FAFC',
-                      fontSize: 13.5,
-                      outline: 'none',
-                      boxSizing: 'border-box'
+                        ? 'var(--neu-brand-primary)'
+                        : undefined
                     }}
                   />
                   <button
@@ -431,7 +374,7 @@ export function UpdatePasswordPage() {
                       transform: 'translateY(-50%)',
                       background: 'none',
                       border: 'none',
-                      color: '#64748B',
+                      color: 'var(--neu-text-secondary)',
                       cursor: 'pointer',
                       padding: 4
                     }}
@@ -441,12 +384,12 @@ export function UpdatePasswordPage() {
                 </div>
 
                 {passwordMismatch && (
-                  <div style={{ fontSize: 11.5, color: '#EF4444', marginTop: 4 }}>
+                  <div style={{ fontSize: 11.5, color: 'var(--neu-danger)', marginTop: 4, fontWeight: 600 }}>
                     Passwords do not match
                   </div>
                 )}
                 {passwordsMatch && (
-                  <div style={{ fontSize: 11.5, color: '#10B981', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  <div style={{ fontSize: 11.5, color: 'var(--neu-brand-primary)', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600 }}>
                     <ShieldCheck size={13} />
                     Passwords match
                   </div>
@@ -455,25 +398,13 @@ export function UpdatePasswordPage() {
 
               <button
                 type="submit"
+                className="btn-primary"
                 disabled={submitting || !passwordsMatch || password.length < 8}
                 style={{
                   width: '100%',
-                  padding: '12px 18px',
+                  padding: '12.5px 18px',
                   marginTop: 6,
-                  background: 'linear-gradient(135deg, #0284C7 0%, #2563EB 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: 10,
-                  color: '#FFFFFF',
-                  fontSize: 14,
-                  fontWeight: 700,
-                  cursor: submitting || !passwordsMatch || password.length < 8 ? 'not-allowed' : 'pointer',
-                  opacity: submitting || !passwordsMatch || password.length < 8 ? 0.6 : 1,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  boxShadow: '0 4px 18px rgba(37, 99, 235, 0.35)',
-                  transition: 'all 0.15s ease'
+                  fontSize: 14.5
                 }}
               >
                 {submitting ? (
@@ -500,43 +431,33 @@ export function UpdatePasswordPage() {
               width: 52,
               height: 52,
               borderRadius: '50%',
-              background: 'rgba(16, 185, 129, 0.18)',
-              color: '#10B981',
+              background: 'var(--neu-success-bg)',
+              color: 'var(--neu-success-dark)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              border: '1px solid rgba(16, 185, 129, 0.4)',
-              boxShadow: '0 0 25px rgba(16, 185, 129, 0.3)'
+              border: '1px solid var(--neu-success-border)',
+              boxShadow: 'var(--neu-shadow-raised-sm)'
             }}>
               <CheckCircle2 size={28} />
             </div>
 
-            <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 8px 0' }}>
+            <h2 style={{ fontSize: 22, fontWeight: 800, color: 'var(--neu-text-primary)', margin: '0 0 8px 0' }}>
               Password Updated Successfully!
             </h2>
-            <p style={{ fontSize: 13.5, color: '#94A3B8', margin: '0 0 24px 0', lineHeight: 1.55 }}>
+            <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary)', margin: '0 0 24px 0', lineHeight: 1.55 }}>
               Your account password has been changed. You can now securely sign in to FinSight with your new credentials.
             </p>
 
             <button
               type="button"
+              className="btn-primary"
               onClick={() => navigate('/login')}
               style={{
                 width: '100%',
-                padding: '12px 18px',
-                background: 'linear-gradient(135deg, #0284C7 0%, #2563EB 100%)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
-                borderRadius: 10,
-                color: '#FFFFFF',
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 8,
-                boxShadow: '0 4px 18px rgba(37, 99, 235, 0.35)'
+                padding: '12.5px 18px',
+                fontSize: 14.5
               }}
             >
               <span>Proceed to Sign In</span>
@@ -552,44 +473,34 @@ export function UpdatePasswordPage() {
               width: 52,
               height: 52,
               borderRadius: '50%',
-              background: 'rgba(239, 68, 68, 0.18)',
-              color: '#EF4444',
+              background: 'var(--neu-danger-bg)',
+              color: 'var(--neu-danger-dark)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 16px',
-              border: '1px solid rgba(239, 68, 68, 0.4)',
-              boxShadow: '0 0 25px rgba(239, 68, 68, 0.25)'
+              border: '1px solid var(--neu-danger-border)',
+              boxShadow: 'var(--neu-shadow-raised-sm)'
             }}>
               <AlertCircle size={28} />
             </div>
 
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: '#F8FAFC', margin: '0 0 8px 0' }}>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--neu-text-primary)', margin: '0 0 8px 0' }}>
               Recovery Link Expired or Invalid
             </h2>
-            <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 24px 0', lineHeight: 1.55 }}>
+            <p style={{ fontSize: 13, color: 'var(--neu-text-secondary)', margin: '0 0 24px 0', lineHeight: 1.55 }}>
               {errorMessage || 'This password recovery link has either expired, already been used, or contains an invalid security token. Please request a new recovery email.'}
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <button
                 type="button"
+                className="btn-primary"
                 onClick={() => navigate('/reset-password')}
                 style={{
                   width: '100%',
-                  padding: '12px 18px',
-                  background: 'linear-gradient(135deg, #0284C7 0%, #2563EB 100%)',
-                  border: '1px solid rgba(255, 255, 255, 0.15)',
-                  borderRadius: 10,
-                  color: '#FFFFFF',
-                  fontSize: 13.5,
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 8,
-                  boxShadow: '0 4px 18px rgba(37, 99, 235, 0.35)'
+                  padding: '12.5px 18px',
+                  fontSize: 13.5
                 }}
               >
                 <span>Request New Recovery Link</span>
@@ -598,15 +509,12 @@ export function UpdatePasswordPage() {
 
               <button
                 type="button"
+                className="btn-secondary"
                 onClick={() => navigate('/login')}
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#94A3B8',
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  padding: 8
+                  width: '100%',
+                  padding: '10px 18px',
+                  fontSize: 13
                 }}
               >
                 Back to Sign In
@@ -619,32 +527,25 @@ export function UpdatePasswordPage() {
         <div style={{
           marginTop: 26,
           paddingTop: 18,
-          borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+          borderTop: '1px solid var(--neu-border)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
           <button
             type="button"
+            className="auth-back-btn"
             onClick={() => navigate('/login')}
             style={{
-              background: 'none',
-              border: 'none',
-              color: '#94A3B8',
-              fontSize: 12.5,
-              fontWeight: 600,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              padding: 0
+              padding: '6px 12px',
+              fontSize: 12
             }}
           >
             <ArrowLeft size={14} />
             <span>Back to Sign In</span>
           </button>
 
-          <span style={{ fontSize: 11.5, color: '#64748B' }}>
+          <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary)', fontWeight: 500 }}>
             FinSight Security • 2026
           </span>
         </div>

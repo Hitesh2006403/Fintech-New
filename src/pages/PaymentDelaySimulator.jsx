@@ -86,11 +86,21 @@ export function PaymentDelaySimulator() {
       <div className="page-header-row">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.6px', color: 'var(--accent-primary)', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '4px 10px', borderRadius: 8, boxShadow: '0 0 12px rgba(56, 189, 248, 0.15)' }}>
+            <span style={{
+              fontSize: 11.5,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.6px',
+              color: 'var(--neu-brand-primary, #059669)',
+              background: 'rgba(5, 150, 105, 0.10)',
+              border: '1px solid rgba(5, 150, 105, 0.25)',
+              padding: '4px 10px',
+              borderRadius: 8
+            }}>
               Hackathon Signature Feature
             </span>
-            <span style={{ color: 'var(--border-color)' }}>•</span>
-            <span style={{ fontSize: 12, color: 'var(--text-secondary)' }}>Zero-Risk Sandboxed Simulation</span>
+            <span style={{ color: 'var(--neu-text-muted, #94A3B8)' }}>•</span>
+            <span style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)' }}>Zero-Risk Sandboxed Simulation</span>
           </div>
           <h1 className="page-title">Payment Delay Simulator</h1>
           <p className="page-subtitle">
@@ -120,7 +130,19 @@ export function PaymentDelaySimulator() {
       </div>
 
       {saveSuccessMsg && (
-        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.35)', color: '#34D399', padding: '12px 18px', borderRadius: 10, marginBottom: 20, fontSize: 13, display: 'flex', alignItems: 'center', gap: 10, backdropFilter: 'blur(10px)', boxShadow: '0 0 20px rgba(16, 185, 129, 0.15)' }}>
+        <div style={{
+          background: 'var(--neu-success-bg, rgba(16, 185, 129, 0.12))',
+          border: '1px solid var(--neu-success-border, rgba(16, 185, 129, 0.28))',
+          color: 'var(--neu-success-dark, #047857)',
+          padding: '12px 18px',
+          borderRadius: 12,
+          marginBottom: 20,
+          fontSize: 13,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          boxShadow: 'var(--neu-shadow-raised-sm)'
+        }}>
           <CheckCircle2 size={16} />
           <span style={{ fontWeight: 600 }}>{saveSuccessMsg}</span>
         </div>
@@ -150,12 +172,18 @@ export function PaymentDelaySimulator() {
           </div>
 
           {/* 2. Delay Slider (0 to 30 days) */}
-          <div className="sim-slider-container" style={{ background: 'rgba(15, 23, 42, 0.6)', border: '1px solid var(--border-glass)', borderRadius: 12, padding: '18px 16px' }}>
+          <div className="sim-slider-container" style={{
+            background: 'var(--neu-bg-primary, #E9EEF3)',
+            border: '1px solid var(--neu-border, #DCE4EB)',
+            borderRadius: 14,
+            padding: '18px 16px',
+            boxShadow: 'var(--neu-shadow-inset-sm, inset 2px 2px 5px rgba(163, 177, 198, 0.25), inset -2px -2px 5px rgba(255, 255, 255, 0.85))'
+          }}>
             <div className="sim-slider-header" style={{ marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)' }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--neu-text-primary, #172033)' }}>
                 Payment Delay Duration:
               </span>
-              <strong style={{ fontSize: 17, color: 'var(--accent-primary)', fontFeatureSettings: 'tnum', textShadow: '0 0 12px rgba(56, 189, 248, 0.35)' }}>
+              <strong style={{ fontSize: 17, color: 'var(--neu-brand-primary, #059669)', fontVariantNumeric: 'tabular-nums' }}>
                 {delayDays} Days
               </strong>
             </div>
@@ -170,7 +198,7 @@ export function PaymentDelaySimulator() {
               onChange={(e) => setDelayDays(e.target.value)}
             />
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--text-muted)', marginTop: 8 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--neu-text-muted, #94A3B8)', marginTop: 8 }}>
               <span>On Time (0d)</span>
               <span>10 Days</span>
               <span>20 Days</span>
@@ -180,19 +208,19 @@ export function PaymentDelaySimulator() {
             <div style={{
               marginTop: 14,
               padding: '10px 14px',
-              background: 'rgba(11, 18, 32, 0.7)',
-              borderRadius: 8,
-              border: '1px solid var(--border-glass)',
+              background: 'var(--neu-bg-secondary, #F1F5F9)',
+              borderRadius: 10,
+              border: '1px solid var(--neu-border, #DCE4EB)',
               fontSize: 12,
-              color: 'var(--text-secondary)',
+              color: 'var(--neu-text-secondary, #64748B)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               flexWrap: 'wrap',
               gap: 8
             }}>
-              <div>Original: <strong style={{ color: 'var(--text-primary)' }}>{originalDate}</strong></div>
-              <div>Simulated: <strong style={{ color: delayDays > 0 ? '#EF4444' : '#10B981', textShadow: delayDays > 0 ? '0 0 10px rgba(239, 68, 68, 0.3)' : '0 0 10px rgba(16, 185, 129, 0.3)' }}>{simulatedDate}</strong></div>
+              <div>Original: <strong style={{ color: 'var(--neu-text-primary, #172033)' }}>{originalDate}</strong></div>
+              <div>Simulated: <strong style={{ color: delayDays > 0 ? 'var(--neu-danger-dark, #B91C1C)' : 'var(--neu-success-dark, #047857)' }}>{simulatedDate}</strong></div>
             </div>
           </div>
 
@@ -208,14 +236,14 @@ export function PaymentDelaySimulator() {
               value={unexpectedExpense || ''}
               onChange={(e) => setUnexpectedExpense(e.target.value)}
             />
-            <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4, display: 'block' }}>Deducts immediately on Day 1 to test buffer resilience.</span>
+            <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4, display: 'block' }}>Deducts immediately on Day 1 to test buffer resilience.</span>
           </div>
 
           {/* 4. Client Payment Deduction / Withholding */}
           <div className="form-group-item">
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
               <label className="form-label-title" style={{ margin: 0 }}>Client Scope Deduction / TDS</label>
-              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--accent-primary)', textShadow: '0 0 10px rgba(56, 189, 248, 0.3)' }}>{incomeReductionPct}%</span>
+              <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--neu-brand-primary, #059669)', fontVariantNumeric: 'tabular-nums' }}>{incomeReductionPct}%</span>
             </div>
             <input
               type="range"
@@ -230,18 +258,28 @@ export function PaymentDelaySimulator() {
 
           {/* Saved Scenarios List */}
           {savedScenarios.length > 0 && (
-            <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid var(--border-glass)' }}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>
+            <div style={{ marginTop: 24, paddingTop: 18, borderTop: '1px solid var(--neu-border, #DCE4EB)' }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 12 }}>
                 Saved Sandboxes ({savedScenarios.length})
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                 {savedScenarios.map(sc => (
-                  <div key={sc.id} style={{ padding: '10px 14px', background: 'rgba(15, 23, 42, 0.6)', borderRadius: 8, border: '1px solid var(--border-glass)', fontSize: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <div key={sc.id} style={{
+                    padding: '10px 14px',
+                    background: 'var(--neu-bg-primary, #E9EEF3)',
+                    borderRadius: 10,
+                    border: '1px solid var(--neu-border, #DCE4EB)',
+                    boxShadow: 'var(--neu-shadow-raised-sm)',
+                    fontSize: 12,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
+                  }}>
                     <div>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)' }}>{sc.title}</div>
-                      <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 2 }}>Saved at {sc.savedAt}</div>
+                      <div style={{ fontWeight: 600, color: 'var(--neu-text-primary, #172033)' }}>{sc.title}</div>
+                      <div style={{ fontSize: 11, color: 'var(--neu-text-muted, #94A3B8)', marginTop: 2 }}>Saved at {sc.savedAt}</div>
                     </div>
-                    <strong style={{ color: sc.maxShortfall > 0 ? '#EF4444' : '#10B981', fontFeatureSettings: 'tnum', textShadow: sc.maxShortfall > 0 ? '0 0 10px rgba(239, 68, 68, 0.3)' : '0 0 10px rgba(16, 185, 129, 0.3)' }}>
+                    <strong style={{ color: sc.maxShortfall > 0 ? 'var(--neu-danger-dark, #B91C1C)' : 'var(--neu-success-dark, #047857)', fontVariantNumeric: 'tabular-nums' }}>
                       {sc.maxShortfall > 0 ? `Deficit -${formatINR(sc.maxShortfall)}` : 'Solvent'}
                     </strong>
                   </div>
@@ -258,37 +296,37 @@ export function PaymentDelaySimulator() {
           {/* Dynamic KPI Cards Strip */}
           <div className="sim-impact-kpi-grid">
             <div className={`sim-impact-card ${simulated.maxShortfall > 0 ? 'danger' : ''}`}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: simulated.maxShortfall > 0 ? '#FCA5A5' : 'var(--text-muted)', marginBottom: 6 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: simulated.maxShortfall > 0 ? 'var(--neu-danger-dark, #B91C1C)' : 'var(--neu-text-secondary, #64748B)', marginBottom: 6 }}>
                 Peak Shortfall
               </div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: simulated.maxShortfall > 0 ? '#EF4444' : '#10B981', fontFeatureSettings: 'tnum', textShadow: simulated.maxShortfall > 0 ? '0 0 16px rgba(239, 68, 68, 0.4)' : '0 0 16px rgba(16, 185, 129, 0.4)' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: simulated.maxShortfall > 0 ? 'var(--neu-danger-dark, #B91C1C)' : 'var(--neu-success-dark, #047857)', fontVariantNumeric: 'tabular-nums' }}>
                 {simulated.maxShortfall > 0 ? `-${formatINR(simulated.maxShortfall)}` : '₹0 (Solvent)'}
               </div>
-              <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
                 {simulated.firstNegativeDate ? `First negative on ${simulated.firstNegativeDate}` : 'No negative balance'}
               </div>
             </div>
 
             <div className={`sim-impact-card ${simulated.daysBelowBuffer > 0 ? 'warning' : ''}`}>
-              <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: simulated.daysBelowBuffer > 0 ? '#FDE68A' : 'var(--text-muted)', marginBottom: 6 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: simulated.daysBelowBuffer > 0 ? 'var(--neu-warning-dark, #B45309)' : 'var(--neu-text-secondary, #64748B)', marginBottom: 6 }}>
                 Days Below Buffer
               </div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: simulated.daysBelowBuffer > 0 ? '#F59E0B' : 'var(--text-primary)', fontFeatureSettings: 'tnum', textShadow: simulated.daysBelowBuffer > 0 ? '0 0 16px rgba(245, 158, 11, 0.4)' : 'none' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: simulated.daysBelowBuffer > 0 ? 'var(--neu-warning-dark, #B45309)' : 'var(--neu-text-primary, #172033)', fontVariantNumeric: 'tabular-nums' }}>
                 {simulated.daysBelowBuffer} Days
               </div>
-              <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
                 Buffer: {formatINR(preferences.safetyBuffer)}
               </div>
             </div>
 
             <div className="sim-impact-card">
-              <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--text-muted)', marginBottom: 6 }}>
+              <div style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', color: 'var(--neu-text-secondary, #64748B)', marginBottom: 6 }}>
                 Lowest Balance
               </div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: simulated.minimumBalance < 0 ? '#EF4444' : 'var(--accent-primary)', fontFeatureSettings: 'tnum', textShadow: simulated.minimumBalance < 0 ? '0 0 16px rgba(239, 68, 68, 0.4)' : '0 0 16px rgba(56, 189, 248, 0.4)' }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: simulated.minimumBalance < 0 ? 'var(--neu-danger-dark, #B91C1C)' : 'var(--neu-brand-primary, #059669)', fontVariantNumeric: 'tabular-nums' }}>
                 {formatINR(simulated.minimumBalance)}
               </div>
-              <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+              <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
                 Baseline was {formatINR(baseline.minimumBalance)}
               </div>
             </div>
@@ -303,7 +341,7 @@ export function PaymentDelaySimulator() {
                   Simulating {delayDays}-day delay on {targetIncome?.title || 'selected income'}.
                 </p>
               </div>
-              <span className={`badge ${simulated.maxShortfall > 0 ? 'badge-danger' : simulated.daysBelowBuffer > 0 ? 'badge-warning' : 'badge-success'}`}>
+              <span className={`status-badge ${simulated.maxShortfall > 0 ? 'overdue' : simulated.daysBelowBuffer > 0 ? 'upcoming' : 'received'}`}>
                 {simulated.maxShortfall > 0 ? 'Cash Deficit Triggered' : simulated.daysBelowBuffer > 0 ? 'Safety Cushion Strained' : 'Safe to Absorb'}
               </span>
             </div>
@@ -329,18 +367,29 @@ export function PaymentDelaySimulator() {
                   key={rec.id}
                   style={{
                     padding: '14px 16px',
-                    borderRadius: 10,
-                    background: rec.type === 'critical' ? 'rgba(239, 68, 68, 0.12)' : rec.type === 'warning' ? 'rgba(245, 158, 11, 0.12)' : 'rgba(56, 189, 248, 0.1)',
-                    border: `1px solid ${rec.type === 'critical' ? 'rgba(239, 68, 68, 0.3)' : rec.type === 'warning' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(56, 189, 248, 0.25)'}`,
+                    borderRadius: 12,
+                    background: rec.type === 'critical'
+                      ? 'var(--neu-danger-bg, rgba(239, 68, 68, 0.12))'
+                      : rec.type === 'warning'
+                      ? 'var(--neu-warning-bg, rgba(245, 158, 11, 0.12))'
+                      : 'rgba(5, 150, 105, 0.08)',
+                    border: `1px solid ${
+                      rec.type === 'critical'
+                        ? 'var(--neu-danger-border, rgba(239, 68, 68, 0.3))'
+                        : rec.type === 'warning'
+                        ? 'var(--neu-warning-border, rgba(245, 158, 11, 0.3))'
+                        : 'rgba(5, 150, 105, 0.25)'
+                    }`,
                     display: 'flex',
                     alignItems: 'flex-start',
-                    gap: 12
+                    gap: 12,
+                    boxShadow: 'var(--neu-shadow-raised-sm)'
                   }}
                 >
-                  <Zap size={18} color={rec.type === 'critical' ? '#EF4444' : rec.type === 'warning' ? '#F59E0B' : 'var(--accent-primary)'} style={{ flexShrink: 0, marginTop: 2 }} />
+                  <Zap size={18} color={rec.type === 'critical' ? 'var(--neu-danger, #EF4444)' : rec.type === 'warning' ? 'var(--neu-warning, #F59E0B)' : 'var(--neu-brand-primary, #059669)'} style={{ flexShrink: 0, marginTop: 2 }} />
                   <div>
-                    <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--text-primary)' }}>{rec.title}</div>
-                    <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 3, lineHeight: 1.5 }}>{rec.detail}</div>
+                    <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--neu-text-primary, #172033)' }}>{rec.title}</div>
+                    <div style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', marginTop: 3, lineHeight: 1.5 }}>{rec.detail}</div>
                   </div>
                 </div>
               ))}
@@ -349,7 +398,7 @@ export function PaymentDelaySimulator() {
             {/* Contributing Bills in the Shortage Window */}
             {contributingBills.length > 0 && (
               <div>
-                <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>
+                <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: 10 }}>
                   Obligations Due During Delay Window ({contributingBills.length})
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -361,23 +410,24 @@ export function PaymentDelaySimulator() {
                         alignItems: 'center',
                         justifyContent: 'space-between',
                         padding: '10px 14px',
-                        background: 'rgba(15, 23, 42, 0.6)',
-                        borderRadius: 8,
-                        border: '1px solid var(--border-glass)',
+                        background: 'var(--neu-bg-primary, #E9EEF3)',
+                        borderRadius: 10,
+                        border: '1px solid var(--neu-border, #DCE4EB)',
+                        boxShadow: 'var(--neu-shadow-raised-sm)',
                         fontSize: 12.5,
                         flexWrap: 'wrap',
                         gap: 8
                       }}
                     >
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{bill.title}</div>
-                        <div style={{ color: 'var(--text-muted)', fontSize: 11, marginTop: 2 }}>Due {bill.dueDate}</div>
+                        <div style={{ color: 'var(--neu-text-primary, #172033)', fontWeight: 600 }}>{bill.title}</div>
+                        <div style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 11, marginTop: 2 }}>Due {bill.dueDate}</div>
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-                        <span className={`badge ${bill.isEssential ? 'badge-danger' : 'badge-neutral'}`} style={{ fontSize: 10.5 }}>
+                        <span className={`status-badge ${bill.isEssential ? 'overdue' : 'neutral'}`} style={{ fontSize: 10.5 }}>
                           {bill.isEssential ? 'Essential' : 'Can Defer'}
                         </span>
-                        <strong style={{ fontFeatureSettings: 'tnum', color: 'var(--text-primary)' }}>{formatINR(bill.amount)}</strong>
+                        <strong style={{ fontVariantNumeric: 'tabular-nums', color: 'var(--neu-text-primary, #172033)' }}>{formatINR(bill.amount)}</strong>
                       </div>
                     </div>
                   ))}

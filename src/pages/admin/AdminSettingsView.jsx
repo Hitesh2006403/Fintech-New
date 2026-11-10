@@ -75,10 +75,10 @@ export function AdminSettingsView() {
         gap: 16
       }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
             Platform & Security Settings
           </h2>
-          <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
             Configure authorized administrator Google emails, system maintenance, and platform policies.
           </p>
         </div>
@@ -91,18 +91,18 @@ export function AdminSettingsView() {
             alignItems: 'center',
             gap: 8,
             padding: '9px 18px',
-            background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
-            border: '1px solid rgba(129, 140, 248, 0.3)',
+            background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+            border: '1px solid rgba(37, 99, 235, 0.3)',
             borderRadius: 10,
             color: '#FFFFFF',
             fontSize: 13,
             fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)',
+            boxShadow: '0 4px 16px rgba(37, 99, 235, 0.25)',
             transition: 'all 0.15s ease'
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #4338CA 0%, #4F46E5 100%)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)'; }}
         >
           <Save size={15} />
           <span>Save Changes</span>
@@ -111,12 +111,13 @@ export function AdminSettingsView() {
 
       {saveSuccess && (
         <div style={{
-          background: 'rgba(16, 185, 129, 0.15)',
-          border: '1px solid rgba(16, 185, 129, 0.35)',
+          background: 'rgba(16, 185, 129, 0.12)',
+          border: '1px solid rgba(16, 185, 129, 0.25)',
           borderRadius: 12,
           padding: '12px 16px',
-          color: '#34D399',
+          color: '#059669',
           fontSize: 13,
+          fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
           gap: 10
@@ -128,12 +129,13 @@ export function AdminSettingsView() {
 
       {errorMsg && (
         <div style={{
-          background: 'rgba(239, 68, 68, 0.15)',
-          border: '1px solid rgba(239, 68, 68, 0.35)',
+          background: 'rgba(239, 68, 68, 0.12)',
+          border: '1px solid rgba(239, 68, 68, 0.25)',
           borderRadius: 12,
           padding: '12px 16px',
-          color: '#FCA5A5',
+          color: '#DC2626',
           fontSize: 13,
+          fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
           gap: 10
@@ -145,21 +147,22 @@ export function AdminSettingsView() {
 
       {/* 1. Authorized Admin Google Whitelist Section */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
-        borderTop: '1px solid rgba(99, 102, 241, 0.35)',
-        borderRadius: 16,
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderTop: '2px solid #2563EB',
+        borderRadius: 20,
         padding: '24px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.05)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-          <KeyRound size={20} color="#818CF8" />
-          <h3 style={{ fontSize: 17, fontWeight: 700, color: '#F8FAFC', margin: 0 }}>
+          <KeyRound size={20} color="#2563EB" />
+          <h3 style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: 0 }}>
             Authorized Administrator Google Whitelist
           </h3>
         </div>
-        <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 18px 0', lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: '#475569', margin: '0 0 18px 0', lineHeight: 1.5 }}>
           Enforce strict Google OAuth security: Only accounts matching this whitelist can sign into the Admin Panel. Any other user attempting to login will be rejected with an access-denied policy.
         </p>
 
@@ -171,15 +174,15 @@ export function AdminSettingsView() {
               className="admin-whitelist-row"
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap', minWidth: 0, wordBreak: 'break-all' }}>
-                <Mail size={16} color="#818CF8" style={{ flexShrink: 0 }} />
-                <span style={{ fontSize: 13.5, color: '#F8FAFC', fontWeight: 600 }}>{email}</span>
+                <Mail size={16} color="#2563EB" style={{ flexShrink: 0 }} />
+                <span style={{ fontSize: 13.5, color: '#0F172A', fontWeight: 600 }}>{email}</span>
                 {idx === 0 && (
                   <span style={{
                     fontSize: 10.5,
                     fontWeight: 700,
-                    background: 'rgba(99, 102, 241, 0.15)',
-                    color: '#818CF8',
-                    border: '1px solid rgba(99, 102, 241, 0.3)',
+                    background: 'rgba(37, 99, 235, 0.1)',
+                    color: '#1D4ED8',
+                    border: '1px solid rgba(37, 99, 235, 0.25)',
                     padding: '2px 7px',
                     borderRadius: 4
                   }}>
@@ -195,12 +198,12 @@ export function AdminSettingsView() {
                 style={{
                   background: 'none',
                   border: 'none',
-                  color: '#64748B',
+                  color: '#94A3B8',
                   cursor: 'pointer',
                   padding: 4
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = '#64748B'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; }}
               >
                 <Trash2 size={16} />
               </button>
@@ -218,10 +221,10 @@ export function AdminSettingsView() {
             style={{
               flex: 1,
               padding: '10px 14px',
-              background: 'rgba(10, 15, 25, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.12)',
+              background: '#FFFFFF',
+              border: '1px solid rgba(203, 213, 225, 0.8)',
               borderRadius: 8,
-              color: '#F8FAFC',
+              color: '#0F172A',
               fontSize: 13,
               outline: 'none'
             }}
@@ -231,10 +234,10 @@ export function AdminSettingsView() {
             onClick={handleAddEmail}
             style={{
               padding: '10px 18px',
-              background: 'rgba(99, 102, 241, 0.15)',
-              border: '1px solid rgba(129, 140, 248, 0.35)',
+              background: 'rgba(37, 99, 235, 0.08)',
+              border: '1px solid rgba(37, 99, 235, 0.25)',
               borderRadius: 8,
-              color: '#818CF8',
+              color: '#1D4ED8',
               fontSize: 13,
               fontWeight: 700,
               cursor: 'pointer',
@@ -243,8 +246,8 @@ export function AdminSettingsView() {
               gap: 6,
               transition: 'all 0.15s ease'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.25)'; e.currentTarget.style.color = '#FFFFFF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.15)'; e.currentTarget.style.color = '#818CF8'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.16)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)'; }}
           >
             <Plus size={15} />
             <span>Add to Whitelist</span>
@@ -254,14 +257,15 @@ export function AdminSettingsView() {
 
       {/* 2. Platform Toggles */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
-        borderRadius: 16,
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderRadius: 20,
         padding: '24px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.05)'
       }}>
-        <h3 style={{ fontSize: 17, fontWeight: 700, color: '#F8FAFC', margin: '0 0 16px 0' }}>
+        <h3 style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: '0 0 16px 0' }}>
           Platform Availability & Controls
         </h3>
 
@@ -269,8 +273,8 @@ export function AdminSettingsView() {
           {/* Maintenance Mode Toggle */}
           <div className="admin-toggle-row">
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#F8FAFC' }}>Maintenance Mode</div>
-              <div style={{ fontSize: 12, color: '#94A3B8' }}>Temporarily pause user access while server upgrades run.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>Maintenance Mode</div>
+              <div style={{ fontSize: 12, color: '#64748B' }}>Temporarily pause user access while server upgrades run.</div>
             </div>
 
             <button
@@ -279,7 +283,7 @@ export function AdminSettingsView() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: maintenanceMode ? '#EF4444' : '#10B981',
+                color: maintenanceMode ? '#DC2626' : '#059669',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
@@ -296,8 +300,8 @@ export function AdminSettingsView() {
           {/* User Registration Toggle */}
           <div className="admin-toggle-row">
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: '#F8FAFC' }}>Allow New Registrations</div>
-              <div style={{ fontSize: 12, color: '#94A3B8' }}>Allow prospective users to register accounts via Google SSO or email.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: '#0F172A' }}>Allow New Registrations</div>
+              <div style={{ fontSize: 12, color: '#64748B' }}>Allow prospective users to register accounts via Google SSO or email.</div>
             </div>
 
             <button
@@ -306,7 +310,7 @@ export function AdminSettingsView() {
               style={{
                 background: 'none',
                 border: 'none',
-                color: allowRegistrations ? '#10B981' : '#64748B',
+                color: allowRegistrations ? '#059669' : '#64748B',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',

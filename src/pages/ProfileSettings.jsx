@@ -111,7 +111,7 @@ export function ProfileSettings() {
         <button
           type="button"
           className="btn-secondary"
-          style={{ color: 'var(--accent-primary)', borderColor: 'rgba(56, 189, 248, 0.4)', background: 'rgba(56, 189, 248, 0.08)' }}
+          style={{ color: 'var(--neu-brand-primary, #059669)', borderColor: 'var(--neu-border, #DCE4EB)' }}
           onClick={async () => {
             await refreshData();
             showToast('All financial records synchronized directly from backend server!');
@@ -205,7 +205,7 @@ export function ProfileSettings() {
                       className="form-input-control"
                       value="INR (₹) — Indian Rupee"
                       disabled
-                      style={{ background: 'rgba(15, 23, 42, 0.6)', color: 'var(--text-secondary)' }}
+                      style={{ background: 'var(--neu-bg-secondary, #F1F5F9)', color: 'var(--neu-text-secondary, #64748B)' }}
                     />
                   </div>
                 </div>
@@ -364,9 +364,9 @@ export function ProfileSettings() {
               </p>
 
               <div className="form-grid-2">
-                <div style={{ padding: '20px', border: '1px solid var(--border-glass)', borderRadius: 12, background: 'rgba(15, 23, 42, 0.6)' }}>
-                  <h4 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>Transaction Ledger</h4>
-                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 16px 0', lineHeight: 1.45 }}>
+                <div style={{ padding: '20px', border: '1px solid var(--neu-border, #DCE4EB)', borderRadius: 14, background: 'var(--neu-bg-primary, #E9EEF3)', boxShadow: 'var(--neu-shadow-raised-sm)' }}>
+                  <h4 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--neu-text-primary, #172033)' }}>Transaction Ledger</h4>
+                  <p style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', margin: '0 0 16px 0', lineHeight: 1.45 }}>
                     All recorded received income, signed milestone contracts, and planned essential bills.
                   </p>
                   <button
@@ -379,9 +379,9 @@ export function ProfileSettings() {
                   </button>
                 </div>
 
-                <div style={{ padding: '20px', border: '1px solid var(--border-glass)', borderRadius: 12, background: 'rgba(15, 23, 42, 0.6)' }}>
-                  <h4 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>30-Day Forecast Model</h4>
-                  <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 16px 0', lineHeight: 1.45 }}>
+                <div style={{ padding: '20px', border: '1px solid var(--neu-border, #DCE4EB)', borderRadius: 14, background: 'var(--neu-bg-primary, #E9EEF3)', boxShadow: 'var(--neu-shadow-raised-sm)' }}>
+                  <h4 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--neu-text-primary, #172033)' }}>30-Day Forecast Model</h4>
+                  <p style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', margin: '0 0 16px 0', lineHeight: 1.45 }}>
                     Day-by-day projected closing balance, deficit markers, and safety buffer audits.
                   </p>
                   <button
@@ -396,11 +396,11 @@ export function ProfileSettings() {
               </div>
 
               {/* Cloud Synchronization & Ledger Controls */}
-              <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--border-glass)' }}>
-                <h4 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--text-primary)' }}>
+              <div style={{ marginTop: 24, paddingTop: 20, borderTop: '1px solid var(--neu-border, #DCE4EB)' }}>
+                <h4 style={{ fontSize: 14, fontWeight: 700, margin: '0 0 6px 0', color: 'var(--neu-text-primary, #172033)' }}>
                   Cloud Synchronization & Ledger Controls
                 </h4>
-                <p style={{ fontSize: 12, color: 'var(--text-secondary)', margin: '0 0 16px 0', lineHeight: 1.45 }}>
+                <p style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', margin: '0 0 16px 0', lineHeight: 1.45 }}>
                   Pull the latest authenticated financial transactions directly from the backend server database, or reset to a completely fresh ledger.
                 </p>
 
@@ -408,7 +408,7 @@ export function ProfileSettings() {
                   <button
                     type="button"
                     className="btn-secondary"
-                    style={{ color: 'var(--accent-primary)', borderColor: 'rgba(56, 189, 248, 0.4)', background: 'rgba(56, 189, 248, 0.08)' }}
+                    style={{ color: 'var(--neu-brand-primary, #059669)', borderColor: 'var(--neu-border, #DCE4EB)' }}
                     onClick={async () => {
                       await refreshData();
                       showToast('Latest financial records fetched directly from backend database.');
@@ -421,7 +421,7 @@ export function ProfileSettings() {
                   <button
                     type="button"
                     className="btn-secondary"
-                    style={{ color: '#EF4444', borderColor: 'rgba(239, 68, 68, 0.4)', background: 'rgba(239, 68, 68, 0.08)' }}
+                    style={{ color: 'var(--neu-danger, #EF4444)', borderColor: 'var(--neu-border, #DCE4EB)' }}
                     onClick={() => {
                       if (window.confirm('Clear all income, expense, and savings entries on the server to start with a blank personal ledger?')) {
                         clearUserData();

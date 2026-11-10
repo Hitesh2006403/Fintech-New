@@ -10,7 +10,7 @@
     "start": "node backend/server.js",
     "migrate": "node backend/scripts/migrate_json_to_supabase.js",
     "build": "vite build",
-    "test": "node --test src/services/financialEngine.test.js && node --test test_admin_suite.js && node --test test_oauth_suite.js && node --test test_unified_routing_suite.js && node --test test_password_recovery_suite.js && node --test test_navigation_flow_suite.js && node --test test_guest_and_prototype_suite.js && node --test test_auth_resilience_suite.js && node --test test_e2e_workflow.js && node --test test_nine_issues_strict_suite.js && node --test test_production_readiness_audit.js && node --test test_final_independent_audit.js",
+    "test": "node --test src/services/financialEngine.test.js && node --test test_admin_suite.js && node --test test_oauth_suite.js && node --test test_unified_routing_suite.js && node --test test_password_recovery_suite.js && node --test test_navigation_flow_suite.js && node --test test_guest_and_prototype_suite.js && node --test test_auth_resilience_suite.js && node --test test_e2e_workflow.js && node --test test_nine_issues_strict_suite.js && node --test test_production_readiness_audit.js && node --test test_final_independent_audit.js && node --test test_backend_logging_privacy.js && node --test test_auth_neumorphism_suite.js && node --test test_admin_user_session_separation.js && node --test test_registration_and_financial_setup.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -20,6 +20,7 @@
     "cors": "^2.8.6",
     "dotenv": "^18.0.8",
     "express": "^5.3.0",
+    "framer-motion": "^14.12.0",
     "google-auth-library": "^11.3.1",
     "lucide-react": "^1.59.0",
     "nodemailer": "^10.2.1",

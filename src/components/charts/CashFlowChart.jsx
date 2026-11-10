@@ -1,5 +1,32 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { formatINR } from '../../services/financialEngine.js';
+
+/**
+ * Converts a series of coordinates into a smooth Catmull-Rom cubic bezier SVG spline path.
+ */
+function createSplinePath(points) {
+  if (!points || points.length === 0) return '';
+  if (points.length === 1) return `M ${points[0].x},${points[0].y}`;
+  if (points.length === 2) return `M ${points[0].x},${points[0].y} L ${points[1].x},${points[1].y}`;
+
+  let d = `M ${points[0].x.toFixed(2)},${points[0].y.toFixed(2)}`;
+
+  for (let i = 0; i < points.length - 1; i++) {
+    const p0 = points[i === 0 ? 0 : i - 1];
+    const p1 = points[i];
+    const p2 = points[i + 1];
+    const p3 = points[i + 2 < points.length ? i + 2 : i + 1];
+
+    const cp1x = p1.x + (p2.x - p0.x) / 6;
+    const cp1y = p1.y + (p2.y - p0.y) / 6;
+    const cp2x = p2.x - (p3.x - p1.x) / 6;
+    const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+    d += ` C ${cp1x.toFixed(2)},${cp1y.toFixed(2)} ${cp2x.toFixed(2)},${cp2y.toFixed(2)} ${p2.x.toFixed(2)},${p2.y.toFixed(2)}`;
+  }
+
+  return d;
+}
 
 export function CashFlowChart({
   forecastData = [],
@@ -11,8 +38,10 @@ export function CashFlowChart({
   onRangeChange = null
 }) {
   const [hoverIndex, setHoverIndex] = useState(null);
+  const pathRef = useRef(null);
+  const [pathLength, setPathLength] = useState(0);
 
-  // Memoize scales, coordinates and SVG paths to avoid recalculating on every hover tick
+  // Memoize scales, coordinates and SVG paths
   const metrics = useMemo(() => {
     if (!Array.isArray(forecastData) || forecastData.length === 0) return null;
 
@@ -25,12 +54,12 @@ export function CashFlowChart({
     const numStartingBalance = Number(startingBalance || 0);
 
     const minBal = Math.min(0, ...balances, numSafetyBuffer);
-    const maxBal = Math.max(numStartingBalance * 1.2, ...balances, numSafetyBuffer * 1.4, 50000);
+    const maxBal = Math.max(numStartingBalance * 1.2, ...balances, numSafetyBuffer * 1.35, 50000);
 
     const range = (maxBal - minBal) > 0 ? (maxBal - minBal) : 1;
     const paddingY = 32;
     const chartHeight = Math.max(80, height - paddingY * 2);
-    const chartWidth = 720;
+    const chartWidth = 760;
     const paddingX = 40;
     const usableWidth = chartWidth - paddingX * 2;
 
@@ -44,13 +73,16 @@ export function CashFlowChart({
     const yZero = getY(0);
     const yBuffer = getY(numSafetyBuffer);
 
-    const points = forecastData.map((d, i) => {
+    const pointCoords = forecastData.map((d, i) => {
       const val = d?.closingBalance !== undefined ? d.closingBalance : d?.balance;
-      return `${getX(i)},${getY(val)}`;
+      return { x: getX(i), y: getY(val) };
     });
 
-    const linePath = points.join(' L ');
-    const areaPath = `${linePath} L ${getX(forecastData.length - 1)},${getY(minBal)} L ${getX(0)},${getY(minBal)} Z`;
+    const splineLinePath = createSplinePath(pointCoords);
+    const lastX = getX(forecastData.length - 1);
+    const firstX = getX(0);
+    const bottomY = getY(minBal);
+    const splineAreaPath = `${splineLinePath} L ${lastX.toFixed(2)},${bottomY.toFixed(2)} L ${firstX.toFixed(2)},${bottomY.toFixed(2)} Z`;
 
     return {
       minBal,
@@ -64,15 +96,40 @@ export function CashFlowChart({
       getY,
       yZero,
       yBuffer,
-      linePath,
-      areaPath,
+      pointCoords,
+      splineLinePath,
+      splineAreaPath,
       numSafetyBuffer
     };
   }, [forecastData, safetyBuffer, startingBalance, height]);
 
+  // Compute SVG total length for self-drawing animation
+  useEffect(() => {
+    if (pathRef.current) {
+      try {
+        const len = pathRef.current.getTotalLength();
+        setPathLength(len || 2000);
+      } catch (e) {
+        setPathLength(2000);
+      }
+    }
+  }, [metrics?.splineLinePath]);
+
   if (!Array.isArray(forecastData) || forecastData.length === 0 || !metrics) {
     return (
-      <div style={{ height, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#94A3B8', background: 'rgba(15, 23, 42, 0.5)', borderRadius: 12, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+      <div style={{
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#64748B',
+        background: 'rgba(255, 255, 255, 0.65)',
+        borderRadius: 16,
+        border: '1px solid rgba(226, 232, 240, 0.8)',
+        backdropFilter: 'blur(12px)',
+        fontWeight: 500,
+        fontSize: 13
+      }}>
         No forecast data points available to plot.
       </div>
     );
@@ -89,8 +146,8 @@ export function CashFlowChart({
     getY,
     yZero,
     yBuffer,
-    linePath,
-    areaPath,
+    splineLinePath,
+    splineAreaPath,
     numSafetyBuffer
   } = metrics;
 
@@ -109,47 +166,59 @@ export function CashFlowChart({
       {/* Top Chart Header / Controls */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#F8FAFC' }}>
-            <span style={{ width: 12, height: 3, borderRadius: 2, background: '#38BDF8', boxShadow: '0 0 8px #38BDF8' }}></span>
-            <span>Projected Closing Balance</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#0F172A' }}>
+            <span style={{ width: 14, height: 3, borderRadius: 2, background: '#10B981', boxShadow: '0 0 8px rgba(16, 185, 129, 0.45)' }}></span>
+            <span>Projected Balance</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#F59E0B' }}>
-            <span style={{ width: 12, height: 2, background: '#F59E0B', borderTop: '2px dashed #F59E0B' }}></span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 600, color: '#D97706' }}>
+            <span style={{ width: 14, height: 2, borderTop: '2px dashed #D97706' }}></span>
             <span>Safety Buffer ({formatINR(numSafetyBuffer)})</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#10B981' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px #10B981' }}></span>
-            <span>Income Event</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#059669' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 6px rgba(16, 185, 129, 0.4)' }}></span>
+            <span>Inflow</span>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#EF4444' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', boxShadow: '0 0 6px #EF4444' }}></span>
-            <span>Expense Event</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, fontWeight: 500, color: '#E11D48' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#EF4444', boxShadow: '0 0 6px rgba(239, 68, 68, 0.4)' }}></span>
+            <span>Outflow</span>
           </div>
         </div>
 
         {showControls && onRangeChange && (
-          <div style={{ display: 'flex', background: 'rgba(15, 23, 42, 0.7)', border: '1px solid rgba(255, 255, 255, 0.08)', padding: 3, borderRadius: 8, gap: 3, backdropFilter: 'blur(8px)' }}>
-            {[7, 14, 30, 60].map(r => (
-              <button
-                key={r}
-                type="button"
-                style={{
-                  border: 'none',
-                  background: timeRange === r ? 'linear-gradient(135deg, #38BDF8 0%, #6366F1 100%)' : 'transparent',
-                  color: timeRange === r ? '#0B1220' : '#94A3B8',
-                  fontWeight: timeRange === r ? 700 : 500,
-                  fontSize: 11.5,
-                  padding: '4px 10px',
-                  borderRadius: 6,
-                  cursor: 'pointer',
-                  boxShadow: timeRange === r ? '0 0 12px rgba(56, 189, 248, 0.35)' : 'none',
-                  transition: 'all 0.15s ease'
-                }}
-                onClick={() => onRangeChange(r)}
-              >
-                {r}D
-              </button>
-            ))}
+          <div style={{
+            display: 'flex',
+            background: 'rgba(255, 255, 255, 0.85)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
+            padding: 3,
+            borderRadius: 10,
+            gap: 4,
+            backdropFilter: 'blur(8px)',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)'
+          }}>
+            {[7, 14, 30, 60].map(r => {
+              const isActive = timeRange === r;
+              return (
+                <button
+                  key={r}
+                  type="button"
+                  style={{
+                    border: 'none',
+                    background: isActive ? '#059669' : 'transparent',
+                    color: isActive ? '#FFFFFF' : '#475569',
+                    fontWeight: isActive ? 700 : 600,
+                    fontSize: 11.5,
+                    padding: '4px 10px',
+                    borderRadius: 7,
+                    cursor: 'pointer',
+                    boxShadow: isActive ? '0 2px 6px rgba(5, 150, 105, 0.35)' : 'none',
+                    transition: 'all 0.15s ease'
+                  }}
+                  onClick={() => onRangeChange(r)}
+                >
+                  {r}D
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -162,22 +231,40 @@ export function CashFlowChart({
           onMouseLeave={() => setHoverIndex(null)}
         >
           <defs>
-            <linearGradient id="balanceAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#38BDF8" stopOpacity="0.25" />
-              <stop offset="60%" stopColor="#38BDF8" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#38BDF8" stopOpacity="0.0" />
+            {/* Soft vertical emerald gradient fill (rgba(16, 185, 129, 0.22) to 0.02) */}
+            <linearGradient id="emeraldSplineGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10B981" stopOpacity="0.22" />
+              <stop offset="65%" stopColor="#10B981" stopOpacity="0.06" />
+              <stop offset="100%" stopColor="#10B981" stopOpacity="0.02" />
             </linearGradient>
 
             <linearGradient id="deficitAreaGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#EF4444" stopOpacity="0.05" />
+              <stop offset="0%" stopColor="#EF4444" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#EF4444" stopOpacity="0.03" />
             </linearGradient>
+
+            <style>{`
+              @keyframes drawSpline {
+                from { stroke-dashoffset: ${pathLength || 2000}; }
+                to { stroke-dashoffset: 0; }
+              }
+              .self-drawing-spline {
+                stroke-dasharray: ${pathLength || 2000};
+                animation: drawSpline 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+              }
+              @media (prefers-reduced-motion: reduce) {
+                .self-drawing-spline {
+                  animation: none !important;
+                  stroke-dashoffset: 0 !important;
+                }
+              }
+            `}</style>
           </defs>
 
           {/* Horizontal Grid lines */}
-          <line x1={paddingX} y1={paddingY} x2={chartWidth - paddingX} y2={paddingY} stroke="rgba(255, 255, 255, 0.06)" strokeWidth="1" />
-          <line x1={paddingX} y1={paddingY + chartHeight * 0.5} x2={chartWidth - paddingX} y2={paddingY + chartHeight * 0.5} stroke="rgba(255, 255, 255, 0.06)" strokeWidth="1" />
-          <line x1={paddingX} y1={paddingY + chartHeight} x2={chartWidth - paddingX} y2={paddingY + chartHeight} stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1" />
+          <line x1={paddingX} y1={paddingY} x2={chartWidth - paddingX} y2={paddingY} stroke="rgba(203, 213, 225, 0.7)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1={paddingX} y1={paddingY + chartHeight * 0.5} x2={chartWidth - paddingX} y2={paddingY + chartHeight * 0.5} stroke="rgba(203, 213, 225, 0.7)" strokeWidth="1" strokeDasharray="3 3" />
+          <line x1={paddingX} y1={paddingY + chartHeight} x2={chartWidth - paddingX} y2={paddingY + chartHeight} stroke="rgba(148, 163, 184, 0.8)" strokeWidth="1.2" />
 
           {/* Zero Balance Line (if within range) */}
           {minBal < 0 && (
@@ -187,11 +274,11 @@ export function CashFlowChart({
                 y1={yZero}
                 x2={chartWidth - paddingX}
                 y2={yZero}
-                stroke="#EF4444"
+                stroke="#E11D48"
                 strokeWidth="1.5"
                 strokeDasharray="4 4"
               />
-              <text x={chartWidth - paddingX - 4} y={yZero + 4} fill="#EF4444" fontSize="10" fontWeight="600" textAnchor="end">
+              <text x={chartWidth - paddingX - 4} y={yZero + 4} fill="#BE123C" fontSize="10" fontWeight="700" textAnchor="end">
                 ₹0 Deficit
               </text>
             </g>
@@ -204,27 +291,29 @@ export function CashFlowChart({
               y1={yBuffer}
               x2={chartWidth - paddingX}
               y2={yBuffer}
-              stroke="#F59E0B"
+              stroke="#D97706"
               strokeWidth="1.75"
               strokeDasharray="5 4"
             />
-            <text x={chartWidth - paddingX - 4} y={yBuffer - 5} fill="#F59E0B" fontSize="10.5" fontWeight="700" textAnchor="end">
+            <text x={chartWidth - paddingX - 4} y={yBuffer - 5} fill="#B45309" fontSize="10.5" fontWeight="700" textAnchor="end">
               Buffer ({formatINR(numSafetyBuffer)})
             </text>
           </g>
 
-          {/* Shaded Area Under Balance Curve */}
-          <path d={`M ${areaPath}`} fill="url(#balanceAreaGrad)" />
+          {/* Shaded Area Under Spline Curve */}
+          <path d={splineAreaPath} fill="url(#emeraldSplineGrad)" />
 
-          {/* Main Balance Line Curve with High-Contrast Blue Stroke */}
+          {/* Self-Drawing Emerald Spline Curve (2.5px stroke, #10B981) */}
           <path
-            d={`M ${linePath}`}
+            ref={pathRef}
+            className="self-drawing-spline"
+            d={splineLinePath}
             fill="none"
-            stroke="#38BDF8"
-            strokeWidth="3"
+            stroke="#10B981"
+            strokeWidth="2.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ filter: 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.65))' }}
+            style={{ filter: 'drop-shadow(0 2px 6px rgba(16, 185, 129, 0.4))' }}
           />
 
           {/* Day Points Along Curve */}
@@ -239,10 +328,10 @@ export function CashFlowChart({
                 key={`pt-${i}`}
                 cx={cx}
                 cy={cy}
-                r={isHovered ? 4.5 : 2}
-                fill={isHovered ? '#FFFFFF' : '#38BDF8'}
-                stroke="#0B1220"
-                strokeWidth={isHovered ? 2 : 1}
+                r={isHovered ? 5 : 2}
+                fill={isHovered ? '#059669' : '#10B981'}
+                stroke="#FFFFFF"
+                strokeWidth={isHovered ? 2.5 : 1}
               />
             );
           })}
@@ -260,28 +349,40 @@ export function CashFlowChart({
             return (
               <g key={`marker-${i}`}>
                 {hasIncome && (
-                  <circle cx={cx} cy={cy} r="5.5" fill="#10B981" stroke="#0B1220" strokeWidth="2" />
+                  <circle cx={cx} cy={cy} r="5" fill="#10B981" stroke="#FFFFFF" strokeWidth="1.5" />
                 )}
                 {hasExpense && !hasIncome && (
-                  <circle cx={cx} cy={cy} r="4.5" fill="#EF4444" stroke="#0B1220" strokeWidth="2" />
+                  <circle cx={cx} cy={cy} r="4.5" fill="#EF4444" stroke="#FFFFFF" strokeWidth="1.5" />
                 )}
               </g>
             );
           })}
 
-          {/* Hover / Active Guideline */}
+          {/* Interactive Crosshair Tooltip Guidelines */}
           {hoverIndex !== null && (
             <g>
+              {/* Vertical guideline */}
               <line
                 x1={activeX}
                 y1={paddingY}
                 x2={activeX}
                 y2={paddingY + chartHeight}
-                stroke="rgba(56, 189, 248, 0.4)"
+                stroke="rgba(16, 185, 129, 0.45)"
                 strokeWidth="1.5"
                 strokeDasharray="3 3"
               />
-              <circle cx={activeX} cy={activeY} r="7" fill="#38BDF8" stroke="#0B1220" strokeWidth="2.5" />
+              {/* Horizontal guideline */}
+              <line
+                x1={paddingX}
+                y1={activeY}
+                x2={chartWidth - paddingX}
+                y2={activeY}
+                stroke="rgba(16, 185, 129, 0.25)"
+                strokeWidth="1"
+                strokeDasharray="2 2"
+              />
+              {/* Center point ring */}
+              <circle cx={activeX} cy={activeY} r="7.5" fill="#10B981" stroke="#FFFFFF" strokeWidth="2.5" />
             </g>
           )}
 
@@ -303,7 +404,7 @@ export function CashFlowChart({
           })}
 
           {/* Date Axis Labels */}
-          <g fill="#94A3B8" fontSize="10.5" fontWeight="500">
+          <g fill="#475569" fontSize="10.5" fontWeight="600">
             <text x={paddingX} y={height - 6} textAnchor="start">
               {forecastData[0]?.date?.slice(5) || 'Start'} (Today)
             </text>
@@ -317,52 +418,57 @@ export function CashFlowChart({
         </svg>
       </div>
 
-      {/* Dynamic Popover Card */}
+      {/* Dynamic Popover Card with Frosted Glass & High Contrast */}
       {activePoint && (
         <div
           style={{
             marginTop: 12,
-            background: 'rgba(15, 23, 42, 0.95)',
-            backdropFilter: 'blur(16px)',
-            WebkitBackdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            borderTop: '1px solid rgba(56, 189, 248, 0.25)',
-            borderRadius: 10,
-            padding: '10px 16px',
+            background: 'rgba(255, 255, 255, 0.85)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
+            borderTop: '2px solid #10B981',
+            borderRadius: 14,
+            padding: '12px 18px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
-            boxShadow: '0 8px 25px rgba(0,0,0,0.45), 0 0 20px rgba(56, 189, 248, 0.1)',
+            backdropFilter: 'blur(16px)',
+            boxShadow: '0 4px 20px rgba(15, 23, 42, 0.06)',
             fontSize: 12.5,
             flexWrap: 'wrap',
-            gap: 10
+            gap: 12
           }}
         >
           <div>
-            <span style={{ color: '#94A3B8', fontWeight: 500 }}>Selected Date: </span>
-            <strong style={{ color: '#F8FAFC' }}>{activePoint.date}</strong>
+            <span style={{ color: '#475569', fontWeight: 500 }}>Selected Date: </span>
+            <strong style={{ color: '#0F172A', fontWeight: 700 }}>{activePoint.date}</strong>
             {activePoint.isNegative && (
-              <span style={{ marginLeft: 8, color: '#EF4444', fontWeight: 700 }}>• Cash Deficit</span>
+              <span style={{ marginLeft: 8, color: '#E11D48', fontWeight: 700 }}>• Cash Deficit</span>
             )}
             {activePoint.isBelowBuffer && !activePoint.isNegative && (
-              <span style={{ marginLeft: 8, color: '#F59E0B', fontWeight: 600 }}>• Below Safety Buffer</span>
+              <span style={{ marginLeft: 8, color: '#D97706', fontWeight: 600 }}>• Below Safety Buffer</span>
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
             {activePoint.incomes?.length > 0 && (
-              <span style={{ color: '#10B981', fontWeight: 600 }}>
+              <span style={{ color: '#059669', fontWeight: 600, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 Inflow: +{formatINR(activePoint.incomes.reduce((s, i) => s + (i.effectiveAmount || i.amount || 0), 0))}
               </span>
             )}
             {activePoint.expenses?.length > 0 && (
-              <span style={{ color: '#EF4444', fontWeight: 600 }}>
+              <span style={{ color: '#E11D48', fontWeight: 600, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 Outflow: -{formatINR(activePoint.expenses.reduce((s, e) => s + Number(e.amount || 0), 0))}
               </span>
             )}
             <div>
-              <span style={{ color: '#94A3B8' }}>Projected Balance: </span>
-              <strong style={{ color: activePoint.isNegative ? '#EF4444' : '#38BDF8', fontSize: 14 }}>
+              <span style={{ color: '#475569', fontWeight: 500 }}>Projected Balance: </span>
+              <strong style={{
+                color: activePoint.isNegative ? '#E11D48' : '#0F172A',
+                fontSize: 14,
+                fontWeight: 700,
+                fontVariantNumeric: 'tabular-nums',
+                whiteSpace: 'nowrap'
+              }}>
                 {formatINR(activeVal)}
               </strong>
             </div>
@@ -373,3 +479,4 @@ export function CashFlowChart({
     </div>
   );
 }
+export default CashFlowChart;

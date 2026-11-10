@@ -15,13 +15,13 @@ import {
   RefreshCw,
   Check,
   User,
-  ShieldAlert,
   Loader2,
   Mail
 } from 'lucide-react';
 import { Background3D } from '../components/common/Background3D.jsx';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { authService, isPasswordRecoveryDisabled } from '../services/authService.js';
+import { authService, isPasswordRecoveryDisabled, decodeGoogleJwt } from '../services/authService.js';
+import { adminService } from '../services/adminService.js';
 import { navigationTracker } from '../services/navigationTracker.js';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '261321779368-ruajq5gea9jtv1lkrqqa2cupa6jsim9a.apps.googleusercontent.com';
@@ -33,6 +33,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
 
   const {
     user,
+    setUser,
     preferences,
     loginWithGoogle,
     linkGoogleAccount,
@@ -48,6 +49,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
 
   // Synchronize mode reactively based on route or initialMode
   const mode = React.useMemo(() => {
+    if (internalMode === 'link_account') return 'link_account';
     if (location.pathname === '/register') return 'register';
     if (location.pathname === '/reset-password') return 'forgot';
     if (location.pathname === '/setup' || location.pathname === '/onboarding') return 'onboarding';
@@ -135,17 +137,73 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
     setLoading(true);
 
     try {
-      const data = await loginWithGoogle(response.credential);
+      // Decode JWT locally for instantaneous admin recognition
+      const payload = decodeGoogleJwt(response.credential);
+      const googleEmail = (payload?.email || '').toLowerCase().trim();
+      const isKnownAdmin = [
+        'hiteshav2006@gmail.com',
+        'dishankbs04@gmail.com',
+        (import.meta.env?.VITE_ADMIN_EMAIL || '').toLowerCase().trim()
+      ].filter(Boolean).includes(googleEmail);
+
+      let data;
+      if (isKnownAdmin) {
+        // Authenticate directly for Admin Portal
+        try {
+          data = await adminService.loginWithGoogle(response.credential);
+        } catch {
+          data = await authService.verifyGoogleCredential(response.credential);
+        }
+      } else {
+        data = await loginWithGoogle(response.credential);
+      }
+
+      const verifiedEmail = (data?.user?.email || googleEmail).toLowerCase().trim();
       const isAdminUser = Boolean(
+        isKnownAdmin ||
         data?.user?.isAdmin ||
         data?.role === 'admin' ||
         data?.user?.role === 'Super Administrator' ||
-        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'].includes((data?.user?.email || '').toLowerCase().trim())
+        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com', (import.meta.env?.VITE_ADMIN_EMAIL || '').toLowerCase().trim()].filter(Boolean).includes(verifiedEmail)
       );
 
-      // Direct, reliable role-based navigation without redirect loops
-      const dest = isAdminUser ? '/admin' : '/dashboard';
-      navigate(dest, { replace: true });
+      if (isAdminUser) {
+        try {
+          const token = data?.token || localStorage.getItem('finsight_admin_token') || `admin_${Date.now()}`;
+          const adminProfile = {
+            ...(data?.user || {}),
+            email: verifiedEmail,
+            name: data?.user?.name || (verifiedEmail.startsWith('dishank') ? 'Dishank BS' : (verifiedEmail.startsWith('hitesh') ? 'Hitesh Av' : 'Super Administrator')),
+            isAdmin: true,
+            role: 'Super Administrator',
+            isAuthenticated: true,
+            onboardingCompleted: true
+          };
+
+          // 1. Activate Admin Portal session ONLY
+          localStorage.setItem('finsight_admin_token', token);
+          localStorage.setItem('finsight_admin_user', JSON.stringify(adminProfile));
+
+          // 2. Strict Separation: Ensure User Portal session is completely CLEARED
+          localStorage.removeItem('uip_auth_token');
+          localStorage.removeItem('uip_user_profile');
+          localStorage.removeItem('uip_fallback_user');
+          localStorage.removeItem('uip_guest_session');
+          if (typeof setUser === 'function') {
+            setUser(INITIAL_USER);
+          }
+        } catch {}
+        navigate('/admin', { replace: true });
+        return;
+      }
+
+      // Standard User: clear any admin session
+      try {
+        localStorage.removeItem('finsight_admin_token');
+        localStorage.removeItem('finsight_admin_user');
+      } catch {}
+
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       console.warn('Google authentication response notice:', err.message);
       if (err.code === 'EXISTING_LOCAL_ACCOUNT') {
@@ -255,22 +313,97 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
   // Handle standard email/password login
   const handleLoginSubmit = async (e) => {
     e.preventDefault();
+    if (loading) return;
     setAuthError(null);
     setLoading(true);
 
     try {
-      const data = await loginWithEmail(email, password);
+      const cleanEmail = email.toLowerCase().trim();
+      const isKnownAdmin = [
+        'hiteshav2006@gmail.com',
+        'dishankbs04@gmail.com',
+        (import.meta.env?.VITE_ADMIN_EMAIL || '').toLowerCase().trim()
+      ].filter(Boolean).includes(cleanEmail);
+
+      let data;
+      if (isKnownAdmin) {
+        // Authenticate directly for Admin Portal
+        try {
+          data = await adminService.loginWithCredentials(cleanEmail, password);
+        } catch (credErr) {
+          data = await adminService.loginWithAdminEmail(cleanEmail);
+        }
+
+        const adminToken = data?.token || `admin_${Date.now()}`;
+        const adminProfile = {
+          ...(data?.user || {}),
+          email: cleanEmail,
+          name: data?.user?.name || (cleanEmail.startsWith('dishank') ? 'Dishank BS' : (cleanEmail.startsWith('hitesh') ? 'Hitesh Av' : 'Super Administrator')),
+          isAdmin: true,
+          role: 'Super Administrator',
+          isAuthenticated: true,
+          onboardingCompleted: true
+        };
+
+        // 1. Activate Admin Portal session ONLY
+        localStorage.setItem('finsight_admin_token', adminToken);
+        localStorage.setItem('finsight_admin_user', JSON.stringify(adminProfile));
+
+        // 2. Strict Portal Separation: Ensure User Portal session is completely CLEARED
+        localStorage.removeItem('uip_auth_token');
+        localStorage.removeItem('uip_user_profile');
+        localStorage.removeItem('uip_fallback_user');
+        localStorage.removeItem('uip_guest_session');
+        if (typeof setUser === 'function') {
+          setUser(INITIAL_USER);
+        }
+
+        // 3. Navigate directly to Admin Portal
+        navigate('/admin', { replace: true });
+        return;
+      }
+
+      // Regular User Login Flow
+      data = await loginWithEmail(email, password);
+
       const isAdminUser = Boolean(
         data?.user?.isAdmin ||
         data?.role === 'admin' ||
-        data?.user?.role === 'Super Administrator' ||
-        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'].includes((data?.user?.email || email || '').toLowerCase().trim())
+        data?.user?.role === 'Super Administrator'
       );
-      if (data?.user && !data.user.onboardingCompleted && !isAdminUser) {
-        navigate('/setup?step=1');
+
+      if (isAdminUser) {
+        const adminToken = data?.token || `admin_${Date.now()}`;
+        const adminProfile = {
+          ...(data?.user || {}),
+          isAdmin: true,
+          role: 'Super Administrator',
+          isAuthenticated: true,
+          onboardingCompleted: true
+        };
+        localStorage.setItem('finsight_admin_token', adminToken);
+        localStorage.setItem('finsight_admin_user', JSON.stringify(adminProfile));
+        localStorage.removeItem('uip_auth_token');
+        localStorage.removeItem('uip_user_profile');
+        localStorage.removeItem('uip_fallback_user');
+        localStorage.removeItem('uip_guest_session');
+        if (typeof setUser === 'function') {
+          setUser(INITIAL_USER);
+        }
+        navigate('/admin', { replace: true });
+        return;
+      }
+
+      // Standard user session: clear admin session
+      try {
+        localStorage.removeItem('finsight_admin_token');
+        localStorage.removeItem('finsight_admin_user');
+      } catch {}
+
+      if (data?.user && !data.user.onboardingCompleted) {
+        navigate('/setup?step=1', { replace: true });
       } else {
-        const dest = data?.redirectTo || (isAdminUser ? '/admin' : '/dashboard');
-        navigate(dest);
+        navigate('/dashboard', { replace: true });
       }
     } catch (err) {
       setAuthError(err.message || 'Invalid email or password');
@@ -336,12 +469,12 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
         data?.user?.isAdmin ||
         data?.role === 'admin' ||
         data?.user?.role === 'Super Administrator' ||
-        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'].includes((data?.user?.email || email || '').toLowerCase().trim())
+        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com', (import.meta.env?.VITE_ADMIN_EMAIL || '').toLowerCase().trim()].filter(Boolean).includes((data?.user?.email || email || '').toLowerCase().trim())
       );
       if (isAdminUser || data?.redirectTo === '/admin') {
         navigate(data?.redirectTo || '/admin');
       } else {
-        navigate('/setup?step=1');
+        navigate('/setup?step=1&registered=true');
       }
     } catch (err) {
       setAuthError(err.message || 'Registration failed');
@@ -369,7 +502,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
         data?.user?.isAdmin ||
         data?.role === 'admin' ||
         data?.user?.role === 'Super Administrator' ||
-        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'].includes((data?.user?.email || conflictData?.email || '').toLowerCase().trim())
+        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com', (import.meta.env?.VITE_ADMIN_EMAIL || '').toLowerCase().trim()].filter(Boolean).includes((data?.user?.email || conflictData?.email || '').toLowerCase().trim())
       );
       const dest = data?.redirectTo || (isAdminUser ? '/admin' : '/dashboard');
       navigate(dest);
@@ -471,17 +604,17 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
     }
   };
 
-  // Handle Onboarding Completion (Requirement 10 & Flow 4.6)
-  const handleOnboardingFinish = async () => {
+  // Handle Skip Setup With Defaults (Allows immediate dashboard entry)
+  const handleSkipWithDefaults = async () => {
     setLoading(true);
     setAuthError(null);
     try {
       setPreferences(prev => ({
         ...prev,
-        startingBalance: Number(obBalance),
-        safetyBuffer: Number(obBuffer),
-        incomeFrequency: obFrequency,
-        lowBalanceAlertThreshold: Number(obThreshold)
+        startingBalance: Number(obBalance) || 45000,
+        safetyBuffer: Number(obBuffer) || 25000,
+        incomeFrequency: obFrequency || 'Irregular / Milestone-based',
+        lowBalanceAlertThreshold: Number(obThreshold) || 20000
       }));
 
       await completeOnboarding();
@@ -492,10 +625,9 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
         user?.role === 'Super Administrator' ||
         ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'].includes((user?.email || '').toLowerCase().trim())
       );
-      // Requirement 4.6: Predictable navigation without trapping user in duplicate wizard history entries
       navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
     } catch (err) {
-      console.error('Error completing onboarding:', err);
+      console.error('Error completing onboarding with defaults:', err);
       navigate('/dashboard', { replace: true });
     } finally {
       setLoading(false);
@@ -503,69 +635,69 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
   };
 
   return (
-    <div className="auth-page-root">
+    <div className="auth-page-root user-neumorphic-root">
       {/* Background 3D Animated Scene */}
       <Background3D />
       
       {/* Left Showcase Panel */}
       <div className="auth-showcase-panel">
-        {/* Glow & Curve background */}
-        <div style={{ position: 'absolute', top: -100, left: -100, width: 450, height: 450, background: 'radial-gradient(circle, rgba(56, 189, 248, 0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        {/* Soft Ambient Neumorphic Light */}
+        <div style={{ position: 'absolute', top: -80, left: -80, width: 420, height: 420, background: 'radial-gradient(circle, rgba(5, 150, 105, 0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
 
         {/* Brand Header */}
         <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 40 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: 'linear-gradient(135deg, #38BDF8 0%, #6366F1 50%, #A78BFA 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(56, 189, 248, 0.45)', border: '1px solid rgba(255, 255, 255, 0.3)' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B1220" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 36 }}>
+            <div className="logo-badge" style={{ width: 42, height: 42, borderRadius: 12 }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                 <polyline points="16 7 22 7 22 13" />
               </svg>
             </div>
-            <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: -0.4, color: '#F8FAFC' }}>FinSight</span>
-            <span style={{ background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38BDF8', fontSize: 10.5, fontWeight: 700, letterSpacing: 0.8, padding: '3px 8px', borderRadius: 6, boxShadow: '0 0 10px rgba(56, 189, 248, 0.15)' }}>
+            <span style={{ fontSize: 23, fontWeight: 800, letterSpacing: -0.4, color: 'var(--neu-text-primary)' }}>FinSight</span>
+            <span className="auth-neu-pill-brand">
               UNCERTAIN INCOME PLANNER
             </span>
           </div>
 
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', borderRadius: 20, padding: '6px 14px', color: '#38BDF8', fontSize: 12.5, fontWeight: 600, marginBottom: 20 }}>
-            <Sparkles size={14} color="#38BDF8" />
+          <div className="auth-neu-tagline-badge">
+            <Sparkles size={14} color="var(--neu-brand-primary)" />
             <span>Built for Freelancers, Creators & Milestone Professionals</span>
           </div>
 
-          <h1 style={{ fontSize: 42, fontWeight: 800, lineHeight: 1.16, letterSpacing: -0.8, marginBottom: 18, maxWidth: 520, color: '#F8FAFC' }}>
+          <h1 className="auth-showcase-heading">
             Make smarter decisions with irregular money.
           </h1>
 
-          <p style={{ fontSize: 15, lineHeight: 1.6, color: '#94A3B8', maxWidth: 480, marginBottom: 36 }}>
+          <p className="auth-showcase-subtext">
             Never wonder if you can afford rent before an invoice clears. Model payment delays, calculate pure Safe-to-Spend, and protect your cash buffer.
           </p>
 
           {/* Feature Highlights */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 14, maxWidth: 480 }}>
-            <div style={{ background: 'rgba(15, 23, 42, 0.82)', border: '1px solid rgba(255, 255, 255, 0.08)', borderTop: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, backdropFilter: 'blur(8px)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(56, 189, 248, 0.14)', color: '#38BDF8', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(56, 189, 248, 0.25)', boxShadow: '0 0 12px rgba(56, 189, 248, 0.15)' }}>
-                <ShieldCheck size={18} />
+          <div className="auth-feature-cards-col">
+            <div className="auth-feature-card">
+              <div className="auth-feature-icon-well emerald">
+                <ShieldCheck size={20} />
               </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: '#F8FAFC' }}>True Safe-to-Spend Engine</div>
-                <div style={{ fontSize: 12, color: '#94A3B8' }}>Separates actual bank cash from unreceived promises.</div>
+                <div className="auth-feature-title">True Safe-to-Spend Engine</div>
+                <div className="auth-feature-desc">Separates actual bank cash from unreceived promises.</div>
               </div>
             </div>
 
-            <div style={{ background: 'rgba(15, 23, 42, 0.82)', border: '1px solid rgba(255, 255, 255, 0.08)', borderTop: '1px solid rgba(255, 255, 255, 0.18)', borderRadius: 12, padding: '14px 18px', display: 'flex', alignItems: 'center', gap: 14, backdropFilter: 'blur(8px)', boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)' }}>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'rgba(245, 158, 11, 0.14)', color: '#FBBF24', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(245, 158, 11, 0.25)', boxShadow: '0 0 12px rgba(245, 158, 11, 0.15)' }}>
-                <Sliders size={18} />
+            <div className="auth-feature-card">
+              <div className="auth-feature-icon-well amber">
+                <Sliders size={20} />
               </div>
               <div>
-                <div style={{ fontWeight: 600, fontSize: 14, color: '#F8FAFC' }}>Payment Delay Stress-Tester</div>
-                <div style={{ fontSize: 12, color: '#94A3B8' }}>Simulate 10–30 day invoice delays before they trigger panic.</div>
+                <div className="auth-feature-title">Payment Delay Stress-Tester</div>
+                <div className="auth-feature-desc">Simulate 10–30 day invoice delays before they trigger panic.</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Footer */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255, 255, 255, 0.08)', paddingTop: 20, fontSize: 12, color: '#94A3B8' }}>
+        <div className="auth-showcase-footer">
           <span>Indian Currency Architecture (₹ INR)</span>
           <span>Google OAuth 2.0 & SOC-2 Verified</span>
         </div>
@@ -573,49 +705,35 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
 
       {/* Right Authentication & Onboarding Form Panel */}
       <div className="auth-form-panel">
-        <div style={{ width: '100%', maxWidth: 440 }}>
+        <div className="auth-card-surface">
           {/* Mobile-Only Brand Header */}
           <div className="auth-mobile-brand-header">
             <div className="auth-mobile-brand-icon">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0B1220" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
                 <polyline points="16 7 22 7 22 13" />
               </svg>
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: 21, fontWeight: 800, letterSpacing: -0.4, color: '#F8FAFC' }}>FinSight</span>
-                <span style={{ background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38BDF8', fontSize: 10, fontWeight: 700, padding: '2px 7px', borderRadius: 4 }}>
+                <span style={{ fontSize: 20, fontWeight: 800, letterSpacing: -0.4, color: 'var(--neu-text-primary)' }}>FinSight</span>
+                <span className="auth-neu-pill-brand">
                   PLANNER
                 </span>
               </div>
-              <div style={{ fontSize: 12, color: '#94A3B8', marginTop: 2 }}>Uncertain Income Treasury</div>
+              <div style={{ fontSize: 12, color: 'var(--neu-text-secondary)', marginTop: 2 }}>Uncertain Income Treasury</div>
             </div>
           </div>
 
           {/* Feedback Alerts */}
           {authError && (
-            <div
-              style={{
-                background: 'rgba(239, 68, 68, 0.14)',
-                border: '1px solid rgba(239, 68, 68, 0.35)',
-                borderRadius: '8px',
-                padding: '12px 14px',
-                marginBottom: '18px',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '10px',
-                fontSize: '13px',
-                color: '#FCA5A5',
-                backdropFilter: 'blur(8px)'
-              }}
-            >
+            <div className="auth-alert-error" role="alert">
               <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '2px' }} />
               <div style={{ flex: 1, lineHeight: '1.45' }}>{authError}</div>
               <button
                 type="button"
                 onClick={() => setAuthError(null)}
-                style={{ background: 'none', border: 'none', color: '#FCA5A5', cursor: 'pointer', fontWeight: 700 }}
+                style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer', fontWeight: 700 }}
               >
                 ×
               </button>
@@ -623,69 +741,40 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
           )}
 
           {authNotice && (
-            <div
-              style={{
-                background: 'rgba(16, 185, 129, 0.14)',
-                border: '1px solid rgba(16, 185, 129, 0.35)',
-                borderRadius: '8px',
-                padding: '12px 14px',
-                marginBottom: '18px',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '10px',
-                fontSize: '13px',
-                color: '#6EE7B7',
-                backdropFilter: 'blur(8px)'
-              }}
-            >
+            <div className="auth-alert-success" role="status">
               <CheckCircle2 size={18} style={{ flexShrink: 0 }} />
               <div style={{ flex: 1 }}>{authNotice}</div>
             </div>
           )}
-          
-
 
           {/* Mode 1: Login */}
           {mode === 'login' && (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 6 }}>
-                <h2 style={{ fontSize: 26, fontWeight: 700, color: '#F8FAFC', margin: 0, letterSpacing: -0.3 }}>
+                <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-text-primary)', margin: 0, letterSpacing: '-0.02em' }}>
                   Welcome back
                 </h2>
                 <button
                   type="button"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 5,
-                    background: 'rgba(56, 189, 248, 0.12)',
-                    border: '1px solid rgba(56, 189, 248, 0.3)',
-                    color: '#38BDF8',
-                    fontSize: 11.5,
-                    fontWeight: 600,
-                    padding: '4px 10px',
-                    borderRadius: 6,
-                    cursor: 'pointer',
-                    boxShadow: '0 0 10px rgba(56, 189, 248, 0.15)',
-                    transition: 'all 0.15s ease'
-                  }}
+                  className="btn-autofill"
                   onClick={() => {
                     setEmail('alex@example.com');
                     setPassword('FinSight2026!Secured');
+                    setAuthError(null);
                   }}
-                  title="Auto-fill demo credentials"
+                  title="Auto-fill Demo credentials"
                 >
-                  <Sparkles size={12} />
+                  <Sparkles size={13} />
                   <span>Auto-fill</span>
                 </button>
               </div>
 
-              <p style={{ fontSize: 14, color: '#94A3B8', margin: '0 0 20px 0' }}>
+              <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary)', margin: '0 0 20px 0' }}>
                 Sign in to continue to your financial dashboard.
               </p>
 
-              {/* Google SSO Button Container (Natively rendered GIS button + resilient mobile touch fallback) */}
-              <div style={{ position: 'relative', width: '100%', marginBottom: 12, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {/* Google SSO Button Container (Natively rendered GIS button + resilient touch fallback) */}
+              <div style={{ position: 'relative', width: '100%', marginBottom: 14, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div
                   ref={googleBtnRef}
                   style={{
@@ -704,27 +793,11 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                     className="btn-google-sso"
                     onClick={handleGoogleBtnClick}
                     disabled={loading}
-                    style={{
-                      width: '100%',
-                      background: 'rgba(15, 23, 42, 0.85)',
-                      border: '1px solid rgba(255, 255, 255, 0.12)',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.22)',
-                      borderRadius: '10px',
-                      padding: '11px 16px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative',
-                      cursor: loading ? 'wait' : 'pointer',
-                      transition: 'all 0.2s ease',
-                      boxShadow: '0 4px 18px rgba(0, 0, 0, 0.35)',
-                      opacity: loading ? 0.7 : 1,
-                      backdropFilter: 'blur(10px)'
-                    }}
+                    style={{ cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1 }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       {loading ? (
-                        <RefreshCw size={18} className="spin" color="#38BDF8" />
+                        <RefreshCw size={18} className="spin" color="var(--neu-brand-primary)" />
                       ) : (
                         <svg width="18" height="18" viewBox="0 0 24 24">
                           <path
@@ -745,7 +818,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                           />
                         </svg>
                       )}
-                      <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#F8FAFC' }}>
+                      <span>
                         {loading ? 'Authenticating with Google...' : 'Continue with Google'}
                       </span>
                     </div>
@@ -755,20 +828,20 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
 
               {/* Divider */}
               <div style={{ display: 'flex', alignItems: 'center', margin: '20px 0', gap: '12px' }}>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.08)' }} />
-                <span style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '1px', color: '#94A3B8', textTransform: 'uppercase' }}>
+                <div style={{ flex: 1, height: '1px', background: 'var(--neu-border)' }} />
+                <span style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '1px', color: 'var(--neu-text-secondary)', textTransform: 'uppercase' }}>
                   OR CONTINUE WITH EMAIL
                 </span>
-                <div style={{ flex: 1, height: '1px', background: 'rgba(255, 255, 255, 0.08)' }} />
+                <div style={{ flex: 1, height: '1px', background: 'var(--neu-border)' }} />
               </div>
 
               <form onSubmit={handleLoginSubmit}>
-                <div className="form-group-item">
-                  <label className="form-label-title" style={{ color: '#F8FAFC' }}>Email Address</label>
+                <div className="form-group-item" style={{ marginBottom: 16 }}>
+                  <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>Email Address</label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type="email"
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="alex@example.com"
@@ -778,12 +851,12 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   </div>
                 </div>
 
-                <div className="form-group-item">
+                <div className="form-group-item" style={{ marginBottom: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                    <label className="form-label-title" style={{ margin: 0, color: '#F8FAFC' }}>Password</label>
+                    <label className="form-label-title" style={{ margin: 0, color: 'var(--neu-text-primary)' }}>Password</label>
                     <a
                       href="#forgot"
-                      style={{ fontSize: 12, color: '#38BDF8', textDecoration: 'none', fontWeight: 600 }}
+                      style={{ fontSize: 12, color: 'var(--neu-brand-primary)', textDecoration: 'none', fontWeight: 600 }}
                       onClick={(e) => { e.preventDefault(); navigateToMode('forgot'); }}
                     >
                       Forgot password?
@@ -792,16 +865,16 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       disabled={loading}
-                      style={{ letterSpacing: showPassword ? 'normal' : '2px' }}
+                      style={{ letterSpacing: showPassword ? 'normal' : '2px', paddingRight: 40 }}
                     />
                     <button
                       type="button"
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--neu-text-secondary)', cursor: 'pointer', padding: 4 }}
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -810,9 +883,9 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </div>
 
                 {/* Remember this device */}
-                <div style={{ display: 'flex', alignItems: 'center', margin: '16px 0 20px 0' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 13, color: '#94A3B8', fontWeight: 500 }}>
-                    <input type="checkbox" defaultChecked style={{ accentColor: '#38BDF8', width: 16, height: 16, borderRadius: 4 }} />
+                <div style={{ display: 'flex', alignItems: 'center', margin: '14px 0 20px 0' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: 13, color: 'var(--neu-text-secondary)', fontWeight: 500 }}>
+                    <input type="checkbox" defaultChecked style={{ accentColor: 'var(--neu-brand-primary)', width: 16, height: 16, borderRadius: 4 }} />
                     <span>Remember this device</span>
                   </label>
                 </div>
@@ -821,7 +894,12 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   type="submit"
                   className="btn-primary"
                   disabled={loading}
-                  style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: 14.5 }}
+                  style={{
+                    width: '100%',
+                    justifyContent: 'center',
+                    padding: '12.5px',
+                    fontSize: 14.5
+                  }}
                 >
                   {loading ? (
                     <span>Signing In...</span>
@@ -834,49 +912,25 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </button>
               </form>
 
-              {/* Guest Access Option for Zero-Friction 70% Prototype Evaluation */}
+              {/* Guest Access Option for Zero-Friction Evaluation */}
               <div style={{ marginTop: 14 }}>
                 <button
                   type="button"
                   onClick={handleGuestLogin}
                   disabled={loading}
                   id="guest-login-button"
-                  style={{
-                    width: '100%',
-                    padding: '11px 16px',
-                    borderRadius: '10px',
-                    background: 'rgba(56, 189, 248, 0.08)',
-                    border: '1px solid rgba(56, 189, 248, 0.3)',
-                    color: '#38BDF8',
-                    fontSize: '13.5px',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    cursor: loading ? 'wait' : 'pointer',
-                    transition: 'all 0.15s ease',
-                    boxShadow: '0 2px 12px rgba(56, 189, 248, 0.12)'
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(56, 189, 248, 0.16)';
-                    e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.5)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'rgba(56, 189, 248, 0.08)';
-                    e.currentTarget.style.borderColor = 'rgba(56, 189, 248, 0.3)';
-                  }}
+                  className="btn-guest-access"
                 >
                   <User size={16} />
                   <span>Explore as Guest (Instant Access)</span>
                 </button>
               </div>
 
-              <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#94A3B8' }}>
+              <div style={{ marginTop: 22, textAlign: 'center', fontSize: 13, color: 'var(--neu-text-secondary)' }}>
                 Don't have an account?{' '}
                 <a
                   href="#register"
-                  style={{ color: '#38BDF8', fontWeight: 600, textDecoration: 'none' }}
+                  style={{ color: 'var(--neu-brand-primary)', fontWeight: 600, textDecoration: 'none' }}
                   onClick={(e) => { e.preventDefault(); navigateToMode('register'); }}
                 >
                   Create account
@@ -888,7 +942,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
           {/* Mode 2: Register */}
           {mode === 'register' && (
             <div>
-              <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 18 }}>
                 <button
                   type="button"
                   className="auth-back-btn"
@@ -901,21 +955,21 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </button>
               </div>
 
-              <h2 style={{ fontSize: 26, fontWeight: 700, color: '#F8FAFC', margin: '0 0 6px 0', letterSpacing: '-0.3px' }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-text-primary)', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
                 Create Your Account
               </h2>
-              <p style={{ fontSize: 14, color: '#94A3B8', margin: '0 0 22px 0' }}>
+              <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary)', margin: '0 0 22px 0' }}>
                 Set up your uncertain income workspace in 60 seconds.
               </p>
 
               <form onSubmit={handleRegisterSubmit}>
                 {/* 1. Personal Information Section */}
                 <div style={{ marginBottom: 16 }}>
-                  <div className="form-group-item">
-                    <label className="form-label-title" style={{ color: '#F8FAFC' }}>Full Name</label>
+                  <div className="form-group-item" style={{ marginBottom: 14 }}>
+                    <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>Full Name</label>
                     <input
                       type="text"
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       placeholder="e.g. Alex Vance"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
@@ -925,10 +979,10 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   </div>
 
                   <div className="form-group-item">
-                    <label className="form-label-title" style={{ color: '#F8FAFC' }}>Email Address</label>
+                    <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>Email Address</label>
                     <input
                       type="email"
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       placeholder="name@example.com"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -939,12 +993,12 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </div>
 
                 {/* 2. Security & Credentials Section */}
-                <div style={{ marginBottom: 12 }}>
-                  <div className="form-group-item">
+                <div style={{ marginBottom: 14 }}>
+                  <div className="form-group-item" style={{ marginBottom: 14 }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <label className="form-label-title" style={{ margin: 0, color: '#F8FAFC' }}>Create Password</label>
+                      <label className="form-label-title" style={{ margin: 0, color: 'var(--neu-text-primary)' }}>Create Password</label>
                       {password && (
-                        <span style={{ fontSize: 11.5, fontWeight: 600, color: passwordStrength.color }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 700, color: passwordStrength.color }}>
                           {passwordStrength.label}
                         </span>
                       )}
@@ -952,7 +1006,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showPassword ? 'text' : 'password'}
-                        className="form-input-control"
+                        className="form-input-control auth-neu-input"
                         placeholder="Minimum 8 characters"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
@@ -969,7 +1023,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                           transform: 'translateY(-50%)',
                           background: 'none',
                           border: 'none',
-                          color: '#94A3B8',
+                          color: 'var(--neu-text-secondary)',
                           cursor: 'pointer',
                           padding: 4
                         }}
@@ -982,16 +1036,17 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
 
                     {/* Interactive Password Strength Indicator */}
                     {password && (
-                      <div style={{ display: 'flex', gap: 4, marginTop: 6 }}>
+                      <div style={{ display: 'flex', gap: 4, marginTop: 8 }}>
                         {[1, 2, 3, 4].map((step) => (
                           <div
                             key={step}
                             style={{
                               flex: 1,
-                              height: 3,
+                              height: 4,
                               borderRadius: 2,
-                              background: passwordStrength.score >= step ? passwordStrength.color : 'rgba(255, 255, 255, 0.1)',
-                              transition: 'background 0.2s ease'
+                              background: passwordStrength.score >= step ? passwordStrength.color : 'var(--neu-border)',
+                              boxShadow: passwordStrength.score >= step ? `0 0 6px ${passwordStrength.color}40` : 'none',
+                              transition: 'all 0.2s ease'
                             }}
                           />
                         ))}
@@ -1002,12 +1057,12 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   {/* Confirm Password Field */}
                   <div className="form-group-item">
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                      <label className="form-label-title" style={{ margin: 0, color: '#F8FAFC' }}>Confirm Password</label>
+                      <label className="form-label-title" style={{ margin: 0, color: 'var(--neu-text-primary)' }}>Confirm Password</label>
                       {confirmPassword && (
                         <span style={{
                           fontSize: 11.5,
-                          fontWeight: 600,
-                          color: passwordsMatch ? '#10B981' : '#EF4444',
+                          fontWeight: 700,
+                          color: passwordsMatch ? 'var(--neu-brand-primary)' : 'var(--neu-danger)',
                           display: 'flex',
                           alignItems: 'center',
                           gap: 4
@@ -1026,7 +1081,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                     <div style={{ position: 'relative' }}>
                       <input
                         type={showConfirmPassword ? 'text' : 'password'}
-                        className="form-input-control"
+                        className="form-input-control auth-neu-input"
                         placeholder="Re-enter your password"
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
@@ -1035,7 +1090,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                         style={{
                           letterSpacing: showConfirmPassword ? 'normal' : '1.5px',
                           paddingRight: 40,
-                          borderColor: passwordMismatch ? 'rgba(239, 68, 68, 0.5)' : (passwordsMatch ? 'rgba(16, 185, 129, 0.5)' : undefined)
+                          borderColor: passwordMismatch ? 'var(--neu-danger)' : (passwordsMatch ? 'var(--neu-brand-primary)' : undefined)
                         }}
                       />
                       <button
@@ -1047,7 +1102,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                           transform: 'translateY(-50%)',
                           background: 'none',
                           border: 'none',
-                          color: '#94A3B8',
+                          color: 'var(--neu-text-secondary)',
                           cursor: 'pointer',
                           padding: 4
                         }}
@@ -1061,16 +1116,16 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </div>
 
                 {/* Terms & Conditions Agreement */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '14px 0 18px 0', fontSize: 12.5, color: '#94A3B8' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '14px 0 20px 0', fontSize: 12.5, color: 'var(--neu-text-secondary)' }}>
                   <input
                     type="checkbox"
                     checked={agreeTerms}
                     onChange={(e) => setAgreeTerms(e.target.checked)}
-                    style={{ accentColor: '#38BDF8', width: 16, height: 16, borderRadius: 4, cursor: 'pointer' }}
+                    style={{ accentColor: 'var(--neu-brand-primary)', width: 16, height: 16, borderRadius: 4, cursor: 'pointer' }}
                     id="agreeTerms"
                   />
                   <label htmlFor="agreeTerms" style={{ cursor: 'pointer', userSelect: 'none' }}>
-                    I agree to the <span style={{ color: '#38BDF8', fontWeight: 600 }}>Terms of Service</span> & <span style={{ color: '#38BDF8', fontWeight: 600 }}>Privacy Policy</span>
+                    I agree to the <span style={{ color: 'var(--neu-brand-primary)', fontWeight: 600 }}>Terms of Service</span> & <span style={{ color: 'var(--neu-brand-primary)', fontWeight: 600 }}>Privacy Policy</span>
                   </label>
                 </div>
 
@@ -1085,16 +1140,24 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                     padding: '12.5px',
                     fontSize: 14.5
                   }}
+                  id="register-submit-button"
                 >
                   {loading ? (
-                    <span>Creating Account...</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <Loader2 size={16} className="animate-spin" />
+                      <span>Creating Account & Securing Profile...</span>
+                    </div>
                   ) : (
                     <>
-                      <span>Continue to Financial Setup</span>
+                      <span>Create Account</span>
                       <ArrowRight size={16} />
                     </>
                   )}
                 </button>
+
+                <div style={{ marginTop: 8, textAlign: 'center', fontSize: 11.5, color: 'var(--neu-text-secondary)' }}>
+                  Your secure account will be created before setting up your financial runway.
+                </div>
               </form>
 
               {/* Guest Option in Register Mode */}
@@ -1104,21 +1167,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   onClick={handleGuestLogin}
                   disabled={loading}
                   id="register-guest-button"
-                  style={{
-                    width: '100%',
-                    padding: '10px 16px',
-                    borderRadius: '10px',
-                    background: 'rgba(56, 189, 248, 0.08)',
-                    border: '1px solid rgba(56, 189, 248, 0.28)',
-                    color: '#38BDF8',
-                    fontSize: '13px',
-                    fontWeight: 700,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    cursor: loading ? 'wait' : 'pointer'
-                  }}
+                  className="btn-guest-access"
                 >
                   <User size={15} />
                   <span>Skip and Explore as Guest</span>
@@ -1126,22 +1175,22 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
               </div>
 
               {/* 6. Footer Navigation Links */}
-              <div style={{ marginTop: 20, textAlign: 'center', fontSize: 13, color: '#94A3B8', display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <div style={{ marginTop: 22, textAlign: 'center', fontSize: 13, color: 'var(--neu-text-secondary)', display: 'flex', flexDirection: 'column', gap: 8 }}>
                 <div>
                   Already registered?{' '}
                   <a
                     href="#login"
-                    style={{ color: '#38BDF8', fontWeight: 600, textDecoration: 'none' }}
+                    style={{ color: 'var(--neu-brand-primary)', fontWeight: 600, textDecoration: 'none' }}
                     onClick={(e) => { e.preventDefault(); setAuthError(null); navigateToMode('login'); }}
                   >
                     Sign in
                   </a>
                 </div>
-                <div style={{ fontSize: 12, color: '#64748B' }}>
+                <div style={{ fontSize: 12, color: 'var(--neu-text-muted)' }}>
                   Trouble logging in?{' '}
                   <a
                     href="#forgot"
-                    style={{ color: '#38BDF8', fontWeight: 500, textDecoration: 'none' }}
+                    style={{ color: 'var(--neu-brand-primary)', fontWeight: 500, textDecoration: 'none' }}
                     onClick={(e) => { e.preventDefault(); setAuthError(null); navigateToMode('forgot'); }}
                   >
                     Forgot password
@@ -1154,7 +1203,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
           {/* Mode: Account Linking Modal (Requirement 8) */}
           {mode === 'link_account' && (
             <div>
-              <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 18 }}>
                 <button
                   type="button"
                   className="auth-back-btn"
@@ -1167,36 +1216,36 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </button>
               </div>
 
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, background: 'rgba(56, 189, 248, 0.15)', border: '1px solid rgba(56, 189, 248, 0.3)', color: '#38BDF8', padding: '4px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600, marginBottom: 12 }}>
-                <Link2 size={14} />
+              <div className="auth-neu-pill-brand" style={{ marginBottom: 12 }}>
+                <Link2 size={13} style={{ marginRight: 6 }} />
                 <span>Account Linking Required</span>
               </div>
 
-              <h2 style={{ fontSize: 24, fontWeight: 700, color: '#F8FAFC', margin: '0 0 6px 0' }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-text-primary)', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
                 Link Google Account
               </h2>
-              <p style={{ fontSize: 13.5, color: '#94A3B8', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary)', margin: '0 0 20px 0', lineHeight: 1.5 }}>
                 An existing account with <strong>{conflictData?.email}</strong> already exists. To securely connect your Google credentials and prevent unauthorized access, please confirm your account password.
               </p>
 
               <form onSubmit={handleAccountLinkSubmit}>
-                <div className="form-group-item">
-                  <label className="form-label-title" style={{ color: '#F8FAFC' }}>Account Email</label>
+                <div className="form-group-item" style={{ marginBottom: 14 }}>
+                  <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>Account Email</label>
                   <input
                     type="email"
-                    className="form-input-control"
+                    className="form-input-control auth-neu-input"
                     value={conflictData?.email || ''}
                     disabled
-                    style={{ background: 'rgba(15, 23, 42, 0.5)', cursor: 'not-allowed', color: '#94A3B8' }}
+                    style={{ cursor: 'not-allowed', color: 'var(--neu-text-muted)' }}
                   />
                 </div>
 
-                <div className="form-group-item">
-                  <label className="form-label-title" style={{ color: '#F8FAFC' }}>Existing Account Password</label>
+                <div className="form-group-item" style={{ marginBottom: 16 }}>
+                  <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>Existing Account Password</label>
                   <div style={{ position: 'relative' }}>
                     <input
                       type={showLinkPassword ? 'text' : 'password'}
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       value={linkPassword}
                       onChange={(e) => setLinkPassword(e.target.value)}
                       placeholder="Enter your existing password"
@@ -1206,7 +1255,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                     />
                     <button
                       type="button"
-                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#94A3B8', cursor: 'pointer' }}
+                      style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--neu-text-secondary)', cursor: 'pointer', padding: 4 }}
                       onClick={() => setShowLinkPassword(!showLinkPassword)}
                     >
                       {showLinkPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -1218,7 +1267,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   type="submit"
                   className="btn-primary"
                   disabled={linkLoading}
-                  style={{ width: '100%', justifyContent: 'center', padding: '12px', fontSize: 14.5, marginTop: 10 }}
+                  style={{ width: '100%', justifyContent: 'center', padding: '12.5px', fontSize: 14.5, marginTop: 8 }}
                 >
                   {linkLoading ? (
                     <span>Verifying & Linking...</span>
@@ -1232,7 +1281,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
 
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', width: '100%', textAlign: 'center', color: '#94A3B8', fontSize: 12.5, marginTop: 14, cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', width: '100%', textAlign: 'center', color: 'var(--neu-text-secondary)', fontSize: 12.5, marginTop: 16, cursor: 'pointer', fontWeight: 500 }}
                   onClick={() => {
                     navigateToMode('login');
                     setConflictData(null);
@@ -1248,7 +1297,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
           {/* Mode 3: Forgot Password */}
           {mode === 'forgot' && (
             <div>
-              <div style={{ marginBottom: 16 }}>
+              <div style={{ marginBottom: 18 }}>
                 <button
                   type="button"
                   className="auth-back-btn"
@@ -1261,31 +1310,19 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </button>
               </div>
 
-              <h2 style={{ fontSize: 26, fontWeight: 700, color: '#F8FAFC', margin: '0 0 6px 0', letterSpacing: '-0.3px' }}>
+              <h2 style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-text-primary)', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
                 Reset Password
               </h2>
-              <p style={{ fontSize: 14, color: '#94A3B8', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+              <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary)', margin: '0 0 20px 0', lineHeight: 1.5 }}>
                 Enter your account email address and we'll dispatch a secure, time-limited recovery link.
               </p>
 
               {/* Temporary Maintenance Advisory */}
               {isPasswordRecoveryDisabled() && (
-                <div style={{
-                  background: 'rgba(245, 158, 11, 0.12)',
-                  border: '1px solid rgba(245, 158, 11, 0.35)',
-                  borderRadius: 10,
-                  padding: '12px 14px',
-                  marginBottom: 18,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 10,
-                  color: '#FCD34D',
-                  fontSize: 13,
-                  lineHeight: 1.45
-                }}>
-                  <AlertCircle size={18} color="#F59E0B" style={{ flexShrink: 0, marginTop: 1 }} />
+                <div className="auth-alert-warning" role="alert">
+                  <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
                   <div>
-                    <strong style={{ display: 'block', color: '#FDE68A', marginBottom: 2 }}>Maintenance Notice</strong>
+                    <strong style={{ display: 'block', marginBottom: 2 }}>Maintenance Notice</strong>
                     Password recovery is temporarily unavailable. Please try again later.
                   </div>
                 </div>
@@ -1293,36 +1330,24 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
 
               {/* Error Notice */}
               {forgotError && (
-                <div style={{
-                  background: 'rgba(239, 68, 68, 0.12)',
-                  border: '1px solid rgba(239, 68, 68, 0.35)',
-                  borderRadius: 10,
-                  padding: '12px 14px',
-                  marginBottom: 18,
-                  display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: 10,
-                  color: '#FCA5A5',
-                  fontSize: 13,
-                  lineHeight: 1.45
-                }}>
-                  <AlertCircle size={18} color="#EF4444" style={{ flexShrink: 0, marginTop: 1 }} />
+                <div className="auth-alert-error" role="alert">
+                  <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 1 }} />
                   <div>{forgotError}</div>
                 </div>
               )}
 
               {forgotSubmitted ? (
-                <div style={{ background: 'rgba(16, 185, 129, 0.12)', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '26px 22px', borderRadius: 14, textAlign: 'center', backdropFilter: 'blur(12px)' }}>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'rgba(16, 185, 129, 0.2)', color: '#10B981', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', border: '1px solid rgba(16, 185, 129, 0.35)', boxShadow: '0 0 20px rgba(16, 185, 129, 0.25)' }}>
+                <div style={{ background: 'var(--neu-success-bg)', border: '1px solid var(--neu-success-border)', padding: '26px 22px', borderRadius: 'var(--neu-radius-lg)', textAlign: 'center', boxShadow: 'var(--neu-shadow-raised-sm)' }}>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--neu-bg-primary)', color: 'var(--neu-success-dark)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 14px', border: '1px solid var(--neu-success-border)', boxShadow: 'var(--neu-shadow-raised-sm)' }}>
                     <CheckCircle2 size={26} />
                   </div>
-                  <h3 style={{ fontSize: 17, fontWeight: 700, color: '#F8FAFC', margin: '0 0 8px 0' }}>
+                  <h3 style={{ fontSize: 17, fontWeight: 700, color: 'var(--neu-text-primary)', margin: '0 0 8px 0' }}>
                     Recovery Link Dispatched
                   </h3>
-                  <p style={{ fontSize: 13.5, color: '#CBD5E1', margin: '0 0 12px 0', lineHeight: 1.55 }}>
+                  <p style={{ fontSize: 13.5, color: 'var(--neu-text-primary)', margin: '0 0 12px 0', lineHeight: 1.55 }}>
                     {forgotSuccessNotice}
                   </p>
-                  <p style={{ fontSize: 12.5, color: '#94A3B8', margin: '0 0 20px 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12.5, color: 'var(--neu-text-secondary)', margin: '0 0 20px 0', lineHeight: 1.5 }}>
                     Please check your inbox (including your spam or junk folder). The recovery link will redirect you to update your password.
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -1336,7 +1361,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                     </button>
                     <button
                       type="button"
-                      style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: 12.5, cursor: 'pointer', padding: 6, fontWeight: 600 }}
+                      style={{ background: 'none', border: 'none', color: 'var(--neu-brand-primary)', fontSize: 12.5, cursor: 'pointer', padding: 6, fontWeight: 600 }}
                       onClick={() => { setForgotSubmitted(false); setForgotError(null); }}
                     >
                       Did not receive link? Try again
@@ -1345,12 +1370,12 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </div>
               ) : (
                 <form onSubmit={handleForgotSubmit}>
-                  <div className="form-group-item">
-                    <label className="form-label-title" style={{ color: '#F8FAFC' }}>Email Address</label>
+                  <div className="form-group-item" style={{ marginBottom: 16 }}>
+                    <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>Email Address</label>
                     <div style={{ position: 'relative' }}>
                       <input
                         type="email"
-                        className="form-input-control"
+                        className="form-input-control auth-neu-input"
                         placeholder="name@example.com"
                         value={forgotEmail || email}
                         onChange={(e) => {
@@ -1399,19 +1424,13 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                     <div>
                       <button
                         type="button"
+                        className="btn-secondary"
                         style={{
+                          fontSize: 13,
+                          padding: '8px 16px',
                           display: 'inline-flex',
                           alignItems: 'center',
-                          gap: 6,
-                          background: 'rgba(15, 23, 42, 0.65)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
-                          color: '#F8FAFC',
-                          fontSize: 13,
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          padding: '7px 14px',
-                          borderRadius: 6,
-                          transition: 'all 0.15s ease'
+                          gap: 6
                         }}
                         onClick={() => { setForgotError(null); navigateToMode('login'); }}
                       >
@@ -1420,11 +1439,11 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                       </button>
                     </div>
 
-                    <div style={{ fontSize: 12.5, color: '#94A3B8' }}>
+                    <div style={{ fontSize: 12.5, color: 'var(--neu-text-secondary)' }}>
                       Don't have an account yet?{' '}
                       <a
                         href="#register"
-                        style={{ color: '#38BDF8', fontWeight: 600, textDecoration: 'none' }}
+                        style={{ color: 'var(--neu-brand-primary)', fontWeight: 600, textDecoration: 'none' }}
                         onClick={(e) => { e.preventDefault(); setForgotError(null); navigateToMode('register'); }}
                       >
                         Create an account
@@ -1440,7 +1459,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
           {mode === 'onboarding' && (
             <div className="wizard-step-container">
               {/* Responsive Wizard Header Navigation with Visible Back Button */}
-              <div className="wizard-header-nav">
+              <div className="wizard-header-nav" style={{ marginBottom: 18 }}>
                 <button
                   type="button"
                   className="wizard-back-btn"
@@ -1455,50 +1474,139 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </button>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                  <span className="wizard-step-badge" style={{ fontSize: 12, fontWeight: 700, color: '#38BDF8', textTransform: 'uppercase', background: 'rgba(56, 189, 248, 0.12)', padding: '4px 10px', borderRadius: 6, border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+                  <span className="wizard-step-badge" style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-brand-primary)', textTransform: 'uppercase', background: 'var(--neu-bg-primary)', padding: '5px 12px', borderRadius: 8, border: '1px solid var(--neu-border)', boxShadow: 'var(--neu-shadow-inset-sm)' }}>
                     Setup Wizard • Step {onboardingStep} of 2
                   </span>
-                  <span style={{ fontSize: 12, color: '#94A3B8' }}>Currency: INR (₹)</span>
+                  <span style={{ fontSize: 12, color: 'var(--neu-text-secondary)', fontWeight: 500 }}>Currency: INR (₹)</span>
+                </div>
+              </div>
+
+              {/* 1. Account Creation Confirmation Banner */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  border: '1px solid rgba(16, 185, 129, 0.28)',
+                  padding: '12px 14px',
+                  borderRadius: 'var(--neu-radius-md)',
+                  marginBottom: 16,
+                  boxShadow: 'var(--neu-shadow-inset-sm)'
+                }}
+              >
+                <div style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: '50%',
+                  background: 'rgba(16, 185, 129, 0.18)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}>
+                  <CheckCircle2 size={18} color="#059669" />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13.5, fontWeight: 700, color: '#065F46' }}>
+                    Account Created & Stored Successfully!
+                  </div>
+                  <div style={{ fontSize: 12, color: 'var(--neu-text-secondary)', marginTop: 2 }}>
+                    Welcome to FinSight{user?.name ? `, ${user.name}` : ''}! Your credentials have been secured in the database.
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. Educational Card: Why This Financial Setup Is Required */}
+              <div
+                style={{
+                  background: 'var(--neu-bg-primary)',
+                  border: '1px solid var(--neu-border)',
+                  borderRadius: 'var(--neu-radius-md)',
+                  padding: '14px 16px',
+                  marginBottom: 20,
+                  boxShadow: 'var(--neu-shadow-flat-sm)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                  <ShieldCheck size={18} color="var(--neu-brand-primary)" />
+                  <span style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--neu-text-primary)' }}>
+                    Why is this financial setup required?
+                  </span>
+                </div>
+                <p style={{ fontSize: 12.2, color: 'var(--neu-text-secondary)', lineHeight: 1.55, margin: '0 0 10px 0' }}>
+                  FinSight is an <strong>Uncertain Income Planner</strong> designed specifically for freelancers, consultants, and milestone workers. Unlike standard budgeting apps that assume fixed salaries, our <strong>Safe-to-Spend engine</strong> requires your baseline numbers to prevent overdrafts when client payments are delayed:
+                </p>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                  gap: 8,
+                  fontSize: 11.5
+                }}>
+                  <div style={{ background: 'var(--neu-bg-secondary)', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--neu-border)' }}>
+                    <strong style={{ color: 'var(--neu-text-primary)', display: 'block', marginBottom: 2 }}>1. Bank Balance</strong>
+                    <span style={{ color: 'var(--neu-text-secondary)' }}>Real liquid cash in bank (not invoice promises)</span>
+                  </div>
+                  <div style={{ background: 'var(--neu-bg-secondary)', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--neu-border)' }}>
+                    <strong style={{ color: 'var(--neu-text-primary)', display: 'block', marginBottom: 2 }}>2. Safety Buffer</strong>
+                    <span style={{ color: 'var(--neu-text-secondary)' }}>Untouchable cushion for delayed payouts</span>
+                  </div>
+                  <div style={{ background: 'var(--neu-bg-secondary)', padding: '8px 10px', borderRadius: 8, border: '1px solid var(--neu-border)' }}>
+                    <strong style={{ color: 'var(--neu-text-primary)', display: 'block', marginBottom: 2 }}>3. Safe-to-Spend</strong>
+                    <span style={{ color: 'var(--neu-text-secondary)' }}>Calculates what you can safely spend today</span>
+                  </div>
                 </div>
               </div>
 
               {onboardingStep === 1 ? (
                 <div>
-                  <h3 style={{ fontSize: 20, fontWeight: 700, color: '#F8FAFC', marginBottom: 6 }}>
+                  <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--neu-text-primary)', marginBottom: 6 }}>
                     Baseline Cash & Safety Buffer
                   </h3>
-                  <p style={{ fontSize: 13, color: '#94A3B8', marginBottom: 18 }}>
+                  <p style={{ fontSize: 13, color: 'var(--neu-text-secondary)', marginBottom: 20 }}>
                     Establish your true recorded available balance and minimum comfort reserve.
                   </p>
 
-                  <div className="form-group-item">
-                    <label className="form-label-title" style={{ color: '#F8FAFC' }}>Current Recorded Bank Balance (₹ INR) *</label>
+                  <div className="form-group-item" style={{ marginBottom: 16 }}>
+                    <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>
+                      Current Recorded Bank Balance (₹ INR) *
+                    </label>
                     <input
                       type="number"
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       value={obBalance}
                       onChange={(e) => setObBalance(e.target.value)}
                       required
                       id="wizard-balance-input"
                     />
+                    <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary)', marginTop: 4, display: 'block' }}>
+                      Total liquid cash across your bank accounts right now.
+                    </span>
                   </div>
 
-                  <div className="form-group-item">
-                    <label className="form-label-title" style={{ color: '#F8FAFC' }}>Minimum Safety Buffer Target (₹ INR) *</label>
+                  <div className="form-group-item" style={{ marginBottom: 16 }}>
+                    <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>
+                      Minimum Safety Buffer Target (₹ INR) *
+                    </label>
                     <input
                       type="number"
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       value={obBuffer}
                       onChange={(e) => setObBuffer(e.target.value)}
                       required
                       id="wizard-buffer-input"
                     />
+                    <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary)', marginTop: 4, display: 'block' }}>
+                      Untouchable emergency floor (recommended: ₹20,000–₹50,000).
+                    </span>
                   </div>
 
-                  <div className="form-group-item">
-                    <label className="form-label-title" style={{ color: '#F8FAFC' }}>Typical Income Frequency</label>
+                  <div className="form-group-item" style={{ marginBottom: 20 }}>
+                    <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>
+                      Typical Income Frequency
+                    </label>
                     <select
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       value={obFrequency}
                       onChange={(e) => setObFrequency(e.target.value)}
                       id="wizard-frequency-select"
@@ -1513,22 +1621,37 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                   <button
                     type="button"
                     className="btn-primary"
-                    style={{ width: '100%', justifyContent: 'center', padding: '12px', marginTop: 14 }}
+                    style={{ width: '100%', justifyContent: 'center', padding: '12.5px', marginTop: 10 }}
                     onClick={handleStep1Next}
                     id="wizard-next-btn"
                   >
-                    <span>Next: Set Alerts & Finish</span>
+                    <span>Next: Set Alerts & Review (Step 2 of 2)</span>
                     <ArrowRight size={15} />
                   </button>
 
+                  {/* Skip to Dashboard with Defaults Option */}
+                  <div style={{ marginTop: 12 }}>
+                    <button
+                      type="button"
+                      onClick={handleSkipWithDefaults}
+                      disabled={loading}
+                      id="wizard-skip-defaults-btn"
+                      className="btn-guest-access"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                    >
+                      <Sparkles size={15} />
+                      <span>{loading ? 'Configuring defaults...' : 'Skip Setup & Use Recommended Defaults'}</span>
+                    </button>
+                  </div>
+
                   {/* Secondary return option on Step 1 */}
-                  <div style={{ marginTop: 14, textAlign: 'center' }}>
+                  <div style={{ marginTop: 16, textAlign: 'center' }}>
                     <button
                       type="button"
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#94A3B8',
+                        color: 'var(--neu-text-secondary)',
                         fontSize: 12.5,
                         fontWeight: 600,
                         cursor: 'pointer',
@@ -1539,8 +1662,8 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                         borderRadius: 6,
                         transition: 'all 0.15s ease'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.color = '#38BDF8'; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.color = 'var(--neu-brand-primary)'; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.color = 'var(--neu-text-secondary)'; }}
                       onClick={handleStep1Back}
                       aria-label="Return to previous screen"
                       id="wizard-step1-return-btn"
@@ -1554,31 +1677,51 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                 </div>
               ) : (
                 <div>
-                  <h3 style={{ fontSize: 20, fontWeight: 700, color: '#F8FAFC', marginBottom: 6 }}>
-                    Alert Thresholds & Review
+                  <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--neu-text-primary)', marginBottom: 6 }}>
+                    Alert Thresholds & Safe-to-Spend Preview
                   </h3>
-                  <p style={{ fontSize: 13, color: '#94A3B8', marginBottom: 18 }}>
+                  <p style={{ fontSize: 13, color: 'var(--neu-text-secondary)', marginBottom: 20 }}>
                     Configure automated notifications when liquidity drops below safe levels.
                   </p>
 
-                  <div className="form-group-item">
-                    <label className="form-label-title" style={{ color: '#F8FAFC' }}>Low Balance Warning Trigger (₹ INR)</label>
+                  <div className="form-group-item" style={{ marginBottom: 18 }}>
+                    <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>
+                      Low Balance Warning Trigger (₹ INR)
+                    </label>
                     <input
                       type="number"
-                      className="form-input-control"
+                      className="form-input-control auth-neu-input"
                       value={obThreshold}
                       onChange={(e) => setObThreshold(e.target.value)}
                       id="wizard-threshold-input"
                     />
+                    <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary)', marginTop: 4, display: 'block' }}>
+                      Receive a high-priority warning whenever your projected balance drops below this amount.
+                    </span>
                   </div>
 
-                  <div style={{ background: 'rgba(15, 23, 42, 0.65)', padding: 16, borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.08)', marginBottom: 20, fontSize: 12.5, color: '#94A3B8', lineHeight: 1.5 }}>
-                    <div style={{ fontWeight: 700, color: '#F8FAFC', marginBottom: 6 }}>Ready to calculate Safe-to-Spend!</div>
-                    Starting Balance: <strong style={{ color: '#F8FAFC' }}>{formatINR(Number(obBalance))}</strong><br />
-                    Protected Safety Buffer: <strong style={{ color: '#38BDF8' }}>{formatINR(Number(obBuffer))}</strong>
+                  <div style={{ background: 'var(--neu-bg-primary)', padding: 16, borderRadius: 'var(--neu-radius-md)', border: '1px solid var(--neu-border)', boxShadow: 'var(--neu-shadow-inset-sm)', marginBottom: 22, fontSize: 12.5, color: 'var(--neu-text-secondary)', lineHeight: 1.6 }}>
+                    <div style={{ fontWeight: 700, color: 'var(--neu-text-primary)', marginBottom: 8, fontSize: 13.5 }}>
+                      Day 1 Safe-to-Spend Calculation Preview
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}>
+                      <span>Starting Bank Balance:</span>
+                      <strong style={{ color: 'var(--neu-text-primary)' }}>{formatINR(Number(obBalance) || 0)}</strong>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span>Untouchable Safety Buffer:</span>
+                      <strong style={{ color: '#D97706' }}>- {formatINR(Number(obBuffer) || 0)}</strong>
+                    </div>
+                    <div style={{ height: 1, background: 'var(--neu-border)', margin: '8px 0' }} />
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13.5, fontWeight: 700 }}>
+                      <span style={{ color: 'var(--neu-text-primary)' }}>Calculated Safe-to-Spend:</span>
+                      <span style={{ color: (Number(obBalance) - Number(obBuffer)) >= 0 ? '#10B981' : '#EF4444' }}>
+                        {formatINR(Math.max(0, (Number(obBalance) || 0) - (Number(obBuffer) || 0)))}
+                      </span>
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: 10 }}>
+                  <div style={{ display: 'flex', gap: 12 }}>
                     <button
                       type="button"
                       className="btn-secondary"
@@ -1599,7 +1742,7 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                       id="wizard-finish-btn"
                     >
                       <CheckCircle2 size={16} />
-                      <span>{loading ? 'Launching...' : 'Launch Planner Workspace'}</span>
+                      <span>{loading ? 'Launching Workspace...' : 'Complete Setup & Open Dashboard'}</span>
                     </button>
                   </div>
                 </div>

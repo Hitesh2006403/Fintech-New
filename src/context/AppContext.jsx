@@ -29,9 +29,15 @@ const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
   // 1. Core State with LocalStorage & Session Check
-  const [user, setUser] = useState(() => 
-    storageService.get(storageService.KEYS.USER_PROFILE, INITIAL_USER)
-  );
+  const [user, setUser] = useState(() => {
+    const profile = storageService.get(storageService.KEYS.USER_PROFILE, INITIAL_USER);
+    const token = typeof window !== 'undefined' ? localStorage.getItem('uip_auth_token') : null;
+    // Strict Portal Separation: Admin credentials never populate the User Portal user state
+    if (!token || profile?.isAdmin || profile?.role === 'Super Administrator') {
+      return INITIAL_USER;
+    }
+    return profile;
+  });
 
   const [authLoading, setAuthLoading] = useState(true);
 
@@ -97,9 +103,15 @@ export function AppProvider({ children }) {
 
     async function checkSession() {
       try {
+        const token = typeof window !== 'undefined' ? localStorage.getItem('uip_auth_token') : null;
+        if (!token) {
+          // If no user auth token exists, do NOT authenticate user portal
+          return;
+        }
+
         const sessionUser = await authService.getCurrentUser();
         if (isCancelled) return;
-        if (sessionUser) {
+        if (sessionUser && !sessionUser.isAdmin && sessionUser.role !== 'Super Administrator') {
           const authUser = {
             ...sessionUser,
             isAuthenticated: true

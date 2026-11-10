@@ -52,22 +52,23 @@ export function AdminNotificationsView() {
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* Title Header */}
       <div>
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+        <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
           Broadcast Platform Notifications
         </h2>
-        <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
+        <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
           Send high-priority system announcements, tax alerts, or maintenance notices directly to all user dashboards.
         </p>
       </div>
 
       {feedback && (
         <div style={{
-          background: feedback.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-          border: `1px solid ${feedback.type === 'success' ? 'rgba(16, 185, 129, 0.35)' : 'rgba(239, 68, 68, 0.35)'}`,
+          background: feedback.type === 'success' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+          border: `1px solid ${feedback.type === 'success' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
           borderRadius: 12,
           padding: '12px 16px',
-          color: feedback.type === 'success' ? '#34D399' : '#FCA5A5',
+          color: feedback.type === 'success' ? '#059669' : '#DC2626',
           fontSize: 13,
+          fontWeight: 600,
           display: 'flex',
           alignItems: 'center',
           gap: 10
@@ -79,16 +80,17 @@ export function AdminNotificationsView() {
 
       {/* Broadcast Form Card */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
-        borderRadius: 16,
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderRadius: 20,
         padding: '24px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.05)'
       }}>
         <form onSubmit={handleSend} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#1E293B', marginBottom: 6 }}>
               Announcement Title
             </label>
             <input
@@ -100,10 +102,10 @@ export function AdminNotificationsView() {
               style={{
                 width: '100%',
                 padding: '10px 14px',
-                background: 'rgba(10, 15, 25, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.09)',
+                background: '#FFFFFF',
+                border: '1px solid rgba(203, 213, 225, 0.8)',
                 borderRadius: 8,
-                color: '#F8FAFC',
+                color: '#0F172A',
                 fontSize: 13.5,
                 outline: 'none',
                 boxSizing: 'border-box'
@@ -112,7 +114,7 @@ export function AdminNotificationsView() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#1E293B', marginBottom: 6 }}>
               Announcement Message
             </label>
             <textarea
@@ -124,10 +126,10 @@ export function AdminNotificationsView() {
               style={{
                 width: '100%',
                 padding: '10px 14px',
-                background: 'rgba(10, 15, 25, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.09)',
+                background: '#FFFFFF',
+                border: '1px solid rgba(203, 213, 225, 0.8)',
                 borderRadius: 8,
-                color: '#F8FAFC',
+                color: '#0F172A',
                 fontSize: 13.5,
                 outline: 'none',
                 boxSizing: 'border-box',
@@ -138,14 +140,14 @@ export function AdminNotificationsView() {
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#94A3B8', marginBottom: 6 }}>
+            <label style={{ display: 'block', fontSize: 12, fontWeight: 700, color: '#1E293B', marginBottom: 6 }}>
               Urgency / Severity Level
             </label>
             <div style={{ display: 'flex', gap: 10 }}>
               {[
-                { id: 'info', label: 'Informational', color: '#818CF8' },
-                { id: 'warning', label: 'Important Notice', color: '#F59E0B' },
-                { id: 'critical', label: 'Critical Alert', color: '#EF4444' }
+                { id: 'info', label: 'Informational', color: '#2563EB', activeBg: 'rgba(37, 99, 235, 0.12)' },
+                { id: 'warning', label: 'Important Notice', color: '#D97706', activeBg: 'rgba(217, 119, 6, 0.12)' },
+                { id: 'critical', label: 'Critical Alert', color: '#DC2626', activeBg: 'rgba(220, 38, 38, 0.12)' }
               ].map(opt => (
                 <button
                   key={opt.id}
@@ -154,9 +156,9 @@ export function AdminNotificationsView() {
                   style={{
                     padding: '8px 16px',
                     borderRadius: 8,
-                    border: `1px solid ${severity === opt.id ? opt.color : 'rgba(255, 255, 255, 0.1)'}`,
-                    background: severity === opt.id ? `${opt.color}22` : 'rgba(10, 15, 25, 0.85)',
-                    color: severity === opt.id ? opt.color : '#94A3B8',
+                    border: `1px solid ${severity === opt.id ? opt.color : 'rgba(203, 213, 225, 0.8)'}`,
+                    background: severity === opt.id ? opt.activeBg : 'rgba(241, 245, 249, 0.8)',
+                    color: severity === opt.id ? opt.color : '#475569',
                     fontSize: 12.5,
                     fontWeight: 700,
                     cursor: 'pointer'
@@ -174,8 +176,8 @@ export function AdminNotificationsView() {
             style={{
               padding: '12px 20px',
               marginTop: 8,
-              background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
-              border: '1px solid rgba(129, 140, 248, 0.3)',
+              background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+              border: '1px solid rgba(37, 99, 235, 0.3)',
               borderRadius: 10,
               color: '#FFFFFF',
               fontSize: 13.5,
@@ -185,12 +187,12 @@ export function AdminNotificationsView() {
               alignItems: 'center',
               justifyContent: 'center',
               gap: 8,
-              boxShadow: '0 4px 18px rgba(99, 102, 241, 0.25)',
+              boxShadow: '0 4px 18px rgba(37, 99, 235, 0.25)',
               alignSelf: 'flex-start',
               transition: 'all 0.15s ease'
             }}
-            onMouseEnter={(e) => { if (!sending) e.currentTarget.style.background = 'linear-gradient(135deg, #4338CA 0%, #4F46E5 100%)'; }}
-            onMouseLeave={(e) => { if (!sending) e.currentTarget.style.background = 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)'; }}
+            onMouseEnter={(e) => { if (!sending) e.currentTarget.style.background = 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)'; }}
+            onMouseLeave={(e) => { if (!sending) e.currentTarget.style.background = 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)'; }}
           >
             <Send size={16} />
             <span>{sending ? 'Broadcasting...' : 'Broadcast to All Users'}</span>

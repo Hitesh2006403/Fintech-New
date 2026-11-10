@@ -128,7 +128,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
           <h1 style={{
             fontSize: 24,
             fontWeight: 800,
-            color: '#F8FAFC',
+            color: '#0F172A',
             margin: '0 0 4px 0',
             letterSpacing: -0.4
           }}>
@@ -136,7 +136,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
           </h1>
           <p style={{
             fontSize: 13.5,
-            color: '#94A3B8',
+            color: '#475569',
             margin: 0
           }}>
             Monitor and manage your FinTech platform efficiently.
@@ -150,15 +150,16 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
             alignItems: 'center',
             gap: 8,
             padding: '8px 14px',
-            background: 'rgba(14, 21, 34, 0.75)',
+            background: 'rgba(255, 255, 255, 0.85)',
             backdropFilter: 'blur(16px)',
-            border: '1px solid rgba(255, 255, 255, 0.08)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
             borderRadius: 10,
             fontSize: 13,
-            color: '#F8FAFC',
-            fontWeight: 600
+            color: '#0F172A',
+            fontWeight: 600,
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)'
           }}>
-            <Calendar size={15} color="#818CF8" />
+            <Calendar size={15} color="#4F46E5" />
             <span>Oct 18, 2025</span>
           </div>
 
@@ -172,15 +173,16 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
             border: '1px solid rgba(16, 185, 129, 0.28)',
             borderRadius: 10,
             fontSize: 13,
-            color: '#34D399',
-            fontWeight: 700
+            color: '#059669',
+            fontWeight: 700,
+            boxShadow: '0 1px 3px rgba(5, 150, 105, 0.1)'
           }}>
             <span style={{
               width: 7,
               height: 7,
               borderRadius: '50%',
               background: '#10B981',
-              boxShadow: '0 0 10px #10B981'
+              boxShadow: '0 0 8px #10B981'
             }} />
             <span>System Online</span>
           </div>
@@ -190,14 +192,14 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
       {/* 2. Four Stat Cards Row */}
       <div className="admin-stat-cards-grid">
         {/* Card 1: Total Users */}
-        <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+        <div className="admin-stat-card" style={{
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
-          borderTop: '1px solid rgba(99, 102, 241, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.9)',
+          borderTop: '2px solid rgba(79, 70, 229, 0.5)',
           borderRadius: 16,
           padding: '20px 22px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.08)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -206,26 +208,26 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
               width: 44,
               height: 44,
               borderRadius: 12,
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(79, 70, 229, 0.12) 100%)',
-              border: '1px solid rgba(129, 140, 248, 0.35)',
+              background: 'linear-gradient(135deg, rgba(79, 70, 229, 0.18) 0%, rgba(99, 102, 241, 0.10) 100%)',
+              border: '1px solid rgba(79, 70, 229, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#818CF8'
+              color: '#4F46E5'
             }}>
               <Users size={22} />
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>Total Users</div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#F8FAFC', letterSpacing: -0.5 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Total Users</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', letterSpacing: -0.5, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 {totalUsers.toLocaleString()}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10B981', fontSize: 12, fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: 12, fontWeight: 700 }}>
               <ArrowUpRight size={14} />
               <span>↑ 12%</span>
             </div>
@@ -234,7 +236,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
             <svg width="90" height="26" viewBox="0 0 90 26" fill="none">
               <path
                 d="M2 18 C 18 20, 28 8, 45 14 C 60 18, 72 4, 88 6"
-                stroke="#818CF8"
+                stroke="#4F46E5"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
@@ -243,14 +245,14 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
         </div>
 
         {/* Card 2: Active Users */}
-        <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+        <div className="admin-stat-card" style={{
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
-          borderTop: '1px solid rgba(16, 185, 129, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.9)',
+          borderTop: '2px solid rgba(16, 185, 129, 0.5)',
           borderRadius: 16,
           padding: '20px 22px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.08)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -259,26 +261,26 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
               width: 44,
               height: 44,
               borderRadius: 12,
-              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(5, 150, 105, 0.1) 100%)',
-              border: '1px solid rgba(16, 185, 129, 0.35)',
+              background: 'linear-gradient(135deg, rgba(16, 185, 129, 0.18) 0%, rgba(5, 150, 105, 0.1) 100%)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#34D399'
+              color: '#059669'
             }}>
               <UserCheck size={22} />
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>Active Users</div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#F8FAFC', letterSpacing: -0.5 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Active Users</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', letterSpacing: -0.5, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 {activeUsers.toLocaleString()}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#10B981', fontSize: 12, fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#059669', fontSize: 12, fontWeight: 700 }}>
               <ArrowUpRight size={14} />
               <span>↑ 10%</span>
             </div>
@@ -295,14 +297,14 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
         </div>
 
         {/* Card 3: Reported Issues */}
-        <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+        <div className="admin-stat-card" style={{
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
-          borderTop: '1px solid rgba(239, 68, 68, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.9)',
+          borderTop: '2px solid rgba(225, 29, 72, 0.5)',
           borderRadius: 16,
           padding: '20px 22px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.08)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -311,26 +313,26 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
               width: 44,
               height: 44,
               borderRadius: 12,
-              background: 'linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(185, 28, 28, 0.1) 100%)',
-              border: '1px solid rgba(239, 68, 68, 0.35)',
+              background: 'linear-gradient(135deg, rgba(225, 29, 72, 0.15) 0%, rgba(185, 28, 28, 0.08) 100%)',
+              border: '1px solid rgba(225, 29, 72, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#F87171'
+              color: '#E11D48'
             }}>
               <AlertTriangle size={22} />
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>Reported Issues</div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#F8FAFC', letterSpacing: -0.5 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Reported Issues</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', letterSpacing: -0.5, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 {reportedIssues}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#EF4444', fontSize: 12, fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#E11D48', fontSize: 12, fontWeight: 700 }}>
               <ArrowDownRight size={14} />
               <span>↓ 40%</span>
             </div>
@@ -338,7 +340,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
             <svg width="90" height="26" viewBox="0 0 90 26" fill="none">
               <path
                 d="M2 14 C 18 16, 28 22, 45 10 C 60 4, 72 16, 88 12"
-                stroke="#EF4444"
+                stroke="#E11D48"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
@@ -347,14 +349,14 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
         </div>
 
         {/* Card 4: Total Transactions */}
-        <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+        <div className="admin-stat-card" style={{
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
-          borderTop: '1px solid rgba(129, 140, 248, 0.4)',
+          border: '1px solid rgba(255, 255, 255, 0.9)',
+          borderTop: '2px solid rgba(37, 99, 235, 0.5)',
           borderRadius: 16,
           padding: '20px 22px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.08)',
           position: 'relative',
           overflow: 'hidden'
         }}>
@@ -363,26 +365,26 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
               width: 44,
               height: 44,
               borderRadius: 12,
-              background: 'linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(67, 56, 202, 0.12) 100%)',
-              border: '1px solid rgba(129, 140, 248, 0.35)',
+              background: 'linear-gradient(135deg, rgba(37, 99, 235, 0.18) 0%, rgba(29, 78, 216, 0.10) 100%)',
+              border: '1px solid rgba(37, 99, 235, 0.3)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#A5B4FC'
+              color: '#2563EB'
             }}>
               <IndianRupee size={22} />
             </div>
 
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#94A3B8' }}>Total Transactions</div>
-              <div style={{ fontSize: 26, fontWeight: 800, color: '#F8FAFC', letterSpacing: -0.5 }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: '#475569' }}>Total Transactions</div>
+              <div style={{ fontSize: 26, fontWeight: 800, color: '#0F172A', letterSpacing: -0.5, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                 {totalTransactions.toLocaleString()}
               </div>
             </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#A5B4FC', fontSize: 12, fontWeight: 700 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#2563EB', fontSize: 12, fontWeight: 700 }}>
               <ArrowUpRight size={14} />
               <span>↑ 16%</span>
             </div>
@@ -390,7 +392,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
             <svg width="90" height="26" viewBox="0 0 90 26" fill="none">
               <path
                 d="M2 16 C 18 10, 32 20, 50 8 C 65 2, 75 14, 88 7"
-                stroke="#A5B4FC"
+                stroke="#2563EB"
                 strokeWidth="2.5"
                 strokeLinecap="round"
               />
@@ -403,29 +405,31 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
       <div className="admin-dashboard-middle-grid">
         {/* Left Column: User Growth Chart (5 cols) */}
         <div className="admin-col-growth" style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          border: '1px solid rgba(255, 255, 255, 0.9)',
           borderRadius: 16,
           padding: '20px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.08)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#F8FAFC', margin: 0 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0 }}>
               User Growth
             </h3>
             <select
               value={growthTimeframe}
               onChange={(e) => setGrowthTimeframe(e.target.value)}
               style={{
-                background: 'rgba(10, 15, 25, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: '#FFFFFF',
+                border: '1px solid rgba(203, 213, 225, 0.9)',
                 borderRadius: 8,
-                color: '#F8FAFC',
+                color: '#0F172A',
                 fontSize: 12,
+                fontWeight: 600,
                 padding: '5px 10px',
                 outline: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)'
               }}
             >
               <option value="7days">Last 7 Days</option>
@@ -442,8 +446,8 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
             >
               <defs>
                 <linearGradient id="growthAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#6366F1" stopOpacity="0.32" />
-                  <stop offset="100%" stopColor="#6366F1" stopOpacity="0.0" />
+                  <stop offset="0%" stopColor="#4F46E5" stopOpacity="0.22" />
+                  <stop offset="100%" stopColor="#4F46E5" stopOpacity="0.0" />
                 </linearGradient>
               </defs>
 
@@ -457,7 +461,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                       y1={y}
                       x2={svgWidth - paddingX}
                       y2={y}
-                      stroke="rgba(255, 255, 255, 0.06)"
+                      stroke="rgba(203, 213, 225, 0.7)"
                       strokeDasharray="3 3"
                     />
                     <text
@@ -465,6 +469,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                       y={y + 4}
                       fill="#64748B"
                       fontSize="9"
+                      fontWeight="600"
                       textAnchor="end"
                     >
                       {val.toLocaleString()}
@@ -481,7 +486,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                 <path
                   d={pathD}
                   fill="none"
-                  stroke="#818CF8"
+                  stroke="#4F46E5"
                   strokeWidth="2.5"
                   strokeLinecap="round"
                 />
@@ -494,8 +499,8 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                     cx={p.x}
                     cy={p.y}
                     r={hoveredPoint?.idx === idx ? 6 : 4}
-                    fill={hoveredPoint?.idx === idx ? '#818CF8' : '#090D14'}
-                    stroke="#818CF8"
+                    fill={hoveredPoint?.idx === idx ? '#4F46E5' : '#FFFFFF'}
+                    stroke="#4F46E5"
                     strokeWidth="2"
                     style={{ cursor: 'pointer', transition: 'all 0.15s ease' }}
                     onMouseEnter={() => setHoveredPoint({ idx, ...p })}
@@ -504,8 +509,9 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                   <text
                     x={p.x}
                     y={svgHeight - 6}
-                    fill="#64748B"
+                    fill="#475569"
                     fontSize="9"
+                    fontWeight="600"
                     textAnchor="middle"
                   >
                     {p.date}
@@ -521,14 +527,15 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                 left: `${(hoveredPoint.x / (svgWidth || 420)) * 100}%`,
                 top: `${(hoveredPoint.y / (svgHeight || 180)) * 100 - 32}%`,
                 transform: 'translate(-50%, -100%)',
-                background: 'rgba(14, 21, 34, 0.98)',
-                border: '1px solid #818CF8',
-                borderRadius: 6,
-                padding: '4px 8px',
+                background: 'rgba(255, 255, 255, 0.96)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid #4F46E5',
+                borderRadius: 8,
+                padding: '5px 10px',
                 fontSize: 11,
                 fontWeight: 700,
-                color: '#F8FAFC',
-                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.65)',
+                color: '#0F172A',
+                boxShadow: '0 8px 24px -4px rgba(15, 23, 42, 0.2)',
                 pointerEvents: 'none',
                 whiteSpace: 'nowrap',
                 zIndex: 20
@@ -541,29 +548,31 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
 
         {/* Center Column: Expense vs Income Chart (4 cols) */}
         <div className="admin-col-income-expense" style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          border: '1px solid rgba(255, 255, 255, 0.9)',
           borderRadius: 16,
           padding: '20px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.08)'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#F8FAFC', margin: 0 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0 }}>
               Expense vs Income
             </h3>
             <select
               value={expenseTimeframe}
               onChange={(e) => setExpenseTimeframe(e.target.value)}
               style={{
-                background: 'rgba(10, 15, 25, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
+                background: '#FFFFFF',
+                border: '1px solid rgba(203, 213, 225, 0.9)',
                 borderRadius: 8,
-                color: '#F8FAFC',
+                color: '#0F172A',
                 fontSize: 12,
+                fontWeight: 600,
                 padding: '5px 10px',
                 outline: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.05)'
               }}
             >
               <option value="thisMonth">This Month</option>
@@ -573,12 +582,12 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
 
           {/* Legend */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 12 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#94A3B8' }}>
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: '#10B981' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#475569', fontWeight: 600 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: '#059669' }} />
               <span>Income</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#94A3B8' }}>
-              <span style={{ width: 8, height: 8, borderRadius: 2, background: '#818CF8' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11.5, color: '#475569', fontWeight: 600 }}>
+              <span style={{ width: 8, height: 8, borderRadius: 2, background: '#4F46E5' }} />
               <span>Expenses</span>
             </div>
           </div>
@@ -612,7 +621,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                     <div style={{
                       flex: 1,
                       height: `${incHeight}%`,
-                      background: 'linear-gradient(180deg, #34D399 0%, #059669 100%)',
+                      background: 'linear-gradient(180deg, #10B981 0%, #059669 100%)',
                       borderRadius: '4px 4px 0 0',
                       boxShadow: '0 0 8px rgba(16, 185, 129, 0.2)',
                       transition: 'height 0.3s ease'
@@ -622,9 +631,9 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                     <div style={{
                       flex: 1,
                       height: `${expHeight}%`,
-                      background: 'linear-gradient(180deg, #818CF8 0%, #4F46E5 100%)',
+                      background: 'linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)',
                       borderRadius: '4px 4px 0 0',
-                      boxShadow: '0 0 8px rgba(99, 102, 241, 0.2)',
+                      boxShadow: '0 0 8px rgba(79, 70, 229, 0.2)',
                       transition: 'height 0.3s ease'
                     }} />
                   </div>
@@ -634,6 +643,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                     bottom: -20,
                     fontSize: 8.5,
                     color: '#64748B',
+                    fontWeight: 600,
                     whiteSpace: 'nowrap'
                   }}>
                     {typeof bar?.date === 'string' ? bar.date.replace('Oct ', '') : (bar?.date || '')}
@@ -649,18 +659,19 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                 top: 0,
                 left: '50%',
                 transform: 'translateX(-50%)',
-                background: 'rgba(14, 21, 34, 0.98)',
-                border: '1px solid rgba(255, 255, 255, 0.15)',
+                background: 'rgba(255, 255, 255, 0.96)',
+                backdropFilter: 'blur(16px)',
+                border: '1px solid rgba(226, 232, 240, 0.9)',
                 borderRadius: 8,
-                padding: '6px 10px',
+                padding: '6px 12px',
                 fontSize: 11,
-                color: '#F8FAFC',
+                color: '#0F172A',
                 zIndex: 25,
-                boxShadow: '0 4px 16px rgba(0,0,0,0.6)'
+                boxShadow: '0 10px 25px -5px rgba(15, 23, 42, 0.2)'
               }}>
                 <div style={{ fontWeight: 700, marginBottom: 2 }}>{hoveredBar.date || ''}</div>
-                <div style={{ color: '#34D399' }}>Income: ₹{Number(hoveredBar.income || 0).toLocaleString()}</div>
-                <div style={{ color: '#818CF8' }}>Expenses: ₹{Number(hoveredBar.expenses || 0).toLocaleString()}</div>
+                <div style={{ color: '#059669', fontWeight: 600 }}>Income: ₹{Number(hoveredBar.income || 0).toLocaleString()}</div>
+                <div style={{ color: '#4F46E5', fontWeight: 600 }}>Expenses: ₹{Number(hoveredBar.expenses || 0).toLocaleString()}</div>
               </div>
             )}
           </div>
@@ -668,17 +679,17 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
 
         {/* Right Column: Recent Activity (3 cols) */}
         <div className="admin-col-activity" style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          border: '1px solid rgba(255, 255, 255, 0.9)',
           borderRadius: 16,
           padding: '20px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)',
+          boxShadow: '0 10px 30px -10px rgba(15, 23, 42, 0.08)',
           display: 'flex',
           flexDirection: 'column'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#F8FAFC', margin: 0 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: '#1E293B', margin: 0 }}>
               Recent Activity
             </h3>
             <button
@@ -687,15 +698,15 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#818CF8',
+                color: '#4F46E5',
                 fontSize: 12,
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: 'pointer',
                 padding: 0,
                 transition: 'color 0.15s ease'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#FFFFFF'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#818CF8'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#4338CA'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#4F46E5'; }}
             >
               View All →
             </button>
@@ -708,8 +719,8 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                   width: 32,
                   height: 32,
                   borderRadius: '50%',
-                  background: `${act.color}22`,
-                  border: `1px solid ${act.color}44`,
+                  background: `${act.color}15`,
+                  border: `1px solid ${act.color}35`,
                   color: act.color,
                   display: 'flex',
                   alignItems: 'center',
@@ -724,10 +735,10 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                 </div>
 
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#F8FAFC' }}>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: '#0F172A' }}>
                     {act.title}
                   </div>
-                  <div style={{ fontSize: 11.5, color: '#94A3B8', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  <div style={{ fontSize: 11.5, color: '#64748B', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                     {act.meta}
                   </div>
                 </div>
@@ -743,19 +754,20 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
 
       {/* 4. Recent Users Table (Full Width) */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
-        borderRadius: 16,
-        padding: '22px 24px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderRadius: 20,
+        padding: '24px 28px',
+        boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.05)'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+            <h3 style={{ fontSize: 17, fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0' }}>
               Recent Platform Users
             </h3>
-            <p style={{ fontSize: 12.5, color: '#94A3B8', margin: 0 }}>
+            <p style={{ fontSize: 12.5, color: '#64748B', margin: 0 }}>
               Live overview of registered user accounts and authorization status.
             </p>
           </div>
@@ -763,18 +775,18 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
             type="button"
             onClick={onViewAllUsers}
             style={{
-              background: 'rgba(99, 102, 241, 0.12)',
-              border: '1px solid rgba(129, 140, 248, 0.3)',
+              background: 'rgba(37, 99, 235, 0.08)',
+              border: '1px solid rgba(37, 99, 235, 0.2)',
               borderRadius: 8,
-              color: '#818CF8',
+              color: '#1D4ED8',
               fontSize: 12.5,
               fontWeight: 700,
               cursor: 'pointer',
               padding: '7px 14px',
               transition: 'all 0.15s ease'
             }}
-            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.22)'; e.currentTarget.style.color = '#FFFFFF'; }}
-            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.12)'; e.currentTarget.style.color = '#818CF8'; }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.16)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)'; }}
           >
             View All Users →
           </button>
@@ -783,13 +795,13 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>User ID</th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Name</th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Email</th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Status</th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Joined On</th>
-                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#94A3B8', textAlign: 'right' }}>Actions</th>
+              <tr style={{ borderBottom: '1px solid rgba(226, 232, 240, 0.9)' }}>
+                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569' }}>User ID</th>
+                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569' }}>Name</th>
+                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569' }}>Email</th>
+                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569' }}>Status</th>
+                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569' }}>Joined On</th>
+                <th style={{ padding: '12px 16px', fontSize: 12, fontWeight: 700, color: '#475569', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -806,19 +818,19 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                     <tr
                       key={u.id}
                       style={{
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderBottom: '1px solid rgba(241, 245, 249, 0.9)',
                         transition: 'background 0.15s ease'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.04)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248, 250, 252, 0.8)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
-                    <td style={{ padding: '14px 16px', fontSize: 13, color: '#94A3B8', fontWeight: 600 }}>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: '#64748B', fontWeight: 600, fontFamily: 'monospace' }}>
                       {u.id}
                     </td>
-                    <td style={{ padding: '14px 16px', fontSize: 13.5, color: '#F8FAFC', fontWeight: 600 }}>
+                    <td style={{ padding: '14px 16px', fontSize: 13.5, color: '#0F172A', fontWeight: 600 }}>
                       {u.name}
                     </td>
-                    <td style={{ padding: '14px 16px', fontSize: 13, color: '#94A3B8' }}>
+                    <td style={{ padding: '14px 16px', fontSize: 13, color: '#334155' }}>
                       {u.email}
                     </td>
                     <td style={{ padding: '14px 16px' }}>
@@ -827,14 +839,14 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                         fontWeight: 700,
                         padding: '3px 8px',
                         borderRadius: 6,
-                        background: isBlocked ? 'rgba(239, 68, 68, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                        color: isBlocked ? '#F87171' : '#34D399',
-                        border: `1px solid ${isBlocked ? 'rgba(239, 68, 68, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                        background: isBlocked ? 'rgba(239, 68, 68, 0.12)' : 'rgba(16, 185, 129, 0.12)',
+                        color: isBlocked ? '#DC2626' : '#059669',
+                        border: `1px solid ${isBlocked ? 'rgba(239, 68, 68, 0.25)' : 'rgba(16, 185, 129, 0.25)'}`
                       }}>
                         {u.status}
                       </span>
                     </td>
-                    <td style={{ padding: '14px 16px', fontSize: 12.5, color: '#94A3B8' }}>
+                    <td style={{ padding: '14px 16px', fontSize: 12.5, color: '#64748B' }}>
                       {u.joinedOn}
                     </td>
                     <td style={{ padding: '14px 16px', textAlign: 'right' }}>
@@ -844,16 +856,16 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                           title="View User Details"
                           onClick={() => setSelectedUserModal(u)}
                           style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            color: '#94A3B8',
+                            background: 'rgba(241, 245, 249, 0.8)',
+                            border: '1px solid rgba(203, 213, 225, 0.8)',
+                            color: '#334155',
                             borderRadius: 6,
                             padding: 6,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.borderColor = 'rgba(37, 99, 235, 0.5)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = '#334155'; e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.8)'; }}
                         >
                           <Eye size={14} />
                         </button>
@@ -863,16 +875,16 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                           title="Edit User"
                           onClick={() => setSelectedUserModal({ ...u, isEditing: true })}
                           style={{
-                            background: 'rgba(255, 255, 255, 0.05)',
-                            border: '1px solid rgba(255, 255, 255, 0.08)',
-                            color: '#94A3B8',
+                            background: 'rgba(241, 245, 249, 0.8)',
+                            border: '1px solid rgba(203, 213, 225, 0.8)',
+                            color: '#334155',
                             borderRadius: 6,
                             padding: 6,
                             cursor: 'pointer',
                             transition: 'all 0.15s ease'
                           }}
-                          onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.3)'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.08)'; }}
+                          onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.borderColor = 'rgba(37, 99, 235, 0.5)'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.color = '#334155'; e.currentTarget.style.borderColor = 'rgba(203, 213, 225, 0.8)'; }}
                         >
                           <Edit2 size={14} />
                         </button>
@@ -884,7 +896,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                           style={{
                             background: isBlocked ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
                             border: `1px solid ${isBlocked ? 'rgba(16, 185, 129, 0.25)' : 'rgba(239, 68, 68, 0.25)'}`,
-                            color: isBlocked ? '#34D399' : '#F87171',
+                            color: isBlocked ? '#059669' : '#DC2626',
                             borderRadius: 6,
                             padding: 6,
                             cursor: 'pointer',
@@ -908,8 +920,9 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
         <div style={{
           position: 'fixed',
           inset: 0,
-          background: 'rgba(0, 0, 0, 0.75)',
+          background: 'rgba(15, 23, 42, 0.55)',
           backdropFilter: 'blur(8px)',
+          WebkitBackdropFilter: 'blur(8px)',
           zIndex: 1000,
           display: 'flex',
           alignItems: 'center',
@@ -917,44 +930,44 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
           padding: 16
         }}>
           <div style={{
-            background: 'rgba(14, 21, 34, 0.98)',
-            border: '1px solid rgba(255, 255, 255, 0.12)',
-            borderRadius: 18,
-            padding: 24,
+            background: 'rgba(255, 255, 255, 0.98)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
+            borderRadius: 20,
+            padding: 28,
             maxWidth: 440,
             width: '100%',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.75)'
+            boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)'
           }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#F8FAFC', margin: '0 0 16px 0' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: '0 0 16px 0' }}>
               {selectedUserModal.isEditing ? 'Edit User Record' : 'User Account Profile'}
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, fontSize: 13 }}>
               <div>
-                <span style={{ color: '#94A3B8' }}>Identifier:</span>{' '}
-                <strong style={{ color: '#F8FAFC' }}>{selectedUserModal.id}</strong>
+                <span style={{ color: '#64748B' }}>Identifier:</span>{' '}
+                <strong style={{ color: '#0F172A', fontFamily: 'monospace' }}>{selectedUserModal.id}</strong>
               </div>
               <div>
-                <span style={{ color: '#94A3B8' }}>Full Name:</span>{' '}
-                <strong style={{ color: '#F8FAFC' }}>{selectedUserModal.name}</strong>
+                <span style={{ color: '#64748B' }}>Full Name:</span>{' '}
+                <strong style={{ color: '#0F172A' }}>{selectedUserModal.name}</strong>
               </div>
               <div>
-                <span style={{ color: '#94A3B8' }}>Email Address:</span>{' '}
-                <strong style={{ color: '#818CF8' }}>{selectedUserModal.email}</strong>
+                <span style={{ color: '#64748B' }}>Email Address:</span>{' '}
+                <strong style={{ color: '#2563EB' }}>{selectedUserModal.email}</strong>
               </div>
               <div>
-                <span style={{ color: '#94A3B8' }}>Platform Role:</span>{' '}
-                <strong style={{ color: '#F8FAFC' }}>{selectedUserModal.role || 'Treasury Planner'}</strong>
+                <span style={{ color: '#64748B' }}>Platform Role:</span>{' '}
+                <strong style={{ color: '#0F172A' }}>{selectedUserModal.role || 'Treasury Planner'}</strong>
               </div>
               <div>
-                <span style={{ color: '#94A3B8' }}>Account Status:</span>{' '}
-                <strong style={{ color: selectedUserModal.status === 'Blocked' ? '#F87171' : '#34D399' }}>
+                <span style={{ color: '#64748B' }}>Account Status:</span>{' '}
+                <strong style={{ color: selectedUserModal.status === 'Blocked' ? '#DC2626' : '#059669' }}>
                   {selectedUserModal.status}
                 </strong>
               </div>
               <div>
-                <span style={{ color: '#94A3B8' }}>Registration Date:</span>{' '}
-                <strong style={{ color: '#F8FAFC' }}>{selectedUserModal.joinedOn}</strong>
+                <span style={{ color: '#64748B' }}>Registration Date:</span>{' '}
+                <strong style={{ color: '#0F172A' }}>{selectedUserModal.joinedOn}</strong>
               </div>
             </div>
 
@@ -963,17 +976,19 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                 type="button"
                 onClick={() => setSelectedUserModal(null)}
                 style={{
-                  padding: '8px 16px',
-                  background: 'rgba(255, 255, 255, 0.1)',
+                  padding: '9px 20px',
+                  background: '#0F172A',
                   border: 'none',
-                  borderRadius: 8,
-                  color: '#F8FAFC',
+                  borderRadius: 10,
+                  color: '#FFFFFF',
                   fontSize: 13,
+                  fontWeight: 600,
                   cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.15)',
                   transition: 'background 0.15s ease'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.16)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#1E293B'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = '#0F172A'; }}
               >
                 Close
               </button>

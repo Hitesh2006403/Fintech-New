@@ -68,10 +68,10 @@ export function AdminReportsView() {
         gap: 16
       }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
             Financial & Platform Reports
           </h2>
-          <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
             Executive summaries of platform liquidity, user trends, and transaction velocity.
           </p>
         </div>
@@ -84,18 +84,18 @@ export function AdminReportsView() {
             alignItems: 'center',
             gap: 8,
             padding: '9px 16px',
-            background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
-            border: '1px solid rgba(129, 140, 248, 0.3)',
+            background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)',
+            border: '1px solid rgba(37, 99, 235, 0.3)',
             borderRadius: 10,
             color: '#FFFFFF',
             fontSize: 13,
             fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 4px 16px rgba(99, 102, 241, 0.25)',
+            boxShadow: '0 4px 16px rgba(37, 99, 235, 0.25)',
             transition: 'all 0.15s ease'
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #4338CA 0%, #4F46E5 100%)'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #1D4ED8 0%, #1E40AF 100%)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)'; }}
         >
           <Download size={15} />
           <span>Export Full Audit Report (JSON)</span>
@@ -105,66 +105,70 @@ export function AdminReportsView() {
       {/* KPI Cards */}
       <div className="admin-stat-cards-grid">
         <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
           borderRadius: 16,
           padding: '18px 20px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+          boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
         }}>
-          <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>Total Handled Volume</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#F8FAFC', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>Total Handled Volume</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
             {formatINR(totalVolume)}
           </div>
-          <div style={{ fontSize: 11.5, color: '#34D399', marginTop: 4, fontWeight: 700 }}>
+          <div style={{ fontSize: 11.5, color: '#059669', marginTop: 4, fontWeight: 700 }}>
             +18.4% vs previous cycle
           </div>
         </div>
 
         <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
           borderRadius: 16,
           padding: '18px 20px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+          boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
         }}>
-          <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>Average Transaction Size</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#818CF8', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>Average Transaction Size</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#2563EB', marginTop: 4, fontVariantNumeric: 'tabular-nums' }}>
             {formatINR(avgTx)}
           </div>
-          <div style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 4 }}>
             Milestones & obligations
           </div>
         </div>
 
         <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
           borderRadius: 16,
           padding: '18px 20px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+          boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
         }}>
-          <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>Active Treasury Accounts</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#A5B4FC', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>Active Treasury Accounts</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#4338CA', marginTop: 4 }}>
             {usersList.length || 28} Live Users
           </div>
-          <div style={{ fontSize: 11.5, color: '#34D399', marginTop: 4, fontWeight: 700 }}>
+          <div style={{ fontSize: 11.5, color: '#059669', marginTop: 4, fontWeight: 700 }}>
             94.2% retention cohort
           </div>
         </div>
 
         <div style={{
-          background: 'rgba(14, 21, 34, 0.78)',
+          background: 'rgba(255, 255, 255, 0.78)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.07)',
+          WebkitBackdropFilter: 'blur(20px)',
+          border: '1px solid rgba(226, 232, 240, 0.9)',
           borderRadius: 16,
           padding: '18px 20px',
-          boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+          boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
         }}>
-          <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 600 }}>System Integrity</div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#10B981', marginTop: 4 }}>
+          <div style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>System Integrity</div>
+          <div style={{ fontSize: 24, fontWeight: 800, color: '#059669', marginTop: 4 }}>
             99.98%
           </div>
           <div style={{ fontSize: 11.5, color: '#64748B', marginTop: 4 }}>
@@ -175,14 +179,15 @@ export function AdminReportsView() {
 
       {/* Top Categories Distribution */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
-        borderRadius: 16,
-        padding: '22px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderRadius: 20,
+        padding: '24px',
+        boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.05)'
       }}>
-        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#F8FAFC', margin: '0 0 16px 0' }}>
+        <h3 style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', margin: '0 0 16px 0' }}>
           Top Transaction Categories by Volume
         </h3>
 
@@ -192,16 +197,16 @@ export function AdminReportsView() {
             return (
               <div key={category}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                  <span style={{ color: '#F8FAFC', fontWeight: 600 }}>{category}</span>
-                  <span style={{ color: '#818CF8', fontWeight: 700 }}>{formatINR(amount)} ({pct}%)</span>
+                  <span style={{ color: '#1E293B', fontWeight: 600 }}>{category}</span>
+                  <span style={{ color: '#2563EB', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{formatINR(amount)} ({pct}%)</span>
                 </div>
-                <div style={{ width: '100%', height: 8, background: 'rgba(255, 255, 255, 0.06)', borderRadius: 99 }}>
+                <div style={{ width: '100%', height: 8, background: 'rgba(226, 232, 240, 0.8)', borderRadius: 99 }}>
                   <div style={{
                     width: `${pct}%`,
                     height: '100%',
-                    background: 'linear-gradient(90deg, #4F46E5 0%, #818CF8 100%)',
+                    background: 'linear-gradient(90deg, #2563EB 0%, #3B82F6 100%)',
                     borderRadius: 99,
-                    boxShadow: '0 0 10px rgba(99, 102, 241, 0.25)'
+                    boxShadow: '0 0 10px rgba(37, 99, 235, 0.25)'
                   }} />
                 </div>
               </div>

@@ -1,8 +1,8 @@
 import React from 'react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { AdminProvider, useAdmin } from '../../context/AdminContext.jsx';
 import { AdminLayout } from './AdminLayout.jsx';
 import { AdminBackground3D } from '../../components/admin/AdminBackground3D.jsx';
-import { Navigate, useNavigate } from 'react-router-dom';
 import '../../styles/adminTheme.css';
 
 function AdminPortalInner({ onReturnToClient }) {
@@ -45,6 +45,7 @@ function AdminPortalInner({ onReturnToClient }) {
     );
   }
 
+  // Strict: Eliminate separate admin login page. Unauthenticated requests redirect directly to /login
   if (!isAdminAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -53,7 +54,7 @@ function AdminPortalInner({ onReturnToClient }) {
     <AdminLayout
       onReturnToClient={() => {
         if (onReturnToClient) onReturnToClient();
-        else navigate('/dashboard');
+        else navigate('/login');
       }}
     />
   );

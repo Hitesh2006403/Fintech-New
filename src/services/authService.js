@@ -310,7 +310,21 @@ export const authService = {
       }
 
       if (data.token) {
-        try { localStorage.setItem('uip_auth_token', data.token); } catch {}
+        try {
+          const isAdmin = data.role === 'admin' || data.user?.isAdmin || data.user?.role === 'Super Administrator';
+          if (isAdmin) {
+            localStorage.setItem('finsight_admin_token', data.token);
+            localStorage.setItem('finsight_admin_user', JSON.stringify(data.user));
+            // Strict session isolation: ensure user portal session is cleared
+            localStorage.removeItem('uip_auth_token');
+            localStorage.removeItem('uip_user_profile');
+            localStorage.removeItem('uip_fallback_user');
+          } else {
+            localStorage.setItem('uip_auth_token', data.token);
+            localStorage.removeItem('finsight_admin_token');
+            localStorage.removeItem('finsight_admin_user');
+          }
+        } catch {}
       }
 
       return data;
@@ -331,13 +345,16 @@ export const authService = {
       if (isUnreachable) {
         console.warn('Backend authentication endpoint unreachable (404/502/network), using resilient client authentication:', err);
         const cleanEmail = email.toLowerCase().trim();
+        const configuredAdmin = (typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_EMAIL)
+          ? import.meta.env.VITE_ADMIN_EMAIL.toLowerCase().trim()
+          : '';
 
         // 1. Authorized Super Administrators
-        if (['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'].includes(cleanEmail)) {
+        if (['hiteshav2006@gmail.com', 'dishankbs04@gmail.com', configuredAdmin].filter(Boolean).includes(cleanEmail)) {
           const adminUser = {
             id: `usr_${cleanEmail.split('@')[0]}`,
             email: cleanEmail,
-            name: cleanEmail.startsWith('dishank') ? 'Dishank BS' : 'Hitesh Av',
+            name: cleanEmail.startsWith('dishank') ? 'Dishank BS' : (cleanEmail.startsWith('hitesh') ? 'Hitesh Av' : 'Super Administrator'),
             role: 'Super Administrator',
             isAdmin: true,
             authProvider: 'local',
@@ -347,8 +364,11 @@ export const authService = {
           };
           const demoToken = `admin_${Date.now()}`;
           try {
-            localStorage.setItem('uip_auth_token', demoToken);
-            localStorage.setItem('uip_fallback_user', JSON.stringify(adminUser));
+            localStorage.setItem('finsight_admin_token', demoToken);
+            localStorage.setItem('finsight_admin_user', JSON.stringify(adminUser));
+            localStorage.removeItem('uip_auth_token');
+            localStorage.removeItem('uip_user_profile');
+            localStorage.removeItem('uip_fallback_user');
           } catch {}
           return { success: true, token: demoToken, user: adminUser, role: 'admin', redirectTo: '/admin' };
         }
@@ -560,7 +580,13 @@ export const authService = {
         return null;
       }
       const data = await safeJsonParse(res);
-      return data.authenticated ? data.user : null;
+      if (data.authenticated && data.user) {
+        if (data.user.isAdmin || data.user.role === 'Super Administrator') {
+          return null; // Admin sessions belong exclusively to Admin Portal
+        }
+        return data.user;
+      }
+      return null;
     } catch {
       const token = localStorage.getItem('uip_auth_token');
       if (token && (token.startsWith('offline_') || token.startsWith('demo_') || token.startsWith('guest_') || token.startsWith('admin_'))) {

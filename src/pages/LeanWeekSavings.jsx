@@ -73,14 +73,26 @@ export function LeanWeekSavings() {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 12.5, color: 'var(--text-secondary)' }}>
-            Current Available Cash: <strong style={{ color: 'var(--accent-primary)', fontSize: 13.5, fontFeatureSettings: 'tnum', textShadow: '0 0 10px rgba(56, 189, 248, 0.35)', marginLeft: 4 }}>{formatINR(balanceDetails.availableCash)}</strong>
+          <span style={{ fontSize: 12.5, color: 'var(--neu-text-secondary, #64748B)' }}>
+            Current Available Cash: <strong style={{ color: 'var(--neu-brand-primary, #059669)', fontSize: 13.5, fontVariantNumeric: 'tabular-nums', marginLeft: 4 }}>{formatINR(balanceDetails.availableCash)}</strong>
           </span>
         </div>
       </div>
 
       {reserveSuccessMsg && (
-        <div style={{ background: 'rgba(16, 185, 129, 0.15)', border: '1px solid rgba(16, 185, 129, 0.35)', color: '#34D399', padding: '12px 18px', borderRadius: 10, marginBottom: 20, fontSize: 13, display: 'flex', alignItems: 'center', gap: 10, backdropFilter: 'blur(10px)', boxShadow: '0 0 20px rgba(16, 185, 129, 0.15)' }}>
+        <div style={{
+          background: 'var(--neu-success-bg, rgba(16, 185, 129, 0.12))',
+          border: '1px solid var(--neu-success-border, rgba(16, 185, 129, 0.28))',
+          color: 'var(--neu-success-dark, #047857)',
+          padding: '12px 18px',
+          borderRadius: 12,
+          marginBottom: 20,
+          fontSize: 13,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          boxShadow: 'var(--neu-shadow-raised-sm)'
+        }}>
           <CheckCircle2 size={16} />
           <span style={{ fontWeight: 600 }}>{reserveSuccessMsg}</span>
         </div>
@@ -90,49 +102,49 @@ export function LeanWeekSavings() {
       <div className="card" style={{ marginBottom: 24, padding: '24px' }}>
         <div className="kpi-strip-grid" style={{ marginBottom: 24 }}>
           <div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
               Target Safety Reserve
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', fontFeatureSettings: 'tnum' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--neu-text-primary, #172033)', fontVariantNumeric: 'tabular-nums' }}>
               {formatINR(calculation.targetReserve)}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
               Covers {calculation.numWeeks} lean weeks
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
               Currently Designated
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: '#10B981', fontFeatureSettings: 'tnum', textShadow: '0 0 16px rgba(16, 185, 129, 0.4)' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--neu-success-dark, #047857)', fontVariantNumeric: 'tabular-nums' }}>
               {formatINR(calculation.currentDesignatedReserve)}
             </div>
-            <div style={{ fontSize: 12, color: '#10B981', marginTop: 4, fontWeight: 600 }}>
+            <div style={{ fontSize: 12, color: 'var(--neu-success-dark, #047857)', marginTop: 4, fontWeight: 600 }}>
               {calculation.progressPct}% Funded
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
               Remaining to Goal
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: calculation.remainingGoal > 0 ? 'var(--accent-primary)' : '#10B981', fontFeatureSettings: 'tnum', textShadow: calculation.remainingGoal > 0 ? '0 0 16px rgba(56, 189, 248, 0.4)' : '0 0 16px rgba(16, 185, 129, 0.4)' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: calculation.remainingGoal > 0 ? 'var(--neu-brand-primary, #059669)' : 'var(--neu-success-dark, #047857)', fontVariantNumeric: 'tabular-nums' }}>
               {formatINR(calculation.remainingGoal)}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
               {calculation.isFullyFunded ? 'Goal Fully Funded!' : `Need ${formatINR(calculation.weeklySavingsRequired)} / week`}
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
+            <div style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>
               Weekly Savings Required
             </div>
-            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--text-primary)', fontFeatureSettings: 'tnum' }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: 'var(--neu-text-primary, #172033)', fontVariantNumeric: 'tabular-nums' }}>
               {formatINR(calculation.weeklySavingsRequired)}
             </div>
-            <div style={{ fontSize: 12, color: 'var(--text-secondary)', marginTop: 4 }}>
+            <div style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
               {calculation.isFullyFunded ? 'Goal Completed' : `To reach goal across ${calculation.numWeeks} remaining weeks`}
             </div>
           </div>
@@ -140,18 +152,18 @@ export function LeanWeekSavings() {
 
         {/* Progress Bar */}
         <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--text-secondary)', marginBottom: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, fontWeight: 600, color: 'var(--neu-text-secondary, #64748B)', marginBottom: 8 }}>
             <span>Buffer Progress</span>
-            <span style={{ color: 'var(--accent-primary)', fontWeight: 700 }}>{calculation.progressPct}% Complete</span>
+            <span style={{ color: 'var(--neu-brand-primary, #059669)', fontWeight: 700 }}>{calculation.progressPct}% Complete</span>
           </div>
-          <div style={{ height: 14, borderRadius: 8, background: 'rgba(11, 18, 32, 0.8)', border: '1px solid var(--border-glass)', overflow: 'hidden', padding: 2 }}>
+          <div style={{ height: 14, borderRadius: 8, background: 'var(--neu-bg-primary, #E9EEF3)', border: '1px solid var(--neu-border, #DCE4EB)', boxShadow: 'var(--neu-shadow-inset-sm)', overflow: 'hidden', padding: 2 }}>
             <div
               style={{
                 width: `${calculation.progressPct}%`,
                 height: '100%',
-                background: calculation.progressPct >= 100 ? '#10B981' : 'linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 60%, #10B981 100%)',
+                background: 'var(--neu-brand-gradient, linear-gradient(135deg, #059669 0%, #047857 100%))',
                 borderRadius: 6,
-                boxShadow: '0 0 14px rgba(56, 189, 248, 0.4)',
+                boxShadow: '2px 0 6px rgba(5, 150, 105, 0.35)',
                 transition: 'width 0.4s ease'
               }}
             />
@@ -266,8 +278,8 @@ export function LeanWeekSavings() {
                 onChange={(e) => setAddReserveAmount(e.target.value)}
                 required
               />
-              <span style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4, display: 'block' }}>
-                Max available: <strong style={{ color: 'var(--accent-primary)' }}>{formatINR(balanceDetails.availableCash)}</strong>
+              <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4, display: 'block' }}>
+                Max available: <strong style={{ color: 'var(--neu-brand-primary, #059669)', fontVariantNumeric: 'tabular-nums' }}>{formatINR(balanceDetails.availableCash)}</strong>
               </span>
             </div>
 
@@ -277,13 +289,14 @@ export function LeanWeekSavings() {
                   key={amt}
                   type="button"
                   style={{
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    border: '1px solid var(--border-glass)',
+                    background: 'var(--neu-bg-primary, #E9EEF3)',
+                    border: '1px solid var(--neu-border, #DCE4EB)',
+                    boxShadow: 'var(--neu-shadow-raised-sm)',
                     padding: '8px 14px',
-                    borderRadius: 8,
+                    borderRadius: 10,
                     fontSize: 12,
                     fontWeight: 600,
-                    color: 'var(--text-secondary)',
+                    color: 'var(--neu-text-primary, #172033)',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease'
                   }}
@@ -305,10 +318,10 @@ export function LeanWeekSavings() {
             </button>
           </form>
 
-          <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid var(--border-glass)', fontSize: 11.5, color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-            <ShieldCheck size={15} color="#10B981" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
+          <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid var(--neu-border, #DCE4EB)', fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', lineHeight: 1.5 }}>
+            <ShieldCheck size={15} color="var(--neu-brand-primary, #059669)" style={{ display: 'inline', verticalAlign: 'middle', marginRight: 6 }} />
             <span>
-              <strong style={{ color: 'var(--text-primary)' }}>Double-Counting Protection:</strong> Earmarked reserves are excluded from your Safe-to-Spend calculator to ensure your buffer remains intact during emergencies.
+              <strong style={{ color: 'var(--neu-text-primary, #172033)' }}>Double-Counting Protection:</strong> Earmarked reserves are excluded from your Safe-to-Spend calculator to ensure your buffer remains intact during emergencies.
             </span>
           </div>
         </div>

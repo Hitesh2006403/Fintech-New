@@ -42,10 +42,10 @@ export function AdminSecurityLogsView() {
         gap: 16
       }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
             Security Audit Trail
           </h2>
-          <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
             Immutable logs of administrative operations, Google SSO handshakes, and access security.
           </p>
         </div>
@@ -55,10 +55,10 @@ export function AdminSecurityLogsView() {
           alignItems: 'center',
           gap: 8,
           background: 'rgba(16, 185, 129, 0.1)',
-          border: '1px solid rgba(16, 185, 129, 0.3)',
+          border: '1px solid rgba(16, 185, 129, 0.25)',
           padding: '6px 14px',
           borderRadius: 10,
-          color: '#34D399',
+          color: '#059669',
           fontSize: 12.5,
           fontWeight: 700
         }}>
@@ -74,11 +74,13 @@ export function AdminSecurityLogsView() {
         justifyContent: 'space-between',
         gap: 14,
         flexWrap: 'wrap',
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
         borderRadius: 14,
-        padding: '14px 18px'
+        padding: '14px 18px',
+        boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
       }}>
         <div style={{ position: 'relative', flex: '1 1 280px' }}>
           <Search size={16} color="#64748B" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
@@ -90,10 +92,10 @@ export function AdminSecurityLogsView() {
             style={{
               width: '100%',
               padding: '9px 14px 9px 40px',
-              background: 'rgba(10, 15, 25, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.09)',
+              background: '#FFFFFF',
+              border: '1px solid rgba(203, 213, 225, 0.8)',
               borderRadius: 8,
-              color: '#F8FAFC',
+              color: '#0F172A',
               fontSize: 13,
               outline: 'none',
               boxSizing: 'border-box'
@@ -110,9 +112,9 @@ export function AdminSecurityLogsView() {
               style={{
                 padding: '7px 12px',
                 borderRadius: 8,
-                border: 'none',
-                background: severityFilter === sev ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                color: severityFilter === sev ? '#818CF8' : '#94A3B8',
+                border: severityFilter === sev ? '1px solid rgba(79, 70, 229, 0.25)' : '1px solid rgba(226, 232, 240, 0.8)',
+                background: severityFilter === sev ? 'rgba(79, 70, 229, 0.12)' : 'rgba(241, 245, 249, 0.8)',
+                color: severityFilter === sev ? '#4338CA' : '#475569',
                 fontSize: 12,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -127,23 +129,24 @@ export function AdminSecurityLogsView() {
 
       {/* Security Logs Table */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
-        borderRadius: 16,
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
+        borderRadius: 20,
         padding: '20px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 10px 30px -5px rgba(15, 23, 42, 0.05)'
       }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Timestamp</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Event</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Details</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Actor</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>IP Address</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Severity</th>
+              <tr style={{ borderBottom: '1px solid rgba(226, 232, 240, 0.9)', background: 'rgba(241, 245, 249, 0.6)' }}>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Timestamp</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Event</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Details</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Actor</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>IP Address</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B' }}>Severity</th>
               </tr>
             </thead>
             <tbody>
@@ -162,29 +165,29 @@ export function AdminSecurityLogsView() {
                     <tr
                       key={log.id}
                       style={{
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderBottom: '1px solid rgba(241, 245, 249, 0.9)',
                         transition: 'background 0.15s ease'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.04)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(248, 250, 252, 0.8)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <td style={{ padding: '12px 14px', fontSize: 12, color: '#64748B', whiteSpace: 'nowrap' }}>
                         {log.timestamp ? new Date(log.timestamp).toLocaleTimeString() + ' ' + new Date(log.timestamp).toLocaleDateString() : 'Just now'}
                       </td>
 
-                      <td style={{ padding: '12px 14px', fontSize: 13, fontWeight: 700, color: '#F8FAFC', whiteSpace: 'nowrap' }}>
+                      <td style={{ padding: '12px 14px', fontSize: 13, fontWeight: 700, color: '#0F172A', whiteSpace: 'nowrap' }}>
                         {log.event}
                       </td>
 
-                      <td style={{ padding: '12px 14px', fontSize: 12.5, color: '#94A3B8', maxWidth: 360 }}>
+                      <td style={{ padding: '12px 14px', fontSize: 12.5, color: '#334155', maxWidth: 360 }}>
                         {log.details}
                       </td>
 
-                      <td style={{ padding: '12px 14px', fontSize: 12.5, color: '#818CF8', fontWeight: 600 }}>
+                      <td style={{ padding: '12px 14px', fontSize: 12.5, color: '#2563EB', fontWeight: 600 }}>
                         {log.actor}
                       </td>
 
-                      <td style={{ padding: '12px 14px', fontSize: 12, color: '#64748B', fontFamily: 'monospace' }}>
+                      <td style={{ padding: '12px 14px', fontSize: 12, color: '#475569', fontFamily: 'monospace' }}>
                         {log.ip}
                       </td>
 
@@ -195,9 +198,9 @@ export function AdminSecurityLogsView() {
                           textTransform: 'uppercase',
                           padding: '2px 8px',
                           borderRadius: 6,
-                          background: isCritical ? 'rgba(239, 68, 68, 0.15)' : isWarning ? 'rgba(245, 158, 11, 0.15)' : 'rgba(99, 102, 241, 0.15)',
-                          color: isCritical ? '#F87171' : isWarning ? '#FBBF24' : '#818CF8',
-                          border: `1px solid ${isCritical ? 'rgba(239, 68, 68, 0.3)' : isWarning ? 'rgba(245, 158, 11, 0.3)' : 'rgba(99, 102, 241, 0.3)'}`
+                          background: isCritical ? 'rgba(239, 68, 68, 0.12)' : isWarning ? 'rgba(245, 158, 11, 0.12)' : 'rgba(37, 99, 235, 0.1)',
+                          color: isCritical ? '#DC2626' : isWarning ? '#D97706' : '#1D4ED8',
+                          border: `1px solid ${isCritical ? 'rgba(239, 68, 68, 0.25)' : isWarning ? 'rgba(245, 158, 11, 0.25)' : 'rgba(37, 99, 235, 0.2)'}`
                         }}>
                           {log.severity || 'info'}
                         </span>

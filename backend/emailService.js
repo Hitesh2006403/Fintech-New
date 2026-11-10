@@ -61,7 +61,7 @@ export function getEmailTransporter() {
  */
 export async function sendPasswordRecoveryEmail({ toEmail, recoveryLink, recipientName = 'FinSight User' }) {
   if (!isPasswordRecoveryEnabled()) {
-    console.warn(`[FinSight Mailer] Password recovery is temporarily disabled. Suppressed recovery email to ${toEmail}`);
+    console.warn('[FinSight Mailer] Password recovery is temporarily disabled. Suppressed recovery email.');
     return {
       success: false,
       disabled: true,
@@ -149,13 +149,13 @@ export async function sendPasswordRecoveryEmail({ toEmail, recoveryLink, recipie
 
   try {
     const info = await mailer.sendMail(mailOptions);
-    console.log(`[FinSight Mailer] Password recovery email dispatched to ${toEmail} (Message ID: ${info.messageId})`);
+    console.log(`[FinSight Mailer] Password recovery email dispatched successfully (Message ID: ${info.messageId})`);
     return {
       success: true,
       messageId: info.messageId
     };
   } catch (err) {
-    console.error(`[FinSight Mailer] Failed to deliver recovery email to ${toEmail}:`, err.message);
+    console.error('[FinSight Mailer] Failed to deliver recovery email:', err.message);
     return {
       success: false,
       error: err.message

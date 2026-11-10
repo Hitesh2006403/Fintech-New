@@ -23,7 +23,7 @@ const ADMIN_API_BASE = resolveAdminApiBase();
 function getAdminAuthHeaders() {
   const headers = { 'Content-Type': 'application/json' };
   try {
-    const token = localStorage.getItem('uip_auth_token') || localStorage.getItem('finsight_admin_token');
+    const token = localStorage.getItem('finsight_admin_token') || localStorage.getItem('uip_auth_token');
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }

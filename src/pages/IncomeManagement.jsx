@@ -83,67 +83,58 @@ export function IncomeManagement() {
             Track irregular client retainers, milestone payments, and uncertain project proposals.
           </p>
         </div>
-
-        <button
-          type="button"
-          className="btn-primary"
-          onClick={() => setQuickAddModalOpen(true)}
-        >
-          <Plus size={16} />
-          <span>Add New Income</span>
-        </button>
       </div>
 
       {/* Summary KPI Strip */}
       <div className="kpi-strip-grid">
         <div className="card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Received in Bank</span>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px rgba(16, 185, 129, 0.7)' }}></span>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Received in Bank</span>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-success, #10B981)', boxShadow: '0 0 6px rgba(16, 185, 129, 0.5)' }}></span>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#10B981', fontFeatureSettings: 'tnum', textShadow: '0 0 14px rgba(16, 185, 129, 0.35)' }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-success-dark, #047857)', fontVariantNumeric: 'tabular-nums' }}>
             {formatINR(totalReceived)}
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
             In hand, affects available cash.
           </div>
         </div>
 
         <div className="card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Confirmed Invoices</span>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--accent-primary)', boxShadow: '0 0 8px var(--accent-primary)' }}></span>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Confirmed Invoices</span>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-brand-primary, #059669)', boxShadow: '0 0 6px rgba(5, 150, 105, 0.4)' }}></span>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--accent-primary)', fontFeatureSettings: 'tnum', textShadow: '0 0 14px rgba(56, 189, 248, 0.35)' }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-brand-primary, #059669)', fontVariantNumeric: 'tabular-nums' }}>
             {formatINR(totalConfirmed)}
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
             Expected; included in forecast.
           </div>
         </div>
 
         <div className="card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Uncertain Pitches</span>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#F59E0B', boxShadow: '0 0 8px rgba(245, 158, 11, 0.7)' }}></span>
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Uncertain Pitches</span>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: 'var(--neu-warning, #F59E0B)', boxShadow: '0 0 6px rgba(245, 158, 11, 0.5)' }}></span>
           </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: '#F59E0B', fontFeatureSettings: 'tnum', textShadow: '0 0 14px rgba(245, 158, 11, 0.35)' }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-warning-dark, #B45309)', fontVariantNumeric: 'tabular-nums' }}>
             {formatINR(totalUncertain)}
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
             Excluded from conservative safety.
           </div>
         </div>
 
         <div className="card" style={{ padding: '18px 20px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Pipeline</span>
-            <TrendingUp size={15} color="var(--accent-primary)" />
+            <span style={{ fontSize: 11.5, fontWeight: 700, color: 'var(--neu-text-secondary, #64748B)', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Pipeline</span>
+            <TrendingUp size={15} color="var(--neu-brand-primary, #059669)" />
           </div>
-          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--text-primary)', fontFeatureSettings: 'tnum' }}>
+          <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--neu-text-primary, #172033)', fontVariantNumeric: 'tabular-nums' }}>
             {formatINR(totalPipeline)}
           </div>
-          <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 4 }}>
+          <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 4 }}>
             All active freelance revenue streams.
           </div>
         </div>
@@ -162,34 +153,46 @@ export function IncomeManagement() {
           />
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'rgba(11, 18, 32, 0.8)', padding: 4, borderRadius: 10, border: '1px solid var(--border-glass)' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          background: 'var(--neu-bg-primary, #E9EEF3)',
+          padding: 4,
+          borderRadius: 12,
+          border: '1px solid var(--neu-border, #DCE4EB)',
+          boxShadow: 'var(--neu-shadow-inset-sm, inset 2px 2px 5px rgba(163, 177, 198, 0.25), inset -2px -2px 5px rgba(255, 255, 255, 0.85))'
+        }}>
           {[
             { id: 'all', label: 'All Streams' },
             { id: 'received', label: 'Received' },
             { id: 'confirmed', label: 'Confirmed (Future)' },
             { id: 'overdue', label: `Overdue (${safeIncomes.filter(i => classifyIncomeStatus(i, today) === 'overdue').length})` },
             { id: 'uncertain', label: 'Uncertain' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              type="button"
-              style={{
-                border: statusFilter === tab.id ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid transparent',
-                background: statusFilter === tab.id ? 'linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(167, 139, 250, 0.25) 100%)' : 'transparent',
-                color: statusFilter === tab.id ? '#FFFFFF' : 'var(--text-secondary)',
-                fontWeight: statusFilter === tab.id ? 700 : 500,
-                fontSize: 12.5,
-                padding: '6px 14px',
-                borderRadius: 8,
-                cursor: 'pointer',
-                transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                boxShadow: statusFilter === tab.id ? '0 0 12px rgba(56, 189, 248, 0.2)' : 'none'
-              }}
-              onClick={() => setStatusFilter(tab.id)}
-            >
-              {tab.label}
-            </button>
-          ))}
+          ].map(tab => {
+            const isActive = statusFilter === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                style={{
+                  border: isActive ? '1px solid var(--neu-brand-primary, #059669)' : '1px solid transparent',
+                  background: isActive ? 'var(--neu-brand-gradient, linear-gradient(135deg, #059669 0%, #047857 100%))' : 'transparent',
+                  color: isActive ? '#FFFFFF' : 'var(--neu-text-secondary, #64748B)',
+                  fontWeight: isActive ? 700 : 500,
+                  fontSize: 12.5,
+                  padding: '6px 14px',
+                  borderRadius: 8,
+                  cursor: 'pointer',
+                  transition: 'all 0.18s ease',
+                  boxShadow: isActive ? '2px 2px 6px rgba(5, 150, 105, 0.35), -1px -1px 4px rgba(255, 255, 255, 0.7)' : 'none'
+                }}
+                onClick={() => setStatusFilter(tab.id)}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -211,7 +214,7 @@ export function IncomeManagement() {
             <tbody>
               {filteredIncomes.length === 0 ? (
                 <tr>
-                  <td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
+                  <td colSpan={7} style={{ textAlign: 'center', padding: 40, color: 'var(--neu-text-muted, #94A3B8)' }}>
                     No income records found matching your filters.
                   </td>
                 </tr>
@@ -219,25 +222,30 @@ export function IncomeManagement() {
                 filteredIncomes.map(inc => (
                   <tr key={inc.id}>
                     <td>
-                      <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                      <div style={{ fontWeight: 600, color: 'var(--neu-text-primary, #172033)', display: 'flex', alignItems: 'center', gap: 6 }}>
                         <span>{inc.title}</span>
                       </div>
                       {inc.notes && (
-                        <div style={{ fontSize: 11.5, color: 'var(--text-secondary)', marginTop: 2 }}>{inc.notes}</div>
+                        <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', marginTop: 2 }}>{inc.notes}</div>
                       )}
                     </td>
 
-                    <td style={{ color: 'var(--text-secondary)' }}>{inc.source || 'Direct Client'}</td>
+                    <td style={{ color: 'var(--neu-text-secondary, #64748B)' }}>{inc.source || 'Direct Client'}</td>
 
-                    <td className="num-val" style={{ color: inc.status === 'received' ? '#10B981' : 'var(--accent-primary)', fontSize: 14, fontWeight: 700, textShadow: inc.status === 'received' ? '0 0 8px rgba(16, 185, 129, 0.3)' : '0 0 8px rgba(56, 189, 248, 0.3)' }}>
+                    <td className="num-val" style={{
+                      color: inc.status === 'received' ? 'var(--neu-success-dark, #047857)' : 'var(--neu-brand-primary, #059669)',
+                      fontSize: 14,
+                      fontWeight: 700,
+                      fontVariantNumeric: 'tabular-nums'
+                    }}>
                       +{formatINR(inc.amount)}
                     </td>
 
-                    <td style={{ color: 'var(--text-secondary)', fontSize: 13 }}>
+                    <td style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 13 }}>
                       {classifyIncomeStatus(inc, today) === 'received' ? (
                         <span>Received {inc.actualDate || inc.expectedDate}</span>
                       ) : classifyIncomeStatus(inc, today) === 'overdue' ? (
-                        <span style={{ color: '#F87171', fontWeight: 600 }}>Expected {inc.expectedDate} (Past Due)</span>
+                        <span style={{ color: 'var(--neu-danger-dark, #B91C1C)', fontWeight: 600 }}>Expected {inc.expectedDate} (Past Due)</span>
                       ) : (
                         <span>Expected {inc.expectedDate}</span>
                       )}
@@ -245,29 +253,29 @@ export function IncomeManagement() {
 
                     <td>
                       {classifyIncomeStatus(inc, today) === 'received' ? (
-                        <span className="badge badge-success">
+                        <span className="status-badge received">
                           <CheckCircle2 size={12} />
                           <span>Received</span>
                         </span>
                       ) : classifyIncomeStatus(inc, today) === 'overdue' ? (
-                        <span className="badge badge-danger">
+                        <span className="status-badge overdue">
                           <AlertTriangle size={12} />
                           <span>Overdue</span>
                         </span>
                       ) : classifyIncomeStatus(inc, today) === 'confirmed' ? (
-                        <span className="badge badge-purple">
+                        <span className="status-badge neutral">
                           <Clock size={12} />
                           <span>Confirmed</span>
                         </span>
                       ) : (
-                        <span className="badge badge-warning">
+                        <span className="status-badge upcoming">
                           <HelpCircle size={12} />
                           <span>Uncertain</span>
                         </span>
                       )}
                     </td>
 
-                    <td style={{ textTransform: 'capitalize', color: 'var(--text-secondary)', fontSize: 12.5 }}>
+                    <td style={{ textTransform: 'capitalize', color: 'var(--neu-text-secondary, #64748B)', fontSize: 12.5 }}>
                       {inc.recurring || 'Milestone'}
                     </td>
 
@@ -277,7 +285,12 @@ export function IncomeManagement() {
                           <button
                             type="button"
                             className="btn-secondary"
-                            style={{ fontSize: 11.5, padding: '5px 10px', color: '#10B981', borderColor: 'rgba(16, 185, 129, 0.4)', background: 'rgba(16, 185, 129, 0.1)' }}
+                            style={{
+                              fontSize: 11.5,
+                              padding: '5px 10px',
+                              color: 'var(--neu-brand-primary, #059669)',
+                              borderColor: 'var(--neu-border, #DCE4EB)'
+                            }}
                             title="Mark money arrived into bank account"
                             onClick={() => setReceiveModalIncome(inc)}
                           >
@@ -299,7 +312,7 @@ export function IncomeManagement() {
                         <button
                           type="button"
                           className="btn-secondary"
-                          style={{ fontSize: 11.5, padding: '6px 9px', color: '#EF4444' }}
+                          style={{ fontSize: 11.5, padding: '6px 9px', color: 'var(--neu-danger, #EF4444)' }}
                           onClick={() => setDeleteConfirmId(inc.id)}
                           title="Delete entry"
                         >
@@ -320,10 +333,10 @@ export function IncomeManagement() {
         <div className="modal-backdrop" onClick={() => setDeleteConfirmId(null)}>
           <div className="modal-content-card" style={{ maxWidth: 420 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-bar">
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#EF4444' }}>Delete Income Stream</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--neu-danger, #EF4444)' }}>Delete Income Stream</h3>
             </div>
             <div className="modal-body-area">
-              <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>
+              <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary, #64748B)', lineHeight: 1.5, margin: 0 }}>
                 Are you sure you want to remove this income entry? If it was marked received, it will adjust your calculated cash balance.
               </p>
             </div>
@@ -351,11 +364,11 @@ export function IncomeManagement() {
         <div className="modal-backdrop" onClick={() => setReceiveModalIncome(null)}>
           <div className="modal-content-card" style={{ maxWidth: 440 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header-bar">
-              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: '#10B981' }}>Record Cash Receipt</h3>
+              <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0, color: 'var(--neu-success-dark, #047857)' }}>Record Cash Receipt</h3>
             </div>
             <div className="modal-body-area">
-              <p style={{ fontSize: 13.5, color: 'var(--text-secondary)', marginBottom: 16 }}>
-                Record the arrival of <strong style={{ color: 'var(--text-primary)' }}>{formatINR(receiveModalIncome.amount)}</strong> from <strong style={{ color: 'var(--text-primary)' }}>{receiveModalIncome.title}</strong>. This will add the funds to your live available cash balance exactly once.
+              <p style={{ fontSize: 13.5, color: 'var(--neu-text-secondary, #64748B)', marginBottom: 16 }}>
+                Record the arrival of <strong style={{ color: 'var(--neu-text-primary, #172033)' }}>{formatINR(receiveModalIncome.amount)}</strong> from <strong style={{ color: 'var(--neu-text-primary, #172033)' }}>{receiveModalIncome.title}</strong>. This will add the funds to your live available cash balance exactly once.
               </p>
 
               <div className="form-group-item">

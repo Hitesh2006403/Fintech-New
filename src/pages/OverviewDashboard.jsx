@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext.jsx';
 import { formatINR } from '../services/financialEngine.js';
 import { getCurrentLocalDate, toISODate } from '../services/dateService.js';
 import { CashFlowChart } from '../components/charts/CashFlowChart.jsx';
+import { AnimatedNumber } from '../components/common/AnimatedNumber.jsx';
 import {
   Wallet,
   ShieldCheck,
@@ -96,13 +97,25 @@ export function OverviewDashboard() {
   if (!hasRecords) {
     return (
       <div className="page-container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
-        <div style={{ width: 68, height: 68, borderRadius: 18, background: 'rgba(56, 189, 248, 0.15)', color: '#38BDF8', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 20, border: '1px solid rgba(56, 189, 248, 0.3)', boxShadow: '0 0 25px rgba(56, 189, 248, 0.2)' }}>
+        <div style={{
+          width: 68,
+          height: 68,
+          borderRadius: 18,
+          background: 'var(--neu-bg-primary, #E9EEF3)',
+          color: 'var(--neu-brand-primary, #059669)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginBottom: 20,
+          border: '1px solid var(--neu-border, #DCE4EB)',
+          boxShadow: 'var(--neu-shadow-raised, 6px 6px 14px rgba(163, 177, 198, 0.35), -6px -6px 14px rgba(255, 255, 255, 0.85))'
+        }}>
           <Sparkles size={34} />
         </div>
-        <h2 style={{ fontSize: 26, fontWeight: 700, color: '#F8FAFC', marginBottom: 8, letterSpacing: -0.4 }}>
+        <h2 style={{ fontSize: 26, fontWeight: 700, color: 'var(--neu-text-primary, #172033)', marginBottom: 8, letterSpacing: -0.4 }}>
           Welcome to Uncertain Income Planner, {user?.name || 'Treasury Planner'}
         </h2>
-        <p style={{ color: '#94A3B8', maxWidth: 480, marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
+        <p style={{ color: 'var(--neu-text-secondary, #64748B)', maxWidth: 480, marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
           Take the stress out of irregular earnings. Record your current cash, upcoming gigs, and essential bills to see your true Safe-to-Spend.
         </p>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
@@ -134,27 +147,26 @@ export function OverviewDashboard() {
       <div className="page-header-row">
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 700, textTransform: 'uppercase', color: '#38BDF8', letterSpacing: 0.8, background: 'rgba(56, 189, 248, 0.12)', padding: '3px 9px', borderRadius: 6, border: '1px solid rgba(56, 189, 248, 0.25)' }}>
+            <span style={{
+              fontSize: 11.5,
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              color: 'var(--neu-brand-primary, #059669)',
+              letterSpacing: 0.8,
+              background: 'rgba(5, 150, 105, 0.10)',
+              padding: '3px 9px',
+              borderRadius: 6,
+              border: '1px solid rgba(5, 150, 105, 0.25)'
+            }}>
               TREASURY OVERVIEW
             </span>
-            <span style={{ color: 'rgba(255, 255, 255, 0.2)' }}>•</span>
-            <span style={{ fontSize: 12, color: '#94A3B8' }}>Irregular Cash-Flow Engine</span>
+            <span style={{ color: 'var(--neu-text-muted, #94A3B8)' }}>•</span>
+            <span style={{ fontSize: 12, color: 'var(--neu-text-secondary, #64748B)' }}>Irregular Cash-Flow Engine</span>
           </div>
           <h1 className="page-title">Good day, {user?.name || 'Treasury Planner'}</h1>
           <p className="page-subtitle">
             Here's your real-time spendable cash, protected obligations, and 30-day runway.
           </p>
-        </div>
-
-        <div className="page-actions-group">
-          <button
-            type="button"
-            className="btn-primary"
-            onClick={() => setQuickAddModalOpen(true)}
-          >
-            <Plus size={16} />
-            <span>Add Transaction</span>
-          </button>
         </div>
       </div>
 
@@ -164,49 +176,40 @@ export function OverviewDashboard() {
           className="dashboard-insight-banner"
           style={{
             background: safeInsights.primaryInsight.type === 'danger'
-              ? 'rgba(239, 68, 68, 0.14)'
+              ? 'var(--neu-danger-bg, rgba(239, 68, 68, 0.12))'
               : safeInsights.primaryInsight.type === 'warning'
-              ? 'rgba(245, 158, 11, 0.14)'
-              : 'rgba(56, 189, 248, 0.12)',
+              ? 'var(--neu-warning-bg, rgba(245, 158, 11, 0.12))'
+              : 'rgba(5, 150, 105, 0.08)',
             border: `1px solid ${
               safeInsights.primaryInsight.type === 'danger'
-                ? 'rgba(239, 68, 68, 0.35)'
+                ? 'var(--neu-danger-border, rgba(239, 68, 68, 0.28))'
                 : safeInsights.primaryInsight.type === 'warning'
-                ? 'rgba(245, 158, 11, 0.35)'
-                : 'rgba(56, 189, 248, 0.28)'
+                ? 'var(--neu-warning-border, rgba(245, 158, 11, 0.28))'
+                : 'rgba(5, 150, 105, 0.25)'
             }`,
-            borderTop: `1px solid ${
-              safeInsights.primaryInsight.type === 'danger'
-                ? 'rgba(239, 68, 68, 0.5)'
-                : safeInsights.primaryInsight.type === 'warning'
-                ? 'rgba(245, 158, 11, 0.5)'
-                : 'rgba(56, 189, 248, 0.45)'
-            }`,
-            borderRadius: 12,
+            borderRadius: 14,
             padding: '14px 20px',
             marginBottom: 24,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             gap: 12,
-            backdropFilter: 'blur(8px)',
-            WebkitBackdropFilter: 'blur(8px)',
-            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.3)'
+            boxShadow: 'var(--neu-shadow-raised-sm, 3px 3px 8px rgba(163, 177, 198, 0.30), -3px -3px 8px rgba(255, 255, 255, 0.85))'
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             {safeInsights.primaryInsight.type === 'danger' ? (
-              <AlertTriangle size={18} color="#F87171" style={{ filter: 'drop-shadow(0 0 6px rgba(239, 68, 68, 0.4))' }} />
+              <AlertTriangle size={18} color="#EF4444" />
             ) : safeInsights.primaryInsight.type === 'warning' ? (
-              <Clock size={18} color="#FBBF24" style={{ filter: 'drop-shadow(0 0 6px rgba(245, 158, 11, 0.4))' }} />
+              <Clock size={18} color="#F59E0B" />
             ) : (
-              <Sparkles size={18} color="#38BDF8" style={{ filter: 'drop-shadow(0 0 6px rgba(56, 189, 248, 0.4))' }} />
+              <Sparkles size={18} color="#059669" />
             )}
             <div>
-              <strong style={{ fontSize: 13, color: '#F8FAFC', marginRight: 8 }}>
+              <strong style={{ fontSize: 13, color: 'var(--neu-text-primary, #172033)', marginRight: 8 }}>
                 {safeInsights.primaryInsight.title}:
               </strong>
-              <span style={{ fontSize: 13, color: '#94A3B8', lineHeight: 1.45 }}>
+              <span style={{ fontSize: 13, color: 'var(--neu-text-secondary, #64748B)', lineHeight: 1.45 }}>
                 {safeInsights.primaryInsight.message}
               </span>
             </div>
@@ -217,7 +220,7 @@ export function OverviewDashboard() {
             style={{
               background: 'none',
               border: 'none',
-              color: '#38BDF8',
+              color: 'var(--neu-brand-primary, #059669)',
               fontWeight: 600,
               fontSize: 12.5,
               cursor: 'pointer',
@@ -246,7 +249,7 @@ export function OverviewDashboard() {
             </div>
           </div>
           <div className="kpi-amount-val">
-            {formatINR(safeBalance.availableCash)}
+            <AnimatedNumber value={safeBalance.availableCash} />
           </div>
           <div className="kpi-subtitle-meta">
             <span>Based on recorded transactions.</span>
@@ -259,18 +262,17 @@ export function OverviewDashboard() {
           className="kpi-card"
           onClick={() => setActiveRoute('safe-to-spend')}
           style={{
-            borderColor: (safeSpend.safeToSpendToday || 0) > 0 ? 'rgba(56, 189, 248, 0.35)' : 'rgba(239, 68, 68, 0.35)',
-            boxShadow: (safeSpend.safeToSpendToday || 0) > 0 ? '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(56, 189, 248, 0.12)' : '0 8px 32px rgba(0, 0, 0, 0.3), 0 0 20px rgba(239, 68, 68, 0.12)'
+            borderColor: (safeSpend.safeToSpendToday || 0) > 0 ? 'rgba(5, 150, 105, 0.35)' : 'rgba(239, 68, 68, 0.35)'
           }}
         >
           <div className="kpi-top-row">
             <span className="kpi-label">Safe-to-Spend Today</span>
-            <div className="kpi-icon-container purple">
+            <div className="kpi-icon-container emerald">
               <ShieldCheck size={18} />
             </div>
           </div>
-          <div className="kpi-amount-val" style={{ color: (safeSpend.safeToSpendToday || 0) > 0 ? '#38BDF8' : '#F87171', textShadow: (safeSpend.safeToSpendToday || 0) > 0 ? '0 0 20px rgba(56, 189, 248, 0.4)' : '0 0 20px rgba(239, 68, 68, 0.4)' }}>
-            {formatINR(safeSpend.safeToSpendToday)}
+          <div className="kpi-amount-val" style={{ color: (safeSpend.safeToSpendToday || 0) > 0 ? '#059669' : '#E11D48' }}>
+            <AnimatedNumber value={safeSpend.safeToSpendToday} />
           </div>
           <div className="kpi-subtitle-meta">
             <span>After planned commitments.</span>
@@ -290,8 +292,8 @@ export function OverviewDashboard() {
               <TrendingUp size={18} />
             </div>
           </div>
-          <div className="kpi-amount-val" style={{ color: '#10B981', textShadow: '0 0 20px rgba(16, 185, 129, 0.35)' }}>
-            +{formatINR(confirmedUpcomingIncome)}
+          <div className="kpi-amount-val" style={{ color: '#059669' }}>
+            <AnimatedNumber value={confirmedUpcomingIncome} prefix="+₹" />
           </div>
           <div className="kpi-subtitle-meta">
             <span>Expected, not yet available.</span>
@@ -307,8 +309,8 @@ export function OverviewDashboard() {
               <Receipt size={18} />
             </div>
           </div>
-          <div className="kpi-amount-val" style={{ color: '#F59E0B', textShadow: '0 0 20px rgba(245, 158, 11, 0.35)' }}>
-            {formatINR(upcomingBillsNext7Days)}
+          <div className="kpi-amount-val" style={{ color: '#D97706' }}>
+            <AnimatedNumber value={upcomingBillsNext7Days} />
           </div>
           <div className="kpi-subtitle-meta">
             <span>Due in the next 7 days.</span>
@@ -353,17 +355,17 @@ export function OverviewDashboard() {
           
           {/* Overdue Bills Card (Highlighted when overdue liabilities exist) */}
           {overdueBills.length > 0 && (
-            <div className="card" style={{ border: '1px solid rgba(239, 68, 68, 0.35)', background: 'rgba(239, 68, 68, 0.08)' }}>
+            <div className="card" style={{ border: '1px solid var(--neu-danger-border, rgba(239, 68, 68, 0.35))', background: 'var(--neu-danger-bg, rgba(239, 68, 68, 0.08))' }}>
               <div className="card-header-flex" style={{ marginBottom: 12 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <AlertTriangle size={16} color="#EF4444" />
-                  <h3 className="card-title-h3" style={{ fontSize: 14.5, color: '#FCA5A5' }}>
+                  <AlertTriangle size={16} color="var(--neu-danger, #EF4444)" />
+                  <h3 className="card-title-h3" style={{ fontSize: 14.5, color: 'var(--neu-danger-dark, #B91C1C)' }}>
                     Overdue Bills ({overdueBills.length})
                   </h3>
                 </div>
                 <button
                   type="button"
-                  style={{ background: 'none', border: 'none', color: '#EF4444', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
+                  style={{ background: 'none', border: 'none', color: 'var(--neu-danger-dark, #B91C1C)', fontSize: 12, fontWeight: 700, cursor: 'pointer' }}
                   onClick={() => setActiveRoute('expenses')}
                 >
                   Pay Now ({formatINR(totalOverdueAmount)})
@@ -379,21 +381,22 @@ export function OverviewDashboard() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '9px 12px',
-                      background: 'rgba(15, 23, 42, 0.85)',
-                      borderRadius: 8,
-                      border: '1px solid rgba(239, 68, 68, 0.25)'
+                      background: 'var(--neu-bg-primary, #E9EEF3)',
+                      borderRadius: 10,
+                      border: '1px solid var(--neu-border, #DCE4EB)',
+                      boxShadow: 'var(--neu-shadow-raised-sm, 3px 3px 7px rgba(163, 177, 198, 0.30), -3px -3px 7px rgba(255, 255, 255, 0.85))'
                     }}
                   >
                     <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 600, color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 600, color: 'var(--neu-text-primary, #172033)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {bill.title}
                       </div>
-                      <div style={{ fontSize: 11, color: '#F87171', marginTop: 1 }}>
+                      <div style={{ fontSize: 11, color: 'var(--neu-danger-dark, #B91C1C)', marginTop: 1 }}>
                         Due {bill.dueDate} (Past Due)
                       </div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: '#EF4444', fontFeatureSettings: 'tnum' }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--neu-danger, #EF4444)', fontVariantNumeric: 'tabular-nums' }}>
                         {formatINR(bill.amount)}
                       </div>
                     </div>
@@ -409,7 +412,7 @@ export function OverviewDashboard() {
               <h3 className="card-title-h3" style={{ fontSize: 15 }}>Upcoming Bills</h3>
               <button
                 type="button"
-                style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--neu-brand-primary, #059669)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                 onClick={() => setActiveRoute('expenses')}
               >
                 View all ({safeExpenses.filter(e => e && e.status !== 'paid' && !e.paidDate && toISODate(e.dueDate) >= today).length})
@@ -417,7 +420,7 @@ export function OverviewDashboard() {
             </div>
 
             {upcomingBills.length === 0 ? (
-              <p style={{ color: '#64748B', fontSize: 13, margin: '14px 0' }}>No upcoming bills on schedule.</p>
+              <p style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 13, margin: '14px 0' }}>No upcoming bills on schedule.</p>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {upcomingBills.map(bill => (
@@ -428,23 +431,23 @@ export function OverviewDashboard() {
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
-                      background: 'rgba(11, 18, 32, 0.65)',
-                      borderRadius: 10,
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
-                      backdropFilter: 'blur(8px)',
+                      background: 'var(--neu-bg-primary, #E9EEF3)',
+                      borderRadius: 12,
+                      border: '1px solid var(--neu-border, #DCE4EB)',
+                      boxShadow: 'var(--neu-shadow-raised-sm, 3px 3px 7px rgba(163, 177, 198, 0.30), -3px -3px 7px rgba(255, 255, 255, 0.85))',
                       transition: 'border-color 0.15s'
                     }}
                   >
                     <div style={{ minWidth: 0, flex: 1, paddingRight: 8 }}>
-                      <div style={{ fontSize: 13, fontWeight: 600, color: '#F8FAFC', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bill.title}</div>
-                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>Due {bill.dueDate} • {bill.category}</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--neu-text-primary, #172033)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{bill.title}</div>
+                      <div style={{ fontSize: 11, color: 'var(--neu-text-secondary, #64748B)', marginTop: 2 }}>Due {bill.dueDate} • {bill.category}</div>
                     </div>
                     <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 13.5, fontWeight: 700, color: '#F8FAFC', fontFeatureSettings: 'tnum' }}>{formatINR(bill.amount)}</div>
+                      <div style={{ fontSize: 13.5, fontWeight: 700, color: 'var(--neu-text-primary, #172033)', fontVariantNumeric: 'tabular-nums' }}>{formatINR(bill.amount)}</div>
                       {bill.isEssential ? (
-                        <span style={{ fontSize: 10, color: '#F87171', fontWeight: 600, background: 'rgba(239, 68, 68, 0.15)', padding: '1px 6px', borderRadius: 4, display: 'inline-block', marginTop: 2 }}>Essential</span>
+                        <span style={{ fontSize: 10, color: 'var(--neu-danger-dark, #B91C1C)', fontWeight: 600, background: 'var(--neu-danger-bg, rgba(239, 68, 68, 0.12))', border: '1px solid var(--neu-danger-border, rgba(239, 68, 68, 0.28))', padding: '1px 6px', borderRadius: 4, display: 'inline-block', marginTop: 2 }}>Essential</span>
                       ) : (
-                        <span style={{ fontSize: 10, color: '#94A3B8', background: 'rgba(255, 255, 255, 0.05)', padding: '1px 6px', borderRadius: 4, display: 'inline-block', marginTop: 2 }}>Discretionary</span>
+                        <span style={{ fontSize: 10, color: 'var(--neu-text-secondary, #64748B)', background: 'rgba(100, 116, 139, 0.1)', border: '1px solid var(--neu-border, #DCE4EB)', padding: '1px 6px', borderRadius: 4, display: 'inline-block', marginTop: 2 }}>Discretionary</span>
                       )}
                     </div>
                   </div>
@@ -459,7 +462,7 @@ export function OverviewDashboard() {
               <h3 className="card-title-h3" style={{ fontSize: 15 }}>Financial Alerts</h3>
               <button
                 type="button"
-                style={{ background: 'none', border: 'none', color: '#38BDF8', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
+                style={{ background: 'none', border: 'none', color: 'var(--neu-brand-primary, #059669)', fontSize: 12, fontWeight: 600, cursor: 'pointer' }}
                 onClick={() => setActiveRoute('notifications')}
               >
                 Notification Center
@@ -468,7 +471,7 @@ export function OverviewDashboard() {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
               {(safeInsights.alerts || []).length === 0 ? (
-                <div style={{ fontSize: 12.5, color: '#64748B', textAlign: 'center', padding: '16px 8px' }}>
+                <div style={{ fontSize: 12.5, color: 'var(--neu-text-secondary, #64748B)', textAlign: 'center', padding: '16px 8px' }}>
                   No active alerts. All financial flows are within safe parameters.
                 </div>
               ) : (
@@ -477,40 +480,40 @@ export function OverviewDashboard() {
                     key={alert.id}
                     style={{
                       padding: '12px 14px',
-                      borderRadius: 10,
+                      borderRadius: 12,
                       background: alert.severity === 'critical'
-                        ? 'rgba(239, 68, 68, 0.12)'
+                        ? 'var(--neu-danger-bg, rgba(239, 68, 68, 0.12))'
                         : alert.severity === 'warning'
-                        ? 'rgba(245, 158, 11, 0.12)'
-                        : 'rgba(11, 18, 32, 0.65)',
+                        ? 'var(--neu-warning-bg, rgba(245, 158, 11, 0.12))'
+                        : 'var(--neu-bg-primary, #E9EEF3)',
                       border: `1px solid ${
                         alert.severity === 'critical'
-                          ? 'rgba(239, 68, 68, 0.3)'
+                          ? 'var(--neu-danger-border, rgba(239, 68, 68, 0.28))'
                           : alert.severity === 'warning'
-                          ? 'rgba(245, 158, 11, 0.3)'
-                          : 'rgba(255, 255, 255, 0.08)'
+                          ? 'var(--neu-warning-border, rgba(245, 158, 11, 0.28))'
+                          : 'var(--neu-border, #DCE4EB)'
                       }`,
+                      boxShadow: 'var(--neu-shadow-raised-sm, 3px 3px 7px rgba(163, 177, 198, 0.30), -3px -3px 7px rgba(255, 255, 255, 0.85))',
                       display: 'flex',
                       alignItems: 'flex-start',
                       justifyContent: 'space-between',
                       gap: 10,
                       cursor: 'pointer',
-                      backdropFilter: 'blur(8px)',
                       transition: 'all 0.15s ease'
                     }}
                     onClick={() => alert.actionPage && setActiveRoute(alert.actionPage)}
                   >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, flex: 1, minWidth: 0 }}>
                       {alert.severity === 'critical' ? (
-                        <AlertTriangle size={15} color="#F87171" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <AlertTriangle size={15} color="var(--neu-danger, #EF4444)" style={{ flexShrink: 0, marginTop: 2 }} />
                       ) : alert.severity === 'warning' ? (
-                        <Clock size={15} color="#FBBF24" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <Clock size={15} color="var(--neu-warning, #F59E0B)" style={{ flexShrink: 0, marginTop: 2 }} />
                       ) : (
-                        <CheckCircle2 size={15} color="#10B981" style={{ flexShrink: 0, marginTop: 2 }} />
+                        <CheckCircle2 size={15} color="var(--neu-success, #10B981)" style={{ flexShrink: 0, marginTop: 2 }} />
                       )}
                       <div style={{ minWidth: 0, flex: 1 }}>
-                        <div style={{ fontSize: 12.5, fontWeight: 700, color: '#F8FAFC', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{alert.title}</div>
-                        <div style={{ fontSize: 11.5, color: '#94A3B8', lineHeight: 1.4, marginTop: 2, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{alert.description}</div>
+                        <div style={{ fontSize: 12.5, fontWeight: 700, color: 'var(--neu-text-primary, #172033)', wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{alert.title}</div>
+                        <div style={{ fontSize: 11.5, color: 'var(--neu-text-secondary, #64748B)', lineHeight: 1.4, marginTop: 2, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{alert.description}</div>
                       </div>
                     </div>
                     <button
@@ -523,7 +526,7 @@ export function OverviewDashboard() {
                       style={{
                         background: 'none',
                         border: 'none',
-                        color: '#64748B',
+                        color: 'var(--neu-text-muted, #94A3B8)',
                         cursor: 'pointer',
                         padding: '0 4px',
                         fontSize: 16,
@@ -577,14 +580,14 @@ export function OverviewDashboard() {
               <tbody>
                 {recentTransactions.map(tx => (
                   <tr key={tx.id}>
-                    <td style={{ fontWeight: 600, color: '#F8FAFC' }}>{tx.title}</td>
-                    <td style={{ color: '#94A3B8', fontSize: 12.5 }}>{tx.date}</td>
-                    <td style={{ color: '#94A3B8', fontSize: 12.5 }}>{tx.category}</td>
-                    <td className="num-val" style={{ color: tx.type === 'income' ? '#10B981' : '#F8FAFC' }}>
+                    <td style={{ fontWeight: 600, color: 'var(--neu-text-primary, #172033)' }}>{tx.title}</td>
+                    <td style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 12.5 }}>{tx.date}</td>
+                    <td style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 12.5 }}>{tx.category}</td>
+                    <td className="num-val" style={{ color: tx.type === 'income' ? 'var(--neu-success-dark, #047857)' : 'var(--neu-text-primary, #172033)', fontVariantNumeric: 'tabular-nums' }}>
                       {tx.type === 'income' ? '+' : '-'}{formatINR(tx.amount)}
                     </td>
                     <td>
-                      <span className={`badge ${tx.status === 'Received' || tx.status === 'Paid' ? 'badge-success' : 'badge-warning'}`}>
+                      <span className={`status-badge ${tx.status === 'Received' || tx.status === 'Paid' ? 'received' : 'upcoming'}`}>
                         {tx.status}
                       </span>
                     </td>
@@ -613,49 +616,49 @@ export function OverviewDashboard() {
           </div>
 
           {/* Segmented Progress Bar */}
-          <div style={{ height: 10, borderRadius: 5, background: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden', display: 'flex', marginBottom: 20 }}>
-            <div style={{ width: `${(totalReceived / grandTotalPipeline) * 100}%`, background: '#10B981' }} title="Received" />
-            <div style={{ width: `${(totalConfirmed / grandTotalPipeline) * 100}%`, background: '#38BDF8' }} title="Confirmed" />
-            <div style={{ width: `${(totalUncertain / grandTotalPipeline) * 100}%`, background: '#F59E0B' }} title="Uncertain" />
+          <div style={{ height: 10, borderRadius: 5, background: 'var(--neu-bg-primary, #E9EEF3)', boxShadow: 'var(--neu-shadow-inset-sm)', border: '1px solid var(--neu-border, #DCE4EB)', overflow: 'hidden', display: 'flex', marginBottom: 20 }}>
+            <div style={{ width: `${(totalReceived / grandTotalPipeline) * 100}%`, background: 'var(--neu-brand-primary, #059669)' }} title="Received" />
+            <div style={{ width: `${(totalConfirmed / grandTotalPipeline) * 100}%`, background: 'var(--neu-info, #3B82F6)' }} title="Confirmed" />
+            <div style={{ width: `${(totalUncertain / grandTotalPipeline) * 100}%`, background: 'var(--neu-warning, #F59E0B)' }} title="Uncertain" />
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 12px', background: 'rgba(11, 18, 32, 0.55)', borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 14px', background: 'var(--neu-bg-primary, #E9EEF3)', borderRadius: 12, border: '1px solid var(--neu-border, #DCE4EB)', boxShadow: 'var(--neu-shadow-raised-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: '1 1 160px' }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#10B981', boxShadow: '0 0 8px #10B981', flexShrink: 0 }}></span>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--neu-brand-primary, #059669)', boxShadow: '0 0 6px rgba(5, 150, 105, 0.4)', flexShrink: 0 }}></span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ color: '#F8FAFC', fontWeight: 700, fontSize: 13 }}>Received</div>
-                  <div style={{ color: '#94A3B8', fontSize: 11 }}>In Hand / Cash Balance</div>
+                  <div style={{ color: 'var(--neu-text-primary, #172033)', fontWeight: 700, fontSize: 13 }}>Received</div>
+                  <div style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 11 }}>In Hand / Cash Balance</div>
                 </div>
               </div>
-              <strong style={{ color: '#10B981', fontFeatureSettings: 'tnum', fontSize: 13.5, flexShrink: 0 }}>{formatINR(totalReceived)}</strong>
+              <strong style={{ color: 'var(--neu-success-dark, #047857)', fontVariantNumeric: 'tabular-nums', fontSize: 13.5, flexShrink: 0 }}>{formatINR(totalReceived)}</strong>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 12px', background: 'rgba(11, 18, 32, 0.55)', borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 14px', background: 'var(--neu-bg-primary, #E9EEF3)', borderRadius: 12, border: '1px solid var(--neu-border, #DCE4EB)', boxShadow: 'var(--neu-shadow-raised-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: '1 1 160px' }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#38BDF8', boxShadow: '0 0 8px #38BDF8', flexShrink: 0 }}></span>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--neu-info, #3B82F6)', boxShadow: '0 0 6px rgba(59, 130, 246, 0.4)', flexShrink: 0 }}></span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ color: '#F8FAFC', fontWeight: 700, fontSize: 13 }}>Confirmed</div>
-                  <div style={{ color: '#94A3B8', fontSize: 11 }}>Invoices / Signed Contracts</div>
+                  <div style={{ color: 'var(--neu-text-primary, #172033)', fontWeight: 700, fontSize: 13 }}>Confirmed</div>
+                  <div style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 11 }}>Invoices / Signed Contracts</div>
                 </div>
               </div>
-              <strong style={{ color: '#38BDF8', fontFeatureSettings: 'tnum', fontSize: 13.5, flexShrink: 0 }}>{formatINR(totalConfirmed)}</strong>
+              <strong style={{ color: 'var(--neu-info-dark, #1D4ED8)', fontVariantNumeric: 'tabular-nums', fontSize: 13.5, flexShrink: 0 }}>{formatINR(totalConfirmed)}</strong>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 12px', background: 'rgba(11, 18, 32, 0.55)', borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.05)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8, padding: '10px 14px', background: 'var(--neu-bg-primary, #E9EEF3)', borderRadius: 12, border: '1px solid var(--neu-border, #DCE4EB)', boxShadow: 'var(--neu-shadow-raised-sm)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, flex: '1 1 160px' }}>
-                <span style={{ width: 9, height: 9, borderRadius: '50%', background: '#F59E0B', boxShadow: '0 0 8px #F59E0B', flexShrink: 0 }}></span>
+                <span style={{ width: 9, height: 9, borderRadius: '50%', background: 'var(--neu-warning, #F59E0B)', boxShadow: '0 0 6px rgba(245, 158, 11, 0.4)', flexShrink: 0 }}></span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ color: '#F8FAFC', fontWeight: 700, fontSize: 13 }}>Uncertain</div>
-                  <div style={{ color: '#94A3B8', fontSize: 11 }}>Pipeline / Verbal Deals</div>
+                  <div style={{ color: 'var(--neu-text-primary, #172033)', fontWeight: 700, fontSize: 13 }}>Uncertain</div>
+                  <div style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 11 }}>Pipeline / Verbal Deals</div>
                 </div>
               </div>
-              <strong style={{ color: '#F59E0B', fontFeatureSettings: 'tnum', fontSize: 13.5, flexShrink: 0 }}>{formatINR(totalUncertain)}</strong>
+              <strong style={{ color: 'var(--neu-warning-dark, #B45309)', fontVariantNumeric: 'tabular-nums', fontSize: 13.5, flexShrink: 0 }}>{formatINR(totalUncertain)}</strong>
             </div>
           </div>
 
-          <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid rgba(255, 255, 255, 0.08)', fontSize: 12, color: '#94A3B8', lineHeight: 1.5 }}>
-            <span style={{ fontWeight: 600, color: '#F8FAFC' }}>Rule of Thumb:</span> Only Received cash is spent today. Confirmed income powers upcoming obligations; Uncertain income is excluded from baseline safety.
+          <div style={{ marginTop: 22, paddingTop: 16, borderTop: '1px solid var(--neu-border, #DCE4EB)', fontSize: 12, color: 'var(--neu-text-secondary, #64748B)', lineHeight: 1.5 }}>
+            <span style={{ fontWeight: 600, color: 'var(--neu-text-primary, #172033)' }}>Rule of Thumb:</span> Only Received cash is spent today. Confirmed income powers upcoming obligations; Uncertain income is excluded from baseline safety.
           </div>
         </div>
 

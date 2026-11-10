@@ -110,7 +110,7 @@ async function runMigration() {
 
     const { error } = await supabase.from('profiles').upsert(profileRow);
     if (error) {
-      console.warn(`[Profile Skipped] ${u.email}: ${error.message}`);
+      console.warn(`[Profile Skipped] User ID ${u.id || 'record'}: ${error.message}`);
     } else {
       migratedUsers++;
     }

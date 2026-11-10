@@ -1,0 +1,748 @@
+/* ==========================================================================
+   FINSIGHT PREMIUM GLASSMORPHIC DESIGN SYSTEM
+   Soft Aurora UI + Frosted Glassmorphism + Bento Grid + WCAG High-Contrast
+   Applies across User Application and Admin Panel (/admin)
+   ========================================================================== */
+
+:root {
+  /* Ambient Base Canvas */
+  --aurora-bg-base: #F4F7FB;
+
+  /* Frosted Glass Surfaces */
+  --glass-surface: rgba(255, 255, 255, 0.74);
+  --glass-surface-hover: rgba(255, 255, 255, 0.86);
+  --glass-surface-solid: #FFFFFF;
+  --glass-backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+
+  /* Specular Edge Highlights & Shadows */
+  --glass-border: 1px solid rgba(255, 255, 255, 0.88);
+  --glass-border-subtle: 1px solid rgba(226, 232, 240, 0.8);
+  --glass-border-hover: 1px solid rgba(255, 255, 255, 1);
+  --glass-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 10px 30px -10px rgba(15, 23, 42, 0.06);
+  --glass-shadow-hover: 0 0 0 1px rgba(15, 23, 42, 0.08), 0 16px 36px -8px rgba(15, 23, 42, 0.10);
+
+  /* Border Radii */
+  --glass-radius-card: 16px;
+  --glass-radius-item: 12px;
+  --glass-radius-pill: 9999px;
+
+  /* Strict WCAG High-Contrast Typography Scale */
+  --text-hero: #0F172A;     /* Deep Obsidian Slate (700, -0.02em) */
+  --text-title: #1E293B;    /* Crisp Charcoal (600) */
+  --text-body: #334155;     /* Rich Slate (500) */
+  --text-muted: #475569;    /* Medium Slate */
+  --text-caption: #64748B;  /* Slate Caption - never lighter than #64748B */
+
+  /* Semantic Financial Color Tokens */
+  --color-emerald-primary: #059669;
+  --color-emerald-light: #10B981;
+  --color-emerald-gradient: linear-gradient(135deg, #059669 0%, #10B981 100%);
+  --color-emerald-bg: rgba(16, 185, 129, 0.10);
+  --color-emerald-border: rgba(16, 185, 129, 0.25);
+  --color-emerald-text: #065F46;
+
+  --color-blue-primary: #2563EB;
+  --color-blue-bg: rgba(37, 99, 235, 0.10);
+  --color-blue-border: rgba(37, 99, 235, 0.22);
+  --color-blue-text: #1D4ED8;
+
+  --color-amber-primary: #D97706;
+  --color-amber-bg: rgba(217, 119, 6, 0.12);
+  --color-amber-border: rgba(217, 119, 6, 0.25);
+  --color-amber-text: #B45309;
+
+  --color-rose-primary: #E11D48;
+  --color-rose-bg: rgba(255, 241, 242, 0.90);
+  --color-rose-border: rgba(225, 29, 72, 0.25);
+  --color-rose-text: #BE123C;
+
+  /* Opaque Modal Surfaces */
+  --modal-backdrop-bg: rgba(15, 23, 42, 0.45);
+  --modal-backdrop-blur: blur(6px);
+  --modal-card-surface: rgba(255, 255, 255, 0.96);
+  --modal-card-border: 1px solid rgba(255, 255, 255, 0.9);
+  --modal-card-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+}
+
+/* ==========================================================================
+   AMBIENT AURORA BACKGROUND
+   Porcelain base (#F4F7FB) + 3 fixed soft radial gradient aurora blobs
+   ========================================================================== */
+
+body, html {
+  background-color: var(--aurora-bg-base) !important;
+  color: var(--text-body) !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.aurora-workspace-root {
+  background-color: var(--aurora-bg-base);
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Fixed Ultra-Soft Aurora Blobs */
+.aurora-blobs-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.aurora-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.85;
+  will-change: transform;
+}
+
+.aurora-blob-emerald {
+  top: -8%;
+  right: 12%;
+  width: 550px;
+  height: 550px;
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.12) 0%, rgba(16, 185, 129, 0) 70%);
+}
+
+.aurora-blob-sky {
+  top: 30%;
+  left: 5%;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.09) 0%, rgba(14, 165, 233, 0) 70%);
+}
+
+.aurora-blob-indigo {
+  bottom: 5%;
+  right: 20%;
+  width: 580px;
+  height: 580px;
+  background: radial-gradient(circle, rgba(99, 102, 241, 0.07) 0%, rgba(99, 102, 241, 0) 70%);
+}
+
+/* ==========================================================================
+   STRICT WCAG HIGH-CONTRAST TYPOGRAPHY SYSTEM
+   Eliminates all invisible white-on-light text bugs
+   ========================================================================== */
+
+/* Page Hero Titles */
+.page-title-h1,
+h1.page-title-h1,
+.page-header-row h1,
+.admin-view-header h1 {
+  color: var(--text-hero) !important;
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  line-height: 1.25 !important;
+  margin: 0 !important;
+}
+
+.page-subtitle-p,
+.page-header-row p,
+.admin-view-header p {
+  color: var(--text-muted) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  line-height: 1.5 !important;
+  margin-top: 4px !important;
+}
+
+/* Card Titles & Section Headers */
+.card-title-h3,
+h3.card-title-h3,
+.card-header-row h3,
+.kpi-card-header h3,
+.trajectory-card h3,
+.section-title {
+  color: var(--text-title) !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  letter-spacing: -0.015em !important;
+  line-height: 1.35 !important;
+  margin: 0 !important;
+}
+
+.card-subtitle-p,
+.card-header-row p {
+  color: var(--text-caption) !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  line-height: 1.45 !important;
+}
+
+/* Hero Numbers & Currency Figures */
+.kpi-hero-num,
+.kpi-amount-val,
+.hero-currency,
+.currency-num,
+.tabular-currency {
+  color: var(--text-hero) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.02em !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+}
+
+/* Table Headings & Cell Data */
+table th,
+.table-head-th,
+.data-table-header th {
+  color: var(--text-title) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.04em !important;
+  background: rgba(241, 245, 249, 0.7) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9) !important;
+}
+
+table td,
+.data-table-row td {
+  color: var(--text-body) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.6) !important;
+}
+
+/* Global Currency Numbers Alignment & Non-wrapping */
+.amount-cell,
+.currency-amount,
+.font-mono,
+td:has(.tabular-currency),
+[data-currency] {
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+}
+
+/* ==========================================================================
+   MULTI-LAYERED FROSTED GLASS CARDS & BENTO GRID
+   ========================================================================== */
+
+/* Bento Card Surface */
+.kpi-card,
+.trajectory-card,
+.breakdown-card,
+.overview-bento-card,
+.bills-list-card,
+.alerts-card,
+.activity-card,
+.reliability-card,
+.admin-card-surface,
+.admin-stat-card,
+.admin-table-container,
+.neu-card-surface,
+.neu-surface-raised {
+  background: var(--glass-surface) !important;
+  backdrop-filter: var(--glass-backdrop-filter) !important;
+  -webkit-backdrop-filter: var(--glass-backdrop-filter) !important;
+  border: var(--glass-border) !important;
+  box-shadow: var(--glass-shadow) !important;
+  border-radius: var(--glass-radius-card) !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;
+}
+
+/* Hover Lift & Specular Glow */
+.kpi-card:hover,
+.admin-stat-card:hover,
+.overview-bento-card:hover,
+.neu-card-surface:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: var(--glass-shadow-hover) !important;
+  border-color: rgba(255, 255, 255, 1) !important;
+}
+
+/* Inner List Item Rows (12px rounded) */
+.bill-item-row,
+.income-item-row,
+.alert-item-card,
+.transaction-item-row,
+.notification-card-item,
+.admin-user-row {
+  border-radius: var(--glass-radius-item) !important;
+  background: rgba(255, 255, 255, 0.65) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8) !important;
+  transition: background 0.15s ease, transform 0.15s ease, border-color 0.15s ease !important;
+}
+
+.bill-item-row:hover,
+.income-item-row:hover,
+.alert-item-card:hover,
+.transaction-item-row:hover {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-color: rgba(203, 213, 225, 0.9) !important;
+  transform: translateY(-1px) !important;
+}
+
+/* ==========================================================================
+   TOP-RIGHT HEADER CONTROLS (FROSTED GLASS PILLS)
+   ========================================================================== */
+
+.app-header {
+  background: rgba(244, 247, 251, 0.82) !important;
+  backdrop-filter: blur(14px) !important;
+  -webkit-backdrop-filter: blur(14px) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.8) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+}
+
+/* Clean Frosted Glass Notification Bell Button */
+.btn-header-action {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  color: var(--text-hero) !important;
+  border-radius: var(--glass-radius-pill) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  width: 40px !important;
+  height: 40px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer !important;
+}
+
+.btn-header-action:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  color: var(--color-emerald-primary) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+.btn-header-action:active {
+  transform: scale(0.97) !important;
+}
+
+/* Clean Frosted Glass Profile Badge Pill ("Guest Explorer" or Name) */
+.user-profile-btn {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  color: var(--text-hero) !important;
+  border-radius: var(--glass-radius-pill) !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  padding: 4px 14px 4px 5px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 9px !important;
+  cursor: pointer !important;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.user-profile-btn:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  border-color: rgba(203, 213, 225, 1) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+}
+
+.user-profile-btn:active {
+  transform: scale(0.98) !important;
+}
+
+.user-avatar-circle {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 50% !important;
+  background: var(--color-emerald-gradient) !important;
+  color: #FFFFFF !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 2px 6px rgba(5, 150, 105, 0.3) !important;
+}
+
+.user-name-title {
+  color: var(--text-hero) !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+.user-role-sub {
+  color: var(--text-caption) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+}
+
+/* Header Date Badge */
+.header-date-badge {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  color: var(--text-body) !important;
+  border-radius: var(--glass-radius-pill) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  padding: 6px 14px !important;
+}
+
+/* Header Back Button */
+.header-back-btn {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(12px) !important;
+  border: 1px solid rgba(226, 232, 240, 0.9) !important;
+  color: var(--text-hero) !important;
+  border-radius: var(--glass-radius-pill) !important;
+  padding: 6px 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.05) !important;
+  transition: all 0.15s ease !important;
+}
+
+.header-back-btn:hover {
+  background: rgba(255, 255, 255, 1) !important;
+  color: var(--color-emerald-primary) !important;
+  transform: translateX(-2px) !important;
+}
+
+/* Primary Header Action Button (+ Add Record) */
+.btn-quick-add {
+  background: var(--color-emerald-gradient) !important;
+  border: 1px solid rgba(255, 255, 255, 0.25) !important;
+  color: #FFFFFF !important;
+  border-radius: var(--glass-radius-pill) !important;
+  padding: 8px 18px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 14px rgba(5, 150, 105, 0.3) !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.btn-quick-add:hover {
+  transform: translateY(-1px) scale(1.02) !important;
+  box-shadow: 0 6px 20px rgba(5, 150, 105, 0.4) !important;
+}
+
+.btn-quick-add:active {
+  transform: scale(0.98) !important;
+}
+
+/* ==========================================================================
+   SIDEBAR & DESKTOP BENTO GRID CLEAN ALIGNMENT
+   Eliminates wide empty gap between sidebar and content
+   ========================================================================== */
+
+.app-sidebar {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-right: 1px solid rgba(226, 232, 240, 0.85) !important;
+  box-shadow: 2px 0 16px rgba(15, 23, 42, 0.03) !important;
+  width: 250px !important;
+}
+
+.app-main-content {
+  margin-left: 250px !important;
+  width: calc(100% - 250px) !important;
+  min-height: 100vh !important;
+  background: transparent !important;
+}
+
+.page-container {
+  max-width: 1440px !important;
+  margin: 0 auto !important;
+  padding: 24px 32px 64px 32px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Sliding active glass pill in sidebar */
+.nav-link-btn {
+  border-radius: 10px !important;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  font-size: 13.5px !important;
+  transition: all 0.15s ease !important;
+}
+
+.nav-link-btn:hover {
+  color: var(--text-hero) !important;
+  background: rgba(241, 245, 249, 0.7) !important;
+}
+
+.nav-link-btn.active {
+  background: rgba(16, 185, 129, 0.10) !important;
+  color: var(--color-emerald-primary) !important;
+  border: 1px solid rgba(16, 185, 129, 0.22) !important;
+  font-weight: 700 !important;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.12) !important;
+}
+
+/* ==========================================================================
+   HIGH-OPACITY OPAQUE POPUP MODALS & DRAWERS
+   Prevents background text bleeding through
+   ========================================================================== */
+
+.modal-backdrop,
+.fixed.inset-0.bg-black\/50,
+.fixed.inset-0.bg-slate-950\/45 {
+  background: var(--modal-backdrop-bg) !important;
+  backdrop-filter: var(--modal-backdrop-blur) !important;
+  -webkit-backdrop-filter: var(--modal-backdrop-blur) !important;
+  z-index: 9999 !important;
+}
+
+.modal-content-card,
+.modal-surface-dialog {
+  background: var(--modal-card-surface) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border: var(--modal-card-border) !important;
+  box-shadow: var(--modal-card-shadow) !important;
+  border-radius: 20px !important;
+  color: var(--text-hero) !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+.modal-header-bar h3,
+.modal-content-card h3 {
+  color: var(--text-hero) !important;
+  font-size: 17px !important;
+  font-weight: 700 !important;
+}
+
+.modal-content-card label {
+  color: var(--text-body) !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+}
+
+.modal-content-card input,
+.modal-content-card select,
+.modal-content-card textarea,
+.form-input-control {
+  background: #FFFFFF !important;
+  border: 1px solid rgba(203, 213, 225, 0.85) !important;
+  border-radius: 10px !important;
+  color: var(--text-hero) !important;
+  font-size: 13.5px !important;
+  transition: all 0.15s ease !important;
+}
+
+.modal-content-card input:focus,
+.modal-content-card select:focus,
+.modal-content-card textarea:focus,
+.form-input-control:focus,
+input:focus, select:focus {
+  outline: none !important;
+  border-color: var(--color-emerald-light) !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.20) !important;
+}
+
+/* ==========================================================================
+   SEMANTIC STATUS BADGES (PILL SHAPE 9999px)
+   ========================================================================== */
+
+.status-badge,
+.kpi-status-badge {
+  border-radius: var(--glass-radius-pill) !important;
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  white-space: nowrap !important;
+}
+
+/* Emerald Healthy / Received */
+.status-badge.received,
+.status-badge.paid,
+.status-badge.confirmed,
+.kpi-status-badge.positive {
+  background: var(--color-emerald-bg) !important;
+  color: var(--color-emerald-text) !important;
+  border: 1px solid var(--color-emerald-border) !important;
+}
+
+/* Royal Blue Confirmed / Scheduled */
+.status-badge.scheduled,
+.status-badge.royal {
+  background: var(--color-blue-bg) !important;
+  color: var(--color-blue-text) !important;
+  border: 1px solid var(--color-blue-border) !important;
+}
+
+/* Warm Amber Warning / Uncertain */
+.status-badge.uncertain,
+.status-badge.upcoming,
+.status-badge.due_today,
+.kpi-status-badge.warning {
+  background: var(--color-amber-bg) !important;
+  color: var(--color-amber-text) !important;
+  border: 1px solid var(--color-amber-border) !important;
+}
+
+/* Crisp Rose Overdue / Critical */
+.status-badge.overdue,
+.status-badge.deficit,
+.kpi-status-badge.danger {
+  background: var(--color-rose-bg) !important;
+  color: var(--color-rose-text) !important;
+  border: 1px solid var(--color-rose-border) !important;
+}
+
+/* ==========================================================================
+   MICRO-INTERACTIONS & MOTION ENHANCEMENTS
+   ========================================================================== */
+
+/* Button Shine Sweep & Press Depth */
+button.btn-primary,
+button.btn-quick-add,
+.btn-action-primary {
+  position: relative;
+  overflow: hidden;
+}
+
+button.btn-primary::after,
+button.btn-quick-add::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -60%;
+  width: 40%;
+  height: 200%;
+  background: linear-gradient(
+    60deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: rotate(25deg);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+button.btn-primary:hover::after,
+button.btn-quick-add:hover::after {
+  opacity: 1;
+  animation: buttonShineSweep 1.2s ease forwards;
+}
+
+@keyframes buttonShineSweep {
+  0% { transform: translateX(0) rotate(25deg); }
+  100% { transform: translateX(450%) rotate(25deg); }
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================================================
+   ADMIN PANEL GLASSMORPHIC UPGRADE
+   Applies high-contrast obsidian & frosted glass across /admin
+   ========================================================================== */
+
+.admin-portal-root {
+  background: #F4F7FB !important;
+  color: var(--text-body) !important;
+}
+
+.admin-portal-root .admin-sidebar {
+  background: rgba(255, 255, 255, 0.90) !important;
+  backdrop-filter: blur(20px) !important;
+  border-right: 1px solid rgba(226, 232, 240, 0.85) !important;
+}
+
+.admin-portal-root .admin-sidebar h1,
+.admin-portal-root .admin-sidebar .admin-brand-title {
+  color: var(--text-hero) !important;
+}
+
+.admin-portal-root .admin-nav-item {
+  color: var(--text-muted) !important;
+  border-radius: 10px !important;
+}
+
+.admin-portal-root .admin-nav-item:hover {
+  background: rgba(241, 245, 249, 0.85) !important;
+  color: var(--text-hero) !important;
+}
+
+.admin-portal-root .admin-nav-item.active {
+  background: rgba(99, 102, 241, 0.12) !important;
+  color: #4F46E5 !important;
+  border: 1px solid rgba(99, 102, 241, 0.25) !important;
+  font-weight: 700 !important;
+}
+
+.admin-portal-root .admin-header {
+  background: rgba(244, 247, 251, 0.85) !important;
+  backdrop-filter: blur(14px) !important;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.85) !important;
+}
+
+.admin-portal-root .admin-stat-card,
+.admin-portal-root .admin-card,
+.admin-portal-root .admin-table-container {
+  background: rgba(255, 255, 255, 0.76) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.88) !important;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.05), 0 10px 30px -10px rgba(15, 23, 42, 0.06) !important;
+  border-radius: 16px !important;
+}
+
+.admin-portal-root .admin-stat-value {
+  color: var(--text-hero) !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums !important;
+  white-space: nowrap !important;
+}
+
+.admin-portal-root .admin-stat-label {
+  color: var(--text-caption) !important;
+  font-weight: 600 !important;
+}
+
+/* Responsive Rules */
+@media (max-width: 1024px) {
+  .app-sidebar {
+    width: 230px !important;
+  }
+  .app-main-content {
+    margin-left: 230px !important;
+    width: calc(100% - 230px) !important;
+  }
+  .page-container {
+    padding: 20px 24px 48px 24px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+  .page-container {
+    padding: 16px 18px 80px 18px !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

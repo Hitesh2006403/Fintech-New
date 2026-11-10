@@ -44,10 +44,10 @@ export function AdminIssuesView() {
         gap: 16
       }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#0F172A', margin: '0 0 4px 0' }}>
             Feedback & Reported Issues
           </h2>
-          <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#475569', margin: 0 }}>
             Track client concerns, authentication queries, and platform feature requests.
           </p>
         </div>
@@ -56,11 +56,11 @@ export function AdminIssuesView() {
           display: 'flex',
           alignItems: 'center',
           gap: 8,
-          background: 'rgba(239, 68, 68, 0.1)',
-          border: '1px solid rgba(239, 68, 68, 0.3)',
+          background: 'rgba(239, 68, 68, 0.08)',
+          border: '1px solid rgba(239, 68, 68, 0.25)',
           padding: '6px 14px',
           borderRadius: 10,
-          color: '#F87171',
+          color: '#DC2626',
           fontSize: 12.5,
           fontWeight: 700
         }}>
@@ -76,11 +76,13 @@ export function AdminIssuesView() {
         justifyContent: 'space-between',
         gap: 14,
         flexWrap: 'wrap',
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
         borderRadius: 14,
-        padding: '14px 18px'
+        padding: '14px 18px',
+        boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
       }}>
         <div style={{ position: 'relative', flex: '1 1 280px' }}>
           <Search size={16} color="#64748B" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
@@ -92,10 +94,10 @@ export function AdminIssuesView() {
             style={{
               width: '100%',
               padding: '9px 14px 9px 40px',
-              background: 'rgba(10, 15, 25, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.09)',
+              background: '#FFFFFF',
+              border: '1px solid rgba(203, 213, 225, 0.8)',
               borderRadius: 8,
-              color: '#F8FAFC',
+              color: '#0F172A',
               fontSize: 13,
               outline: 'none',
               boxSizing: 'border-box'
@@ -112,9 +114,9 @@ export function AdminIssuesView() {
               style={{
                 padding: '7px 12px',
                 borderRadius: 8,
-                border: 'none',
-                background: filterStatus === st ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                color: filterStatus === st ? '#818CF8' : '#94A3B8',
+                border: filterStatus === st ? '1px solid rgba(79, 70, 229, 0.25)' : '1px solid rgba(226, 232, 240, 0.8)',
+                background: filterStatus === st ? 'rgba(79, 70, 229, 0.12)' : 'rgba(241, 245, 249, 0.8)',
+                color: filterStatus === st ? '#4338CA' : '#475569',
                 fontSize: 12,
                 fontWeight: 700,
                 cursor: 'pointer',
@@ -131,8 +133,9 @@ export function AdminIssuesView() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
         {filteredIssues.length === 0 ? (
           <div style={{
-            background: 'rgba(14, 21, 34, 0.78)',
-            border: '1px solid rgba(255, 255, 255, 0.07)',
+            background: 'rgba(255, 255, 255, 0.78)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
             borderRadius: 16,
             padding: 40,
             textAlign: 'center',
@@ -147,15 +150,16 @@ export function AdminIssuesView() {
 
             const severityColor =
               issue.severity === 'high' ? '#EF4444' :
-              issue.severity === 'medium' ? '#F59E0B' : '#818CF8';
+              issue.severity === 'medium' ? '#F59E0B' : '#4F46E5';
 
             return (
               <div
                 key={issue.id}
                 style={{
-                  background: 'rgba(14, 21, 34, 0.78)',
+                  background: 'rgba(255, 255, 255, 0.78)',
                   backdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255, 255, 255, 0.07)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  border: '1px solid rgba(226, 232, 240, 0.9)',
                   borderLeft: `4px solid ${severityColor}`,
                   borderRadius: 14,
                   padding: '18px 20px',
@@ -163,7 +167,7 @@ export function AdminIssuesView() {
                   alignItems: 'flex-start',
                   justifyContent: 'space-between',
                   gap: 16,
-                  boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+                  boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
                 }}
               >
                 <div style={{ flex: 1 }}>
@@ -174,9 +178,9 @@ export function AdminIssuesView() {
                       textTransform: 'uppercase',
                       padding: '2px 8px',
                       borderRadius: 6,
-                      background: `${severityColor}22`,
+                      background: `${severityColor}15`,
                       color: severityColor,
-                      border: `1px solid ${severityColor}44`
+                      border: `1px solid ${severityColor}35`
                     }}>
                       {issue.severity || 'normal'}
                     </span>
@@ -190,23 +194,23 @@ export function AdminIssuesView() {
                       fontWeight: 700,
                       padding: '2px 8px',
                       borderRadius: 6,
-                      background: isResolved ? 'rgba(16, 185, 129, 0.15)' : isInProgress ? 'rgba(245, 158, 11, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                      color: isResolved ? '#34D399' : isInProgress ? '#FBBF24' : '#F87171'
+                      background: isResolved ? 'rgba(16, 185, 129, 0.12)' : isInProgress ? 'rgba(245, 158, 11, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                      color: isResolved ? '#059669' : isInProgress ? '#D97706' : '#DC2626'
                     }}>
                       {issue.status.replace('_', ' ')}
                     </span>
                   </div>
 
-                  <h4 style={{ fontSize: 15, fontWeight: 700, color: '#F8FAFC', margin: '0 0 6px 0' }}>
+                  <h4 style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', margin: '0 0 6px 0' }}>
                     {issue.title}
                   </h4>
 
-                  <p style={{ fontSize: 13, color: '#94A3B8', margin: '0 0 10px 0', lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 13, color: '#334155', margin: '0 0 10px 0', lineHeight: 1.5 }}>
                     {issue.description}
                   </p>
 
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, fontSize: 12, color: '#64748B' }}>
-                    <span>Reported by: <strong style={{ color: '#F8FAFC' }}>{issue.userName || issue.reportedBy}</strong></span>
+                    <span>Reported by: <strong style={{ color: '#0F172A' }}>{issue.userName || issue.reportedBy}</strong></span>
                     <span>•</span>
                     <span>{issue.createdAt ? new Date(issue.createdAt).toLocaleDateString() : 'Today'}</span>
                   </div>
@@ -219,10 +223,10 @@ export function AdminIssuesView() {
                       onClick={() => updateIssueStatus(issue.id, 'resolved')}
                       style={{
                         padding: '7px 14px',
-                        background: 'rgba(16, 185, 129, 0.15)',
-                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        border: '1px solid rgba(16, 185, 129, 0.25)',
                         borderRadius: 8,
-                        color: '#34D399',
+                        color: '#059669',
                         fontSize: 12,
                         fontWeight: 700,
                         cursor: 'pointer',
@@ -242,10 +246,10 @@ export function AdminIssuesView() {
                       onClick={() => updateIssueStatus(issue.id, 'in_progress')}
                       style={{
                         padding: '7px 14px',
-                        background: 'rgba(245, 158, 11, 0.15)',
-                        border: '1px solid rgba(245, 158, 11, 0.35)',
+                        background: 'rgba(245, 158, 11, 0.12)',
+                        border: '1px solid rgba(245, 158, 11, 0.25)',
                         borderRadius: 8,
-                        color: '#FBBF24',
+                        color: '#D97706',
                         fontSize: 12,
                         fontWeight: 700,
                         cursor: 'pointer'
@@ -261,11 +265,12 @@ export function AdminIssuesView() {
                       onClick={() => updateIssueStatus(issue.id, 'open')}
                       style={{
                         padding: '7px 14px',
-                        background: 'rgba(255, 255, 255, 0.05)',
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
+                        background: 'rgba(241, 245, 249, 0.8)',
+                        border: '1px solid rgba(203, 213, 225, 0.8)',
                         borderRadius: 8,
-                        color: '#94A3B8',
+                        color: '#475569',
                         fontSize: 12,
+                        fontWeight: 600,
                         cursor: 'pointer'
                       }}
                     >

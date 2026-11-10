@@ -7,37 +7,37 @@
 .admin-portal-root,
 .admin-login-wrapper {
   /* Admin Scoped Palette */
-  --adm-bg-base: #090D14;
-  --adm-bg-surface: #0E1522;
-  --adm-bg-card: rgba(14, 21, 34, 0.88);
-  --adm-bg-card-hover: rgba(20, 30, 48, 0.85);
-  --adm-bg-card-solid: #111A29;
-  --adm-bg-sidebar: rgba(10, 15, 25, 0.94);
-  --adm-bg-header: rgba(10, 15, 25, 0.88);
-  --adm-bg-input: rgba(8, 12, 20, 0.75);
+  --adm-bg-base: #F4F7FB;
+  --adm-bg-surface: #FFFFFF;
+  --adm-bg-card: rgba(255, 255, 255, 0.76);
+  --adm-bg-card-hover: rgba(255, 255, 255, 0.88);
+  --adm-bg-card-solid: #FFFFFF;
+  --adm-bg-sidebar: rgba(255, 255, 255, 0.90);
+  --adm-bg-header: rgba(244, 247, 251, 0.85);
+  --adm-bg-input: #FFFFFF;
 
   /* Primary Accent: Executive Sovereign Indigo */
-  --adm-accent: #6366F1;
-  --adm-accent-hover: #4F46E5;
-  --adm-accent-light: #818CF8;
-  --adm-accent-faint: #A5B4FC;
-  --adm-accent-bg: rgba(99, 102, 241, 0.12);
-  --adm-accent-bg-hover: rgba(99, 102, 241, 0.2);
-  --adm-accent-border: rgba(99, 102, 241, 0.32);
-  --adm-accent-glow: rgba(99, 102, 241, 0.18);
+  --adm-accent: #4F46E5;
+  --adm-accent-hover: #4338CA;
+  --adm-accent-light: #6366F1;
+  --adm-accent-faint: #EEF2FF;
+  --adm-accent-bg: rgba(99, 102, 241, 0.10);
+  --adm-accent-bg-hover: rgba(99, 102, 241, 0.18);
+  --adm-accent-border: rgba(99, 102, 241, 0.28);
+  --adm-accent-glow: rgba(99, 102, 241, 0.14);
   --adm-accent-gradient: linear-gradient(135deg, #4F46E5 0%, #6366F1 100%);
 
   /* Border Tokens */
-  --adm-border-subtle: rgba(255, 255, 255, 0.07);
-  --adm-border-card: rgba(255, 255, 255, 0.09);
-  --adm-border-highlight: rgba(255, 255, 255, 0.15);
+  --adm-border-subtle: rgba(226, 232, 240, 0.8);
+  --adm-border-card: rgba(255, 255, 255, 0.88);
+  --adm-border-highlight: rgba(255, 255, 255, 1);
   --adm-border-accent: rgba(99, 102, 241, 0.35);
 
-  /* Text Hierarchy */
-  --adm-text-primary: #F8FAFC;
-  --adm-text-secondary: #94A3B8;
-  --adm-text-muted: #64748B;
-  --adm-text-faint: #475569;
+  /* Text Hierarchy - Strict High Contrast */
+  --adm-text-primary: #0F172A;
+  --adm-text-secondary: #334155;
+  --adm-text-muted: #475569;
+  --adm-text-faint: #64748B;
 
   /* Status Tokens */
   --adm-status-success: #10B981;
@@ -52,10 +52,10 @@
   --adm-status-danger-bg: rgba(239, 68, 68, 0.1);
   --adm-status-danger-border: rgba(239, 68, 68, 0.25);
 
-  /* Shadows */
-  --adm-shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.35);
-  --adm-shadow-card: 0 8px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  --adm-shadow-hover: 0 16px 40px rgba(0, 0, 0, 0.55), 0 0 20px rgba(99, 102, 241, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+  /* Shadows - Soft Modern Frosted Elevation */
+  --adm-shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --adm-shadow-card: 0 10px 25px -5px rgba(15, 23, 42, 0.05), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --adm-shadow-hover: 0 20px 35px -8px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05);
 }
 
 /* ==========================================================================
@@ -71,7 +71,7 @@
   z-index: 0;
   overflow: hidden;
   user-select: none;
-  background-color: #090D14;
+  background-color: #F4F7FB;
 }
 
 .admin-bg-base {
@@ -658,8 +658,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 10px 14px;
-  background: rgba(10, 15, 25, 0.85);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(241, 245, 249, 0.85);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: 10px;
   gap: 10px;
 }
@@ -669,9 +669,9 @@
   align-items: center;
   justify-content: space-between;
   padding: 14px 16px;
-  background: rgba(11, 18, 32, 0.6);
+  background: rgba(241, 245, 249, 0.85);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(226, 232, 240, 0.9);
   gap: 12px;
 }
 

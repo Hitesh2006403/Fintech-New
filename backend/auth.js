@@ -87,7 +87,19 @@ export async function processGoogleAuth({ token }) {
   // 2. Check if user exists by email
   const existingByEmail = db.getUserByEmail(googleData.email);
   if (existingByEmail) {
-    // If user has local password account with a password set and without Google sub linked
+    // If user is an authorized administrator, Google OAuth is trusted — link Google credentials directly
+    if (isAdmin) {
+      user = db.updateUser(existingByEmail.id, {
+        googleSub: googleData.googleSub,
+        picture: googleData.picture || existingByEmail.picture,
+        name: existingByEmail.name || googleData.name,
+        role: 'Super Administrator',
+        onboardingCompleted: true
+      });
+      return { status: 'authenticated', user, isAdmin: true };
+    }
+
+    // If non-admin user has local password account with a password set and without Google sub linked
     if (!existingByEmail.googleSub && existingByEmail.passwordHash && existingByEmail.authProvider === 'local') {
       return {
         status: 'account_conflict',
@@ -97,14 +109,13 @@ export async function processGoogleAuth({ token }) {
         message: 'An account with this email already exists using password. Please enter your account password to securely link your Google account.'
       };
     }
-    // Link Google credentials and ensure role elevation if admin
+    // Link Google credentials
     user = db.updateUser(existingByEmail.id, {
       googleSub: googleData.googleSub,
       picture: googleData.picture || existingByEmail.picture,
-      name: existingByEmail.name || googleData.name,
-      ...(isAdmin ? { role: 'Super Administrator', onboardingCompleted: true } : {})
+      name: existingByEmail.name || googleData.name
     });
-    return { status: 'authenticated', user, isAdmin };
+    return { status: 'authenticated', user, isAdmin: false };
   }
 
   // 3. New user registration via Google

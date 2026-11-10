@@ -309,7 +309,7 @@ function readJSON(file, fallback) {
     }
     return parsed;
   } catch (err) {
-    console.error(`Error reading ${file}:`, err);
+    console.error(`Error reading ${file}:`, err.message);
     return fallback;
   }
 }
@@ -318,7 +318,7 @@ function writeJSON(file, data) {
   try {
     fs.writeFileSync(file, JSON.stringify(data, null, 2), 'utf8');
   } catch (err) {
-    console.error(`Error writing ${file}:`, err);
+    console.error(`Error writing ${file}:`, err.message);
   }
 }
 
@@ -1131,7 +1131,9 @@ export const db = {
       return true;
     }
 
-    const primaryAdmin = process.env.ADMIN_EMAIL ? process.env.ADMIN_EMAIL.trim().toLowerCase() : null;
+    const primaryAdmin = (process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL)
+      ? (process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL).trim().toLowerCase()
+      : null;
     if (primaryAdmin && normalized === primaryAdmin) {
       return true;
     }
@@ -1155,7 +1157,36 @@ export const db = {
       // Fallback
     }
 
+    // Check user database for provisioned administrators
+    try {
+      const user = this.getUserByEmail(normalized);
+      if (user && (user.role === 'Super Administrator' || user.isAdmin === true || user.role === 'super_admin')) {
+        return true;
+      }
+    } catch (e) {
+      // Fallback
+    }
+
     return false;
+  },
+
+  getAuthorizedAdminEmails() {
+    const builtInAdmins = ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'];
+    const primaryAdmin = (process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL)
+      ? (process.env.ADMIN_EMAIL || process.env.VITE_ADMIN_EMAIL).trim().toLowerCase()
+      : null;
+    const envList = process.env.ADMIN_EMAILS
+      ? process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+      : [];
+    let settingsList = [];
+    try {
+      const settings = readJSON(SETTINGS_FILE, null);
+      if (settings?.authorizedAdminEmails && Array.isArray(settings.authorizedAdminEmails)) {
+        settingsList = settings.authorizedAdminEmails.map(e => e.trim().toLowerCase()).filter(Boolean);
+      }
+    } catch (e) {}
+
+    return [...new Set([...builtInAdmins, primaryAdmin, ...envList, ...settingsList].filter(Boolean))];
   },
 
   getAdminStats() {

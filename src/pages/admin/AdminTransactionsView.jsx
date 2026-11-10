@@ -71,10 +71,10 @@ export function AdminTransactionsView() {
         gap: 16
       }}>
         <div>
-          <h2 style={{ fontSize: 22, fontWeight: 800, color: '#F8FAFC', margin: '0 0 4px 0' }}>
+          <h2 style={{ fontSize: 22, fontWeight: 700, color: '#0F172A', margin: '0 0 4px 0', letterSpacing: '-0.02em' }}>
             Platform Transactions
           </h2>
-          <p style={{ fontSize: 13, color: '#94A3B8', margin: 0 }}>
+          <p style={{ fontSize: 13, color: '#475569', margin: 0, fontWeight: 500 }}>
             Audit financial transactions, deposits, and bill obligations across all user accounts.
           </p>
         </div>
@@ -87,18 +87,18 @@ export function AdminTransactionsView() {
             alignItems: 'center',
             gap: 8,
             padding: '9px 16px',
-            background: 'rgba(99, 102, 241, 0.12)',
-            border: '1px solid rgba(129, 140, 248, 0.3)',
+            background: 'rgba(37, 99, 235, 0.08)',
+            border: '1px solid rgba(37, 99, 235, 0.25)',
             borderRadius: 10,
-            color: '#818CF8',
+            color: '#1D4ED8',
             fontSize: 13,
             fontWeight: 700,
             cursor: 'pointer',
-            boxShadow: '0 2px 12px rgba(99, 102, 241, 0.15)',
+            boxShadow: '0 2px 10px rgba(37, 99, 235, 0.08)',
             transition: 'all 0.15s ease'
           }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.22)'; e.currentTarget.style.color = '#FFFFFF'; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.12)'; e.currentTarget.style.color = '#818CF8'; }}
+          onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.16)'; }}
+          onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(37, 99, 235, 0.08)'; }}
         >
           <Download size={15} />
           <span>Export CSV Report</span>
@@ -112,11 +112,13 @@ export function AdminTransactionsView() {
         justifyContent: 'space-between',
         gap: 14,
         flexWrap: 'wrap',
-        background: 'rgba(14, 21, 34, 0.78)',
+        background: 'rgba(255, 255, 255, 0.78)',
         backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
+        WebkitBackdropFilter: 'blur(20px)',
+        border: '1px solid rgba(226, 232, 240, 0.9)',
         borderRadius: 14,
-        padding: '14px 18px'
+        padding: '14px 18px',
+        boxShadow: '0 4px 20px -4px rgba(15, 23, 42, 0.04)'
       }}>
         <div style={{ position: 'relative', flex: '1 1 280px' }}>
           <Search size={16} color="#64748B" style={{ position: 'absolute', left: 14, top: '50%', transform: 'translateY(-50%)' }} />
@@ -128,10 +130,10 @@ export function AdminTransactionsView() {
             style={{
               width: '100%',
               padding: '9px 14px 9px 40px',
-              background: 'rgba(10, 15, 25, 0.85)',
-              border: '1px solid rgba(255, 255, 255, 0.09)',
+              background: '#FFFFFF',
+              border: '1px solid rgba(203, 213, 225, 0.8)',
               borderRadius: 8,
-              color: '#F8FAFC',
+              color: '#0F172A',
               fontSize: 13,
               outline: 'none',
               boxSizing: 'border-box'
@@ -150,9 +152,9 @@ export function AdminTransactionsView() {
                 style={{
                   padding: '6px 12px',
                   borderRadius: 8,
-                  border: 'none',
-                  background: typeFilter === tp ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                  color: typeFilter === tp ? '#818CF8' : '#94A3B8',
+                  border: typeFilter === tp ? '1px solid rgba(79, 70, 229, 0.25)' : '1px solid rgba(226, 232, 240, 0.8)',
+                  background: typeFilter === tp ? 'rgba(79, 70, 229, 0.12)' : 'rgba(241, 245, 249, 0.8)',
+                  color: typeFilter === tp ? '#4338CA' : '#475569',
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: 'pointer',
@@ -164,7 +166,7 @@ export function AdminTransactionsView() {
             ))}
           </div>
 
-          <div style={{ width: 1, height: 20, background: 'rgba(255, 255, 255, 0.1)' }} />
+          <div style={{ width: 1, height: 20, background: 'rgba(226, 232, 240, 0.9)' }} />
 
           {/* Status filters */}
           <div style={{ display: 'flex', gap: 6 }}>
@@ -176,9 +178,9 @@ export function AdminTransactionsView() {
                 style={{
                   padding: '6px 12px',
                   borderRadius: 8,
-                  border: 'none',
-                  background: statusFilter === st ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255, 255, 255, 0.04)',
-                  color: statusFilter === st ? '#818CF8' : '#94A3B8',
+                  border: statusFilter === st ? '1px solid rgba(79, 70, 229, 0.25)' : '1px solid rgba(226, 232, 240, 0.8)',
+                  background: statusFilter === st ? 'rgba(79, 70, 229, 0.12)' : 'rgba(241, 245, 249, 0.8)',
+                  color: statusFilter === st ? '#4338CA' : '#475569',
                   fontSize: 12,
                   fontWeight: 700,
                   cursor: 'pointer'
@@ -193,29 +195,29 @@ export function AdminTransactionsView() {
 
       {/* Transactions Table */}
       <div style={{
-        background: 'rgba(14, 21, 34, 0.78)',
-        backdropFilter: 'blur(20px)',
-        border: '1px solid rgba(255, 255, 255, 0.07)',
+        background: 'rgba(255, 255, 255, 0.76)',
+        backdropFilter: 'blur(16px) saturate(180%)',
+        border: '1px solid rgba(255, 255, 255, 0.88)',
         borderRadius: 16,
         padding: '20px',
-        boxShadow: '0 8px 32px 0 rgba(0, 0, 0, 0.4)'
+        boxShadow: '0 0 0 1px rgba(15, 23, 42, 0.05), 0 10px 30px -10px rgba(15, 23, 42, 0.06)'
       }}>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
-              <tr style={{ borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Tx Record</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>User Account</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Category</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Date</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8' }}>Status</th>
-                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#94A3B8', textAlign: 'right' }}>Amount</th>
+              <tr style={{ borderBottom: '1px solid rgba(226, 232, 240, 0.9)', background: 'rgba(241, 245, 249, 0.6)' }}>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Tx Record</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>User Account</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Category</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Date</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Status</th>
+                <th style={{ padding: '12px 14px', fontSize: 12, fontWeight: 700, color: '#1E293B', textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Amount</th>
               </tr>
             </thead>
             <tbody>
               {filteredTx.length === 0 ? (
                 <tr>
-                  <td colSpan="6" style={{ padding: '36px', textAlign: 'center', color: '#64748B', fontSize: 14 }}>
+                  <td colSpan="6" style={{ padding: '36px', textAlign: 'center', color: '#64748B', fontSize: 14, fontWeight: 500 }}>
                     No transactions matching your filter criteria.
                   </td>
                 </tr>
@@ -228,10 +230,10 @@ export function AdminTransactionsView() {
                     <tr
                       key={tx.id}
                       style={{
-                        borderBottom: '1px solid rgba(255, 255, 255, 0.05)',
+                        borderBottom: '1px solid rgba(226, 232, 240, 0.7)',
                         transition: 'background 0.15s ease'
                       }}
-                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(99, 102, 241, 0.04)'; }}
+                      onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(241, 245, 249, 0.7)'; }}
                       onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                     >
                       <td style={{ padding: '14px' }}>
@@ -240,8 +242,8 @@ export function AdminTransactionsView() {
                             width: 32,
                             height: 32,
                             borderRadius: 8,
-                            background: isIncome ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-                            color: isIncome ? '#34D399' : '#F87171',
+                            background: isIncome ? 'rgba(16, 185, 129, 0.12)' : 'rgba(239, 68, 68, 0.12)',
+                            color: isIncome ? '#059669' : '#DC2626',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -250,10 +252,10 @@ export function AdminTransactionsView() {
                             {isIncome ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
                           </div>
                           <div>
-                            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#F8FAFC' }}>
+                            <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0F172A' }}>
                               {tx.title}
                             </div>
-                            <div style={{ fontSize: 11, color: '#64748B' }}>
+                            <div style={{ fontSize: 11, color: '#64748B', fontWeight: 500 }}>
                               ID: {tx.id}
                             </div>
                           </div>
@@ -261,15 +263,15 @@ export function AdminTransactionsView() {
                       </td>
 
                       <td style={{ padding: '14px' }}>
-                        <div style={{ fontSize: 13, color: '#F8FAFC', fontWeight: 600 }}>{tx.userName}</div>
-                        <div style={{ fontSize: 11.5, color: '#94A3B8' }}>{tx.email}</div>
+                        <div style={{ fontSize: 13, color: '#1E293B', fontWeight: 600 }}>{tx.userName}</div>
+                        <div style={{ fontSize: 11.5, color: '#64748B' }}>{tx.email}</div>
                       </td>
 
-                      <td style={{ padding: '14px', fontSize: 13, color: '#94A3B8' }}>
+                      <td style={{ padding: '14px', fontSize: 13, color: '#334155', fontWeight: 500 }}>
                         {tx.category || 'General'}
                       </td>
 
-                      <td style={{ padding: '14px', fontSize: 12.5, color: '#94A3B8' }}>
+                      <td style={{ padding: '14px', fontSize: 12.5, color: '#334155', fontWeight: 500 }}>
                         {tx.date}
                       </td>
 
@@ -279,9 +281,9 @@ export function AdminTransactionsView() {
                           fontWeight: 700,
                           padding: '3px 8px',
                           borderRadius: 6,
-                          background: isCompleted ? 'rgba(16, 185, 129, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-                          color: isCompleted ? '#34D399' : '#FBBF24',
-                          border: `1px solid ${isCompleted ? 'rgba(16, 185, 129, 0.3)' : 'rgba(245, 158, 11, 0.3)'}`
+                          background: isCompleted ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                          color: isCompleted ? '#065F46' : '#92400E',
+                          border: `1px solid ${isCompleted ? 'rgba(16, 185, 129, 0.25)' : 'rgba(245, 158, 11, 0.25)'}`
                         }}>
                           {tx.status}
                         </span>
@@ -291,8 +293,10 @@ export function AdminTransactionsView() {
                         padding: '14px',
                         textAlign: 'right',
                         fontSize: 14,
-                        fontWeight: 800,
-                        color: isIncome ? '#34D399' : '#F8FAFC'
+                        fontWeight: 700,
+                        color: isIncome ? '#059669' : '#0F172A',
+                        fontVariantNumeric: 'tabular-nums',
+                        whiteSpace: 'nowrap'
                       }}>
                         {isIncome ? `+${formatINR(tx.amount)}` : `-${formatINR(tx.amount)}`}
                       </td>

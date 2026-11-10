@@ -115,12 +115,12 @@ export function Sidebar() {
                   marginLeft: 'auto',
                   fontSize: 10,
                   fontWeight: 700,
-                  background: 'rgba(56, 189, 248, 0.15)',
-                  color: '#38BDF8',
-                  border: '1px solid rgba(56, 189, 248, 0.3)',
+                  background: 'rgba(5, 150, 105, 0.12)',
+                  color: '#059669',
+                  border: '1px solid rgba(5, 150, 105, 0.28)',
                   padding: '2px 7px',
                   borderRadius: 10,
-                  boxShadow: '0 0 10px rgba(56, 189, 248, 0.15)'
+                  boxShadow: '0 1px 3px rgba(5, 150, 105, 0.15)'
                 }}>
                   {item.badge}
                 </span>

@@ -61,61 +61,85 @@ export function CashFlowForecast() {
       <div className="card" style={{ padding: '16px 20px', marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
         {/* Scenario Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: '100%' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0 }}>Scenario:</span>
-          <div className="filter-chips-row" style={{ display: 'flex', background: 'rgba(11, 18, 32, 0.8)', padding: 4, borderRadius: 10, border: '1px solid var(--border-glass)', gap: 4, maxWidth: '100%' }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--neu-text-primary, #172033)', flexShrink: 0 }}>Scenario:</span>
+          <div className="filter-chips-row" style={{
+            display: 'flex',
+            background: 'var(--neu-bg-primary, #E9EEF3)',
+            padding: 4,
+            borderRadius: 12,
+            border: '1px solid var(--neu-border, #DCE4EB)',
+            boxShadow: 'var(--neu-shadow-inset-sm, inset 2px 2px 5px rgba(163, 177, 198, 0.25), inset -2px -2px 5px rgba(255, 255, 255, 0.85))',
+            gap: 4,
+            maxWidth: '100%'
+          }}>
             {[
               { id: 'conservative', label: 'Conservative', note: 'No future income counted' },
               { id: 'expected', label: 'Expected', note: 'Confirmed contracts only' },
               { id: 'optimistic', label: 'Optimistic', note: 'Includes speculative proposals' }
-            ].map(sc => (
-              <button
-                key={sc.id}
-                type="button"
-                style={{
-                  border: scenario === sc.id ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid transparent',
-                  background: scenario === sc.id ? 'linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(167, 139, 250, 0.25) 100%)' : 'transparent',
-                  color: scenario === sc.id ? '#FFFFFF' : 'var(--text-secondary)',
-                  fontWeight: scenario === sc.id ? 700 : 500,
-                  fontSize: 12.5,
-                  padding: '7px 14px',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: scenario === sc.id ? '0 0 12px rgba(56, 189, 248, 0.2)' : 'none'
-                }}
-                onClick={() => setScenario(sc.id)}
-              >
-                {sc.label}
-              </button>
-            ))}
+            ].map(sc => {
+              const isActive = scenario === sc.id;
+              return (
+                <button
+                  key={sc.id}
+                  type="button"
+                  style={{
+                    border: isActive ? '1px solid var(--neu-brand-primary, #059669)' : '1px solid transparent',
+                    background: isActive ? 'var(--neu-brand-gradient, linear-gradient(135deg, #059669 0%, #047857 100%))' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'var(--neu-text-secondary, #64748B)',
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: 12.5,
+                    padding: '7px 14px',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    boxShadow: isActive ? '2px 2px 6px rgba(5, 150, 105, 0.35), -1px -1px 4px rgba(255, 255, 255, 0.7)' : 'none'
+                  }}
+                  onClick={() => setScenario(sc.id)}
+                >
+                  {sc.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
         {/* Time Horizon Toggle */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, maxWidth: '100%' }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--text-primary)', flexShrink: 0 }}>Horizon:</span>
-          <div className="filter-chips-row" style={{ display: 'flex', background: 'rgba(11, 18, 32, 0.8)', padding: 4, borderRadius: 10, border: '1px solid var(--border-glass)', gap: 4, maxWidth: '100%' }}>
-            {[7, 14, 30, 60, 90].map(d => (
-              <button
-                key={d}
-                type="button"
-                style={{
-                  border: timeRange === d ? '1px solid rgba(56, 189, 248, 0.4)' : '1px solid transparent',
-                  background: timeRange === d ? 'linear-gradient(135deg, rgba(56, 189, 248, 0.25) 0%, rgba(167, 139, 250, 0.25) 100%)' : 'transparent',
-                  color: timeRange === d ? '#FFFFFF' : 'var(--text-secondary)',
-                  fontWeight: timeRange === d ? 700 : 500,
-                  fontSize: 12.5,
-                  padding: '7px 12px',
-                  borderRadius: 8,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  boxShadow: timeRange === d ? '0 0 12px rgba(56, 189, 248, 0.2)' : 'none'
-                }}
-                onClick={() => setTimeRange(d)}
-              >
-                {d} Days
-              </button>
-            ))}
+          <span style={{ fontSize: 13, fontWeight: 700, color: 'var(--neu-text-primary, #172033)', flexShrink: 0 }}>Horizon:</span>
+          <div className="filter-chips-row" style={{
+            display: 'flex',
+            background: 'var(--neu-bg-primary, #E9EEF3)',
+            padding: 4,
+            borderRadius: 12,
+            border: '1px solid var(--neu-border, #DCE4EB)',
+            boxShadow: 'var(--neu-shadow-inset-sm, inset 2px 2px 5px rgba(163, 177, 198, 0.25), inset -2px -2px 5px rgba(255, 255, 255, 0.85))',
+            gap: 4,
+            maxWidth: '100%'
+          }}>
+            {[7, 14, 30, 60, 90].map(d => {
+              const isActive = timeRange === d;
+              return (
+                <button
+                  key={d}
+                  type="button"
+                  style={{
+                    border: isActive ? '1px solid var(--neu-brand-primary, #059669)' : '1px solid transparent',
+                    background: isActive ? 'var(--neu-brand-gradient, linear-gradient(135deg, #059669 0%, #047857 100%))' : 'transparent',
+                    color: isActive ? '#FFFFFF' : 'var(--neu-text-secondary, #64748B)',
+                    fontWeight: isActive ? 700 : 500,
+                    fontSize: 12.5,
+                    padding: '7px 12px',
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    transition: 'all 0.18s ease',
+                    boxShadow: isActive ? '2px 2px 6px rgba(5, 150, 105, 0.35), -1px -1px 4px rgba(255, 255, 255, 0.7)' : 'none'
+                  }}
+                  onClick={() => setTimeRange(d)}
+                >
+                  {d} Days
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -131,16 +155,16 @@ export function CashFlowForecast() {
           </div>
           
           {forecastResult.firstNegativeDate ? (
-            <span className="badge badge-danger">
+            <span className="status-badge overdue">
               <AlertTriangle size={12} />
               <span>Projected Shortfall on {forecastResult.firstNegativeDate}</span>
             </span>
           ) : forecastResult.firstLowBufferDate ? (
-            <span className="badge badge-warning">
+            <span className="status-badge upcoming">
               <span>Below Safety Buffer on {forecastResult.firstLowBufferDate}</span>
             </span>
           ) : (
-            <span className="badge badge-success">
+            <span className="status-badge received">
               <CheckCircle2 size={12} />
               <span>Healthy Liquidity Runway</span>
             </span>
@@ -187,54 +211,54 @@ export function CashFlowForecast() {
                   <tr
                     key={day.date}
                     style={{
-                      background: day.isNegative ? 'rgba(239, 68, 68, 0.12)' : day.isBelowBuffer ? 'rgba(245, 158, 11, 0.08)' : idx % 2 === 0 ? 'rgba(15, 23, 42, 0.35)' : 'rgba(23, 37, 84, 0.15)'
+                      background: day.isNegative ? 'var(--neu-danger-bg, rgba(239, 68, 68, 0.12))' : day.isBelowBuffer ? 'var(--neu-warning-bg, rgba(245, 158, 11, 0.08))' : idx % 2 === 0 ? 'rgba(255, 255, 255, 0.35)' : 'transparent'
                     }}
                   >
-                    <td style={{ fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap' }}>
-                      {day.date} {idx === 0 && <span style={{ color: 'var(--accent-primary)', fontSize: 11, fontWeight: 700 }}>(Today)</span>}
+                    <td style={{ fontWeight: 600, color: 'var(--neu-text-primary, #172033)', whiteSpace: 'nowrap' }}>
+                      {day.date} {idx === 0 && <span style={{ color: 'var(--neu-brand-primary, #059669)', fontSize: 11, fontWeight: 700 }}>(Today)</span>}
                     </td>
 
-                    <td className="num-val" style={{ color: 'var(--text-secondary)', fontSize: 13, fontFeatureSettings: 'tnum' }}>
+                    <td className="num-val" style={{ color: 'var(--neu-text-secondary, #64748B)', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>
                       {formatINR(day.openingBalance)}
                     </td>
 
                     <td>
                       {totalIn > 0 ? (
                         <div>
-                          <strong style={{ color: '#10B981', fontSize: 13, textShadow: '0 0 8px rgba(16, 185, 129, 0.3)' }}>+{formatINR(totalIn)}</strong>
-                          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          <strong style={{ color: 'var(--neu-success-dark, #047857)', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>+{formatINR(totalIn)}</strong>
+                          <div style={{ fontSize: 11, color: 'var(--neu-text-secondary, #64748B)', marginTop: 2 }}>
                             {day.incomes.map(i => i.title).join(', ')}
                           </div>
                         </div>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        <span style={{ color: 'var(--neu-text-muted, #94A3B8)' }}>—</span>
                       )}
                     </td>
 
                     <td>
                       {totalOut > 0 ? (
                         <div>
-                          <strong style={{ color: '#EF4444', fontSize: 13, textShadow: '0 0 8px rgba(239, 68, 68, 0.3)' }}>-{formatINR(totalOut)}</strong>
-                          <div style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2 }}>
+                          <strong style={{ color: 'var(--neu-danger-dark, #B91C1C)', fontSize: 13, fontVariantNumeric: 'tabular-nums' }}>-{formatINR(totalOut)}</strong>
+                          <div style={{ fontSize: 11, color: 'var(--neu-text-secondary, #64748B)', marginTop: 2 }}>
                             {day.expenses.map(e => e.title).join(', ')}
                           </div>
                         </div>
                       ) : (
-                        <span style={{ color: 'var(--text-muted)' }}>—</span>
+                        <span style={{ color: 'var(--neu-text-muted, #94A3B8)' }}>—</span>
                       )}
                     </td>
 
-                    <td className="num-val" style={{ color: day.isNegative ? '#EF4444' : 'var(--text-primary)', fontSize: 14, fontWeight: 700, textShadow: day.isNegative ? '0 0 10px rgba(239, 68, 68, 0.4)' : 'none' }}>
+                    <td className="num-val" style={{ color: day.isNegative ? 'var(--neu-danger-dark, #B91C1C)' : 'var(--neu-text-primary, #172033)', fontSize: 14, fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                       {formatINR(day.closingBalance)}
                     </td>
 
                     <td>
                       {day.isNegative ? (
-                        <span className="badge badge-danger">Deficit (Shortfall)</span>
+                        <span className="status-badge overdue">Deficit (Shortfall)</span>
                       ) : day.isBelowBuffer ? (
-                        <span className="badge badge-warning">Below Buffer</span>
+                        <span className="status-badge upcoming">Below Buffer</span>
                       ) : (
-                        <span className="badge badge-success">Safe</span>
+                        <span className="status-badge received">Safe</span>
                       )}
                     </td>
                   </tr>

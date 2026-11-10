@@ -76,22 +76,22 @@ export function QuickAddModal() {
       <div className="modal-content-card" onClick={(e) => e.stopPropagation()}>
         {/* Modal Header */}
         <div className="modal-header-bar">
-          <div className="modal-tab-group" style={{ display: 'flex', gap: 6, background: '#0B1220', padding: 4, borderRadius: 10, border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+          <div className="modal-tab-group" style={{ display: 'flex', gap: 6, background: '#E9EEF3', padding: 5, borderRadius: 12, border: '1px solid #DCE4EB', boxShadow: 'inset 3px 3px 6px rgba(163, 177, 198, 0.35), inset -3px -3px 6px rgba(255, 255, 255, 0.85)' }}>
             <button
               type="button"
               style={{
                 border: 'none',
-                background: tab === 'income' ? 'linear-gradient(135deg, #38BDF8 0%, #6366F1 100%)' : 'transparent',
-                color: tab === 'income' ? '#0B1220' : '#94A3B8',
+                background: tab === 'income' ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'transparent',
+                color: tab === 'income' ? '#FFFFFF' : '#64748B',
                 fontWeight: tab === 'income' ? 700 : 500,
                 fontSize: 12.5,
-                padding: '7px 14px',
-                borderRadius: 7,
+                padding: '7px 16px',
+                borderRadius: 9,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                boxShadow: tab === 'income' ? '0 0 14px rgba(56, 189, 248, 0.35)' : 'none',
+                boxShadow: tab === 'income' ? '2px 2px 6px rgba(5, 150, 105, 0.4)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onClick={() => setTab('income')}
@@ -104,17 +104,17 @@ export function QuickAddModal() {
               type="button"
               style={{
                 border: 'none',
-                background: tab === 'expense' ? 'linear-gradient(135deg, #38BDF8 0%, #6366F1 100%)' : 'transparent',
-                color: tab === 'expense' ? '#0B1220' : '#94A3B8',
+                background: tab === 'expense' ? 'linear-gradient(135deg, #059669 0%, #047857 100%)' : 'transparent',
+                color: tab === 'expense' ? '#FFFFFF' : '#64748B',
                 fontWeight: tab === 'expense' ? 700 : 500,
                 fontSize: 12.5,
-                padding: '7px 14px',
-                borderRadius: 7,
+                padding: '7px 16px',
+                borderRadius: 9,
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
-                boxShadow: tab === 'expense' ? '0 0 14px rgba(56, 189, 248, 0.35)' : 'none',
+                boxShadow: tab === 'expense' ? '2px 2px 6px rgba(5, 150, 105, 0.4)' : 'none',
                 transition: 'all 0.15s ease'
               }}
               onClick={() => setTab('expense')}

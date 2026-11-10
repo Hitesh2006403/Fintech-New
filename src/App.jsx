@@ -28,6 +28,8 @@ import { Background3D } from './components/common/Background3D.jsx';
 import { navigationTracker } from './services/navigationTracker.js';
 
 import './App.css';
+import './styles/neumorphismTheme.css';
+import './styles/glassmorphicTheme.css';
 
 function LoadingScreen({ message = 'Verifying secure session...' }) {
   const [showRetry, setShowRetry] = React.useState(false);
@@ -38,22 +40,19 @@ function LoadingScreen({ message = 'Verifying secure session...' }) {
   }, []);
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#0B1220', position: 'relative' }}>
+    <div className="user-neumorphic-root" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'var(--neu-bg-primary, #E9EEF3)', position: 'relative' }}>
       <Background3D />
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14, position: 'relative', zIndex: 1, padding: 24, textAlign: 'center' }}>
-        <div style={{ width: 38, height: 38, border: '3px solid rgba(56, 189, 248, 0.2)', borderTopColor: '#38BDF8', borderRadius: '50%', animation: 'spin 0.8s linear infinite', boxShadow: '0 0 16px rgba(56, 189, 248, 0.35)' }} />
-        <div style={{ fontSize: 13.5, color: '#94A3B8', fontWeight: 500 }}>{message}</div>
+        <div style={{ width: 38, height: 38, border: '3px solid rgba(5, 150, 105, 0.2)', borderTopColor: '#059669', borderRadius: '50%', animation: 'spin 0.8s linear infinite', boxShadow: '0 0 16px rgba(5, 150, 105, 0.35)' }} />
+        <div style={{ fontSize: 13.5, color: 'var(--neu-text-secondary, #64748B)', fontWeight: 600 }}>{message}</div>
         {showRetry && (
           <div style={{ marginTop: 12, display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
             <button
               type="button"
               onClick={() => window.location.reload()}
+              className="btn-secondary"
               style={{
                 padding: '8px 16px',
-                borderRadius: 8,
-                background: 'rgba(56, 189, 248, 0.15)',
-                border: '1px solid rgba(56, 189, 248, 0.3)',
-                color: '#38BDF8',
                 fontSize: 12,
                 cursor: 'pointer'
               }}
@@ -69,12 +68,9 @@ function LoadingScreen({ message = 'Verifying secure session...' }) {
                 } catch {}
                 window.location.href = '/login';
               }}
+              className="btn-secondary"
               style={{
                 padding: '8px 16px',
-                borderRadius: 8,
-                background: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                color: '#94A3B8',
                 fontSize: 12,
                 cursor: 'pointer'
               }}
@@ -88,12 +84,16 @@ function LoadingScreen({ message = 'Verifying secure session...' }) {
   );
 }
 
-const AUTHORIZED_ADMIN_EMAILS = ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'];
+const BUILT_IN_ADMIN_EMAILS = [
+  'hiteshav2006@gmail.com',
+  'dishankbs04@gmail.com',
+  ...(typeof import.meta !== 'undefined' && import.meta.env?.VITE_ADMIN_EMAIL ? [import.meta.env.VITE_ADMIN_EMAIL.toLowerCase().trim()] : [])
+];
 
 export function checkIsAdmin(user) {
   if (!user) return false;
   if (user.isAdmin || user.role === 'Super Administrator' || user.role === 'admin') return true;
-  if (user.email && AUTHORIZED_ADMIN_EMAILS.includes(user.email.toLowerCase().trim())) return true;
+  if (user.email && BUILT_IN_ADMIN_EMAILS.includes(user.email.toLowerCase().trim())) return true;
   return false;
 }
 
@@ -105,15 +105,19 @@ function HomeRoute() {
     return <LoadingScreen />;
   }
 
-  if (!user || !user.isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (checkIsAdmin(user)) {
+  // Check if admin portal session is active
+  const adminToken = typeof window !== 'undefined' ? localStorage.getItem('finsight_admin_token') : null;
+  const adminUser = typeof window !== 'undefined' ? localStorage.getItem('finsight_admin_user') : null;
+  if (adminToken && adminUser) {
     return <Navigate to="/admin" replace />;
   }
 
-  return <Navigate to="/dashboard" replace />;
+  // Check if user portal session is active
+  if (user && user.isAuthenticated) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Navigate to="/login" replace />;
 }
 
 function NavigationWatcher() {
@@ -134,11 +138,16 @@ function LoginRoute() {
     return <LoadingScreen />;
   }
 
+  // If already authenticated as user, navigate to dashboard
   if (user && user.isAuthenticated) {
-    if (checkIsAdmin(user)) {
-      return <Navigate to="/admin" replace />;
-    }
     return <Navigate to="/dashboard" replace />;
+  }
+
+  // If already authenticated as admin, navigate to admin portal
+  const adminToken = typeof window !== 'undefined' ? localStorage.getItem('finsight_admin_token') : null;
+  const adminUser = typeof window !== 'undefined' ? localStorage.getItem('finsight_admin_user') : null;
+  if (adminToken && adminUser) {
+    return <Navigate to="/admin" replace />;
   }
 
   return <AuthPage initialMode="login" />;
@@ -187,7 +196,7 @@ function MainAppShellLayout() {
   }
 
   return (
-    <div className="app-shell">
+    <div className="app-shell user-neumorphic-root">
       <Background3D />
       <Sidebar />
       <div className="app-main-content">
@@ -204,20 +213,12 @@ function MainAppShellLayout() {
 
 // Admin Route Guard
 function AdminRouteGuard() {
-  const { user, authLoading } = useApp();
-  const location = useLocation();
+  const adminToken = typeof window !== 'undefined' ? localStorage.getItem('finsight_admin_token') : null;
+  const adminUser = typeof window !== 'undefined' ? localStorage.getItem('finsight_admin_user') : null;
 
-  if (authLoading) {
-    return <LoadingScreen message="Verifying administrator credentials & session..." />;
-  }
-
-  if (!user || !user.isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />;
-  }
-
-  const isAdmin = checkIsAdmin(user);
-  if (!isAdmin) {
-    return <Navigate to="/dashboard" replace />;
+  // Strict: If not authenticated as administrator, navigate directly to /login (no separate admin login page)
+  if (!adminToken || !adminUser) {
+    return <Navigate to="/login" replace />;
   }
 
   return (
@@ -267,6 +268,7 @@ function AppRoutes() {
 
         {/* Protected Admin Routes */}
         <Route path="/admin" element={<AdminRouteGuard />} />
+        <Route path="/admin/login" element={<Navigate to="/login" replace />} />
         <Route path="/admin/*" element={<AdminRouteGuard />} />
 
         {/* 404 Route */}

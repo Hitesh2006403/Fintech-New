@@ -180,58 +180,30 @@ export function Background3D() {
       ref={containerRef}
       className="fintech-3d-bg"
       aria-hidden="true"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        backgroundColor: '#F4F7FB'
+      }}
     >
-      {/* 1. Deep Atmospheric Gradient Base */}
-      <div className="bg-gradient-base" />
+      {/* 1. Ambient Porcelain Base Canvas */}
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: '#F4F7FB' }} />
 
-      {/* 2. Soft Ambient Blurred Light Orbs */}
-      <div className="ambient-light-orb orb-cyan-top" />
-      <div className="ambient-light-orb orb-violet-mid" />
-      <div className="ambient-light-orb orb-blue-bottom" />
-      <div className="ambient-light-orb orb-cyan-center" />
-
-      {/* 3. Floating 3D Glass Objects Layer */}
-      <div ref={layerRef} className="floating-3d-layer">
-        {/* Sphere 1: Large translucent glass sphere top right */}
-        <div className="glass-sphere sphere-lg sphere-pos-1">
-          <div className="sphere-specular" />
-          <div className="sphere-glow" />
-        </div>
-
-        {/* Sphere 2: Mid-size glass sphere left side */}
-        <div className="glass-sphere sphere-md sphere-pos-2">
-          <div className="sphere-specular" />
-        </div>
-
-        {/* Sphere 3: Small glass sphere bottom center */}
-        <div className="glass-sphere sphere-sm sphere-pos-3">
-          <div className="sphere-specular" />
-        </div>
-
-        {/* Sphere 4: Micro accent sphere near top left */}
-        <div className="glass-sphere sphere-xs sphere-pos-4">
-          <div className="sphere-specular" />
-        </div>
-
-        {/* 3D Glass Ring 1: Abstract rotating torus top-right */}
-        <div className="glass-ring ring-1">
-          <div className="ring-inner" />
-        </div>
-
-        {/* 3D Glass Ring 2: Abstract tilted geometric ring lower-left */}
-        <div className="glass-ring ring-2">
-          <div className="ring-inner" />
-        </div>
-
-        {/* 3D Hexagonal Glass Prism element */}
-        <div className="glass-prism prism-1" />
+      {/* 2. Soft Ambient Aurora Blobs (Emerald, Sky Blue, Indigo with 90px blur) */}
+      <div className="aurora-blobs-canvas">
+        <div className="aurora-blob aurora-blob-emerald" />
+        <div className="aurora-blob aurora-blob-sky" />
+        <div className="aurora-blob aurora-blob-indigo" />
       </div>
 
-      {/* 4. Canvas for sparse drifting micro-particles */}
-      <canvas ref={canvasRef} className="particles-canvas" />
+      {/* 3. Hardware-Accelerated Parallax Ref Layer */}
+      <div ref={layerRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
 
-      {/* 5. Subtle Vignette & Depth Mask */}
-      <div className="bg-depth-vignette" />
+      {/* 4. Canvas for sparse micro-particles */}
+      <canvas ref={canvasRef} className="particles-canvas" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
     </div>
   );
 }

@@ -122,8 +122,8 @@ export function AdminLayout({ onReturnToClient }) {
       style={{
         display: 'flex',
         minHeight: '100vh',
-        background: '#090D14',
-        color: '#F8FAFC',
+        background: 'var(--adm-bg-base, #F4F7FB)',
+        color: 'var(--adm-text-primary, #0F172A)',
         position: 'relative',
         fontFamily: "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif"
       }}
@@ -176,7 +176,7 @@ export function AdminLayout({ onReturnToClient }) {
               fontSize: 18,
               fontWeight: 800,
               letterSpacing: 0.5,
-              color: '#F8FAFC',
+              color: '#0F172A',
               display: 'flex',
               alignItems: 'center',
               gap: 6
@@ -185,16 +185,16 @@ export function AdminLayout({ onReturnToClient }) {
               <span style={{
                 fontSize: 9.5,
                 fontWeight: 800,
-                color: '#818CF8',
-                background: 'rgba(99, 102, 241, 0.14)',
-                border: '1px solid rgba(99, 102, 241, 0.28)',
+                color: '#4F46E5',
+                background: 'rgba(79, 70, 229, 0.12)',
+                border: '1px solid rgba(79, 70, 229, 0.28)',
                 padding: '2px 6px',
                 borderRadius: 4
               }}>
                 PRO
               </span>
             </div>
-            <div style={{ fontSize: 11.5, color: '#94A3B8' }}>
+            <div style={{ fontSize: 11.5, color: '#64748B', fontWeight: 600 }}>
               Admin Portal
             </div>
           </div>
@@ -231,11 +231,11 @@ export function AdminLayout({ onReturnToClient }) {
               borderRadius: 10,
               border: 'none',
               background: currentTab === 'dashboard'
-                ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(79, 70, 229, 0.1) 100%)'
+                ? 'rgba(79, 70, 229, 0.12)'
                 : 'transparent',
-              color: currentTab === 'dashboard' ? '#FFFFFF' : '#94A3B8',
-              boxShadow: currentTab === 'dashboard' ? '0 2px 10px rgba(99, 102, 241, 0.15)' : 'none',
-              borderLeft: currentTab === 'dashboard' ? '3px solid #6366F1' : '3px solid transparent',
+              color: currentTab === 'dashboard' ? '#4338CA' : '#475569',
+              boxShadow: currentTab === 'dashboard' ? '0 1px 4px rgba(79, 70, 229, 0.15)' : 'none',
+              borderLeft: currentTab === 'dashboard' ? '3px solid #4F46E5' : '3px solid transparent',
               fontSize: 13.5,
               fontWeight: 700,
               cursor: 'pointer',
@@ -243,7 +243,7 @@ export function AdminLayout({ onReturnToClient }) {
               transition: 'all 0.15s ease'
             }}
           >
-            <LayoutDashboard size={18} color={currentTab === 'dashboard' ? '#818CF8' : '#94A3B8'} />
+            <LayoutDashboard size={18} color={currentTab === 'dashboard' ? '#4F46E5' : '#64748B'} />
             <span>Dashboard</span>
           </button>
 
@@ -275,11 +275,11 @@ export function AdminLayout({ onReturnToClient }) {
                   borderRadius: 10,
                   border: 'none',
                   background: isActive
-                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(79, 70, 229, 0.1) 100%)'
+                    ? 'rgba(79, 70, 229, 0.12)'
                     : 'transparent',
-                  color: isActive ? '#FFFFFF' : '#94A3B8',
-                  borderLeft: isActive ? '3px solid #6366F1' : '3px solid transparent',
-                  boxShadow: isActive ? '0 2px 10px rgba(99, 102, 241, 0.15)' : 'none',
+                  color: isActive ? '#4338CA' : '#475569',
+                  borderLeft: isActive ? '3px solid #4F46E5' : '3px solid transparent',
+                  boxShadow: isActive ? '0 1px 4px rgba(79, 70, 229, 0.15)' : 'none',
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -287,7 +287,7 @@ export function AdminLayout({ onReturnToClient }) {
                   transition: 'all 0.15s ease'
                 }}
               >
-                <Icon size={17} color={isActive ? '#818CF8' : '#94A3B8'} />
+                <Icon size={17} color={isActive ? '#4F46E5' : '#64748B'} />
                 <span style={{ flex: 1 }}>{item.label}</span>
                 {item.badge !== undefined && (
                   <span style={{
@@ -295,9 +295,9 @@ export function AdminLayout({ onReturnToClient }) {
                     fontWeight: 800,
                     padding: '2px 7px',
                     borderRadius: 99,
-                    background: `${item.badgeColor || '#6366F1'}22`,
-                    color: item.badgeColor || '#818CF8',
-                    border: `1px solid ${item.badgeColor || '#6366F1'}44`
+                    background: `${item.badgeColor || '#4F46E5'}22`,
+                    color: item.badgeColor || '#4F46E5',
+                    border: `1px solid ${item.badgeColor || '#4F46E5'}44`
                   }}>
                     {item.badge}
                   </span>
@@ -334,11 +334,11 @@ export function AdminLayout({ onReturnToClient }) {
                   borderRadius: 10,
                   border: 'none',
                   background: isActive
-                    ? 'linear-gradient(135deg, rgba(99, 102, 241, 0.18) 0%, rgba(79, 70, 229, 0.1) 100%)'
+                    ? 'rgba(79, 70, 229, 0.12)'
                     : 'transparent',
-                  color: isActive ? '#FFFFFF' : '#94A3B8',
-                  borderLeft: isActive ? '3px solid #6366F1' : '3px solid transparent',
-                  boxShadow: isActive ? '0 2px 10px rgba(99, 102, 241, 0.15)' : 'none',
+                  color: isActive ? '#4338CA' : '#475569',
+                  borderLeft: isActive ? '3px solid #4F46E5' : '3px solid transparent',
+                  boxShadow: isActive ? '0 1px 4px rgba(79, 70, 229, 0.15)' : 'none',
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -346,7 +346,7 @@ export function AdminLayout({ onReturnToClient }) {
                   transition: 'all 0.15s ease'
                 }}
               >
-                <Icon size={17} color={isActive ? '#818CF8' : '#94A3B8'} />
+                <Icon size={17} color={isActive ? '#4F46E5' : '#64748B'} />
                 <span>{item.label}</span>
               </button>
             );
@@ -469,17 +469,24 @@ export function AdminLayout({ onReturnToClient }) {
               style={{
                 width: '100%',
                 padding: '9px 14px 9px 40px',
-                background: 'rgba(14, 21, 34, 0.85)',
-                border: '1px solid rgba(255, 255, 255, 0.09)',
+                background: '#FFFFFF',
+                border: '1px solid rgba(203, 213, 225, 0.9)',
                 borderRadius: 10,
-                color: '#F8FAFC',
+                color: '#0F172A',
                 fontSize: 13,
                 outline: 'none',
                 boxSizing: 'border-box',
-                transition: 'border-color 0.15s ease'
+                transition: 'all 0.15s ease',
+                boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'
               }}
-              onFocus={(e) => { e.target.style.borderColor = 'rgba(99, 102, 241, 0.5)'; }}
-              onBlur={(e) => { e.target.style.borderColor = 'rgba(255, 255, 255, 0.09)'; }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#4F46E5';
+                e.target.style.boxShadow = '0 0 0 3px rgba(79, 70, 229, 0.15)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'rgba(203, 213, 225, 0.9)';
+                e.target.style.boxShadow = '0 1px 2px rgba(15, 23, 42, 0.04)';
+              }}
             />
 
             {/* Live Search Results Popup */}
@@ -489,24 +496,24 @@ export function AdminLayout({ onReturnToClient }) {
                 top: '115%',
                 left: 0,
                 right: 0,
-                background: 'rgba(14, 21, 34, 0.98)',
+                background: 'rgba(255, 255, 255, 0.96)',
                 backdropFilter: 'blur(20px)',
-                border: '1px solid rgba(99, 102, 241, 0.3)',
+                border: '1px solid rgba(226, 232, 240, 0.9)',
                 borderRadius: 12,
-                boxShadow: '0 20px 40px rgba(0, 0, 0, 0.7)',
+                boxShadow: '0 20px 40px -10px rgba(15, 23, 42, 0.15)',
                 padding: '12px',
                 zIndex: 200
               }}>
                 {searchResults.users.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#818CF8', marginBottom: 6 }}>Users</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#4F46E5', marginBottom: 6 }}>Users</div>
                     {searchResults.users.map(u => (
                       <div
                         key={u.id}
                         onClick={() => { navigate('/admin/users'); setAdminActiveTab('users'); setGlobalSearch(''); }}
-                        style={{ padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 12.5, color: '#F8FAFC' }}
+                        style={{ padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 12.5, color: '#0F172A' }}
                       >
-                        {u.name} • <span style={{ color: '#94A3B8' }}>{u.email}</span>
+                        {u.name} • <span style={{ color: '#475569' }}>{u.email}</span>
                       </div>
                     ))}
                   </div>
@@ -514,14 +521,14 @@ export function AdminLayout({ onReturnToClient }) {
 
                 {searchResults.transactions.length > 0 && (
                   <div style={{ marginBottom: 10 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#A5B4FC', marginBottom: 6 }}>Transactions</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#2563EB', marginBottom: 6 }}>Transactions</div>
                     {searchResults.transactions.map(t => (
                       <div
                         key={t.id}
                         onClick={() => { navigate('/admin/transactions'); setAdminActiveTab('transactions'); setGlobalSearch(''); }}
-                        style={{ padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 12.5, color: '#F8FAFC' }}
+                        style={{ padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 12.5, color: '#0F172A' }}
                       >
-                        {t.title} • <span style={{ color: '#34D399' }}>₹{t.amount}</span>
+                        {t.title} • <span style={{ color: '#059669', fontWeight: 600 }}>₹{t.amount}</span>
                       </div>
                     ))}
                   </div>
@@ -529,12 +536,12 @@ export function AdminLayout({ onReturnToClient }) {
 
                 {searchResults.issues.length > 0 && (
                   <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#F87171', marginBottom: 6 }}>Issues</div>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: '#E11D48', marginBottom: 6 }}>Issues</div>
                     {searchResults.issues.map(i => (
                       <div
                         key={i.id}
                         onClick={() => { navigate('/admin/issues'); setAdminActiveTab('issues'); setGlobalSearch(''); }}
-                        style={{ padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 12.5, color: '#F8FAFC' }}
+                        style={{ padding: '6px 8px', borderRadius: 6, cursor: 'pointer', fontSize: 12.5, color: '#0F172A' }}
                       >
                         {i.title}
                       </div>
@@ -553,19 +560,20 @@ export function AdminLayout({ onReturnToClient }) {
               onClick={refreshAdminData}
               title="Refresh metrics from server"
               style={{
-                background: 'rgba(255, 255, 255, 0.04)',
-                border: '1px solid rgba(255, 255, 255, 0.08)',
-                borderRadius: 8,
+                background: 'rgba(255, 255, 255, 0.85)',
+                border: '1px solid rgba(226, 232, 240, 0.9)',
+                borderRadius: 10,
                 padding: '8px 10px',
-                color: '#94A3B8',
+                color: '#475569',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: 6,
+                boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)',
                 transition: 'all 0.15s ease'
               }}
-              onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; }}
-              onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
+              onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.background = '#FFFFFF'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)'; }}
             >
               <RefreshCw size={15} style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} />
             </button>
@@ -576,24 +584,25 @@ export function AdminLayout({ onReturnToClient }) {
                 type="button"
                 onClick={() => setNotificationDropdownOpen(!notificationDropdownOpen)}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.04)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 8,
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  border: '1px solid rgba(226, 232, 240, 0.9)',
+                  borderRadius: 10,
                   padding: '8px 10px',
-                  color: '#F8FAFC',
+                  color: '#0F172A',
                   cursor: 'pointer',
                   position: 'relative',
+                  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)',
                   transition: 'background 0.15s ease'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.08)'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)'; }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = '#FFFFFF'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)'; }}
               >
-                <Bell size={18} />
+                <Bell size={18} color="#0F172A" />
                 <span style={{
                   position: 'absolute',
                   top: -4,
                   right: -4,
-                  background: '#EF4444',
+                  background: '#E11D48',
                   color: '#FFFFFF',
                   fontSize: 10,
                   fontWeight: 800,
@@ -603,7 +612,7 @@ export function AdminLayout({ onReturnToClient }) {
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 0 8px rgba(239, 68, 68, 0.6)'
+                  boxShadow: '0 0 8px rgba(225, 29, 72, 0.4)'
                 }}>
                   {notificationCount}
                 </span>
@@ -615,15 +624,15 @@ export function AdminLayout({ onReturnToClient }) {
                   top: '125%',
                   right: 0,
                   width: 300,
-                  background: 'rgba(14, 21, 34, 0.98)',
+                  background: 'rgba(255, 255, 255, 0.96)',
                   backdropFilter: 'blur(25px)',
-                  border: '1px solid rgba(255, 255, 255, 0.1)',
+                  border: '1px solid rgba(226, 232, 240, 0.9)',
                   borderRadius: 12,
-                  boxShadow: '0 20px 45px rgba(0,0,0,0.7)',
+                  boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.15)',
                   padding: '12px 0',
                   zIndex: 200
                 }}>
-                  <div style={{ padding: '4px 16px 8px', fontSize: 13, fontWeight: 700, borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
+                  <div style={{ padding: '4px 16px 8px', fontSize: 13, fontWeight: 700, color: '#0F172A', borderBottom: '1px solid rgba(226, 232, 240, 0.8)' }}>
                     Admin Notifications
                   </div>
                   {[
@@ -631,8 +640,8 @@ export function AdminLayout({ onReturnToClient }) {
                     { text: 'High severity issue reported by user', time: '12m ago' },
                     { text: 'Daily database backup verified', time: '1h ago' }
                   ].map((n, idx) => (
-                    <div key={idx} style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.04)', fontSize: 12 }}>
-                      <div style={{ color: '#F8FAFC', fontWeight: 600 }}>{n.text}</div>
+                    <div key={idx} style={{ padding: '10px 16px', borderBottom: '1px solid rgba(226, 232, 240, 0.5)', fontSize: 12 }}>
+                      <div style={{ color: '#1E293B', fontWeight: 600 }}>{n.text}</div>
                       <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>{n.time}</div>
                     </div>
                   ))}
@@ -649,25 +658,27 @@ export function AdminLayout({ onReturnToClient }) {
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
-                  background: 'none',
-                  border: 'none',
+                  background: 'rgba(255, 255, 255, 0.85)',
+                  border: '1px solid rgba(226, 232, 240, 0.9)',
+                  borderRadius: 24,
                   cursor: 'pointer',
-                  padding: 0
+                  padding: '4px 12px 4px 4px',
+                  boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)'
                 }}
               >
                 {/* Admin Avatar Circle */}
                 <div style={{
-                  width: 38,
-                  height: 38,
+                  width: 32,
+                  height: 32,
                   borderRadius: '50%',
-                  background: 'linear-gradient(135deg, #4F46E5 0%, #818CF8 100%)',
+                  background: 'linear-gradient(135deg, #4F46E5 0%, #6366F1 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#FFFFFF',
                   fontWeight: 800,
-                  fontSize: 14,
-                  border: '2px solid rgba(255, 255, 255, 0.18)'
+                  fontSize: 13,
+                  boxShadow: '0 2px 6px rgba(79, 70, 229, 0.3)'
                 }}>
                   {adminUser?.picture ? (
                     <img
@@ -681,15 +692,15 @@ export function AdminLayout({ onReturnToClient }) {
                 </div>
 
                 <div className="admin-user-meta-text" style={{ textAlign: 'left' }}>
-                  <div style={{ fontSize: 13, fontWeight: 700, color: '#F8FAFC' }}>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>
                     {adminUser?.name || 'Admin'}
                   </div>
-                  <div style={{ fontSize: 11, color: '#818CF8', fontWeight: 600 }}>
+                  <div style={{ fontSize: 10.5, color: '#4F46E5', fontWeight: 700 }}>
                     Super Administrator
                   </div>
                 </div>
 
-                <ChevronDown size={14} color="#94A3B8" />
+                <ChevronDown size={14} color="#64748B" />
               </button>
 
               {/* Profile Dropdown */}
@@ -701,18 +712,18 @@ export function AdminLayout({ onReturnToClient }) {
                     top: '125%',
                     right: 0,
                     width: 240,
-                    background: 'rgba(14, 21, 34, 0.98)',
+                    background: 'rgba(255, 255, 255, 0.96)',
                     backdropFilter: 'blur(25px)',
-                    border: '1px solid rgba(255, 255, 255, 0.1)',
+                    border: '1px solid rgba(226, 232, 240, 0.9)',
                     borderRadius: 12,
-                    boxShadow: '0 20px 45px rgba(0,0,0,0.7)',
+                    boxShadow: '0 20px 45px -10px rgba(15, 23, 42, 0.15)',
                     padding: '8px 0',
                     zIndex: 200
                   }}
                 >
-                  <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: '#F8FAFC' }}>{adminUser?.name || 'Admin'}</div>
-                    <div style={{ fontSize: 11.5, color: '#818CF8', marginTop: 2 }}>{adminUser?.email || 'admin@finsight.internal'}</div>
+                  <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(226, 232, 240, 0.8)' }}>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>{adminUser?.name || 'Admin'}</div>
+                    <div style={{ fontSize: 11.5, color: '#4F46E5', marginTop: 2, fontWeight: 600 }}>{adminUser?.email || 'admin@finsight.internal'}</div>
                   </div>
 
                   <button
@@ -726,14 +737,14 @@ export function AdminLayout({ onReturnToClient }) {
                       gap: 10,
                       border: 'none',
                       background: 'transparent',
-                      color: '#94A3B8',
+                      color: '#475569',
                       fontSize: 13,
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'color 0.15s ease'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = 'transparent'; }}
                   >
                     <Settings size={15} />
                     <span>App Settings</span>
@@ -754,20 +765,20 @@ export function AdminLayout({ onReturnToClient }) {
                       gap: 10,
                       border: 'none',
                       background: 'transparent',
-                      color: '#94A3B8',
+                      color: '#475569',
                       fontSize: 13,
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'color 0.15s ease'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#F8FAFC'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#94A3B8'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#0F172A'; e.currentTarget.style.background = 'rgba(241, 245, 249, 0.8)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#475569'; e.currentTarget.style.background = 'transparent'; }}
                   >
-                    <ExternalLink size={15} />
-                    <span>Switch to User Portal</span>
+                    <ArrowLeft size={15} />
+                    <span>Back to User App</span>
                   </button>
 
-                  <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '4px 0' }} />
+                  <div style={{ height: 1, background: 'rgba(226, 232, 240, 0.9)', margin: '4px 0' }} />
 
                   <button
                     type="button"
@@ -784,14 +795,15 @@ export function AdminLayout({ onReturnToClient }) {
                       gap: 10,
                       border: 'none',
                       background: 'transparent',
-                      color: '#F87171',
+                      color: '#DC2626',
                       fontSize: 13,
+                      fontWeight: 600,
                       cursor: 'pointer',
                       textAlign: 'left',
-                      transition: 'color 0.15s ease'
+                      transition: 'all 0.15s ease'
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = '#EF4444'; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = '#F87171'; }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = '#B91C1C'; e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = '#DC2626'; e.currentTarget.style.background = 'transparent'; }}
                   >
                     <LogOut size={15} />
                     <span>Sign Out</span>

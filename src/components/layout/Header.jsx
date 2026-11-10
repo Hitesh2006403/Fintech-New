@@ -78,7 +78,7 @@ export function Header() {
         </button>
 
         <div className="header-date-badge">
-          <Calendar size={14} color="#38BDF8" />
+          <Calendar size={14} color="#059669" />
           <span>{todayStr}</span>
         </div>
 
@@ -88,13 +88,14 @@ export function Header() {
               display: 'inline-flex',
               alignItems: 'center',
               gap: 6,
-              background: 'rgba(56, 189, 248, 0.12)',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
+              background: 'rgba(5, 150, 105, 0.12)',
+              border: '1px solid rgba(5, 150, 105, 0.28)',
               borderRadius: 8,
               padding: '4px 10px',
               fontSize: 11.5,
               fontWeight: 700,
-              color: '#38BDF8'
+              color: '#059669',
+              boxShadow: '2px 2px 5px rgba(163, 177, 198, 0.25)'
             }}
           >
             <span>Guest Demo Mode</span>
@@ -123,8 +124,16 @@ export function Header() {
           onClick={() => navigate('/notifications')}
           title="Notifications"
           aria-label="Notifications"
+          style={{
+            background: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
+            border: '1px solid rgba(226, 232, 240, 0.9)',
+            color: '#0F172A',
+            boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)'
+          }}
         >
-          <Bell size={18} />
+          <Bell size={18} color="#0F172A" />
           {unreadNotificationCount > 0 && (
             <span className="header-notification-badge" />
           )}
@@ -137,13 +146,25 @@ export function Header() {
             className="user-profile-btn"
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
             aria-label="Open user profile menu"
+            style={{
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(12px)',
+              WebkitBackdropFilter: 'blur(12px)',
+              border: '1px solid rgba(226, 232, 240, 0.9)',
+              color: '#0F172A',
+              boxShadow: '0 1px 3px rgba(15, 23, 42, 0.05)'
+            }}
           >
             <div className="user-avatar-circle">
               {user?.avatarInitials || 'AV'}
             </div>
             <div className="user-meta-text">
-              <div className="user-name-title">{user?.name || 'User'}</div>
-              <div className="user-role-sub">{user?.role || 'Freelance Planner'}</div>
+              <div className="user-name-title" style={{ color: '#0F172A', fontWeight: 700 }}>
+                {user?.name || (user?.isGuest ? 'Guest Explorer' : 'User')}
+              </div>
+              <div className="user-role-sub" style={{ color: '#475569', fontWeight: 600 }}>
+                {user?.role || (user?.isGuest ? 'Demo Plan' : 'Freelance Planner')}
+              </div>
             </div>
           </button>
 
@@ -160,46 +181,46 @@ export function Header() {
                   position: 'absolute',
                   top: '115%',
                   right: 0,
-                  width: 230,
+                  width: 240,
                   maxWidth: 'calc(100vw - 24px)',
-                  background: 'rgba(15, 23, 42, 0.95)',
-                  backdropFilter: 'blur(25px)',
-                  WebkitBackdropFilter: 'blur(25px)',
-                  borderRadius: 12,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  borderTop: '1px solid rgba(255, 255, 255, 0.22)',
-                  boxShadow: '0 20px 45px rgba(0,0,0,0.65), 0 0 25px rgba(56, 189, 248, 0.12)',
+                  background: 'rgba(255, 255, 255, 0.96)',
+                  backdropFilter: 'blur(20px)',
+                  WebkitBackdropFilter: 'blur(20px)',
+                  borderRadius: 16,
+                  border: '1px solid rgba(226, 232, 240, 0.9)',
+                  boxShadow: '0 16px 36px -8px rgba(15, 23, 42, 0.15)',
                   padding: '8px 0',
                   zIndex: 200
                 }}
               >
-              <div style={{ padding: '10px 16px', borderBottom: '1px solid rgba(255, 255, 255, 0.08)' }}>
-                <div style={{ fontSize: 13, fontWeight: 700, color: '#F8FAFC' }}>{user?.name || 'User'}</div>
-                <div style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 2 }}>{user?.email || ''}</div>
+              <div style={{ padding: '12px 18px', borderBottom: '1px solid rgba(226, 232, 240, 0.8)' }}>
+                <div style={{ fontSize: 13.5, fontWeight: 700, color: '#0F172A' }}>{user?.name || 'User'}</div>
+                <div style={{ fontSize: 12, color: '#64748B', marginTop: 2, fontWeight: 500 }}>{user?.email || ''}</div>
               </div>
 
               <button
                 type="button"
                 style={{
                   width: '100%',
-                  padding: '10px 16px',
+                  padding: '10px 18px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
                   border: 'none',
                   background: 'transparent',
-                  color: '#94A3B8',
+                  color: '#334155',
                   fontSize: 13,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'all 0.15s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#F8FAFC';
-                  e.currentTarget.style.background = 'rgba(56, 189, 248, 0.08)';
+                  e.currentTarget.style.color = '#059669';
+                  e.currentTarget.style.background = '#F1F5F9';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#94A3B8';
+                  e.currentTarget.style.color = '#334155';
                   e.currentTarget.style.background = 'transparent';
                 }}
                 onClick={() => {
@@ -216,13 +237,13 @@ export function Header() {
                   type="button"
                   style={{
                     width: '100%',
-                    padding: '10px 16px',
+                    padding: '10px 18px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: 10,
                     border: 'none',
                     background: 'transparent',
-                    color: '#38BDF8',
+                    color: '#2563EB',
                     fontSize: 13,
                     fontWeight: 700,
                     cursor: 'pointer',
@@ -230,7 +251,7 @@ export function Header() {
                     transition: 'all 0.15s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'rgba(56, 189, 248, 0.14)';
+                    e.currentTarget.style.background = '#F1F5F9';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.background = 'transparent';
@@ -240,7 +261,7 @@ export function Header() {
                     setProfileDropdownOpen(false);
                   }}
                 >
-                  <ShieldAlert size={15} color="#38BDF8" />
+                  <ShieldAlert size={15} color="#2563EB" />
                   <span>Admin Console</span>
                 </button>
               )}
@@ -249,13 +270,13 @@ export function Header() {
                 type="button"
                 style={{
                   width: '100%',
-                  padding: '10px 16px',
+                  padding: '10px 18px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
                   border: 'none',
                   background: 'transparent',
-                  color: '#94A3B8',
+                  color: '#334155',
                   fontSize: 13,
                   fontWeight: 600,
                   cursor: 'pointer',
@@ -263,11 +284,11 @@ export function Header() {
                   transition: 'all 0.15s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.color = '#F8FAFC';
-                  e.currentTarget.style.background = 'rgba(56, 189, 248, 0.08)';
+                  e.currentTarget.style.color = '#059669';
+                  e.currentTarget.style.background = '#F1F5F9';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.color = '#94A3B8';
+                  e.currentTarget.style.color = '#334155';
                   e.currentTarget.style.background = 'transparent';
                 }}
                 onClick={async () => {
@@ -279,26 +300,27 @@ export function Header() {
                 <span>{isSyncing ? 'Syncing Server Data...' : 'Sync Live Data'}</span>
               </button>
 
-              <div style={{ height: 1, background: 'rgba(255, 255, 255, 0.08)', margin: '4px 0' }} />
+              <div style={{ height: 1, background: 'rgba(226, 232, 240, 0.9)', margin: '4px 0' }} />
 
               <button
                 type="button"
                 style={{
                   width: '100%',
-                  padding: '10px 16px',
+                  padding: '10px 18px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 10,
                   border: 'none',
                   background: 'transparent',
-                  color: '#F87171',
+                  color: '#EF4444',
                   fontSize: 13,
+                  fontWeight: 600,
                   cursor: 'pointer',
                   textAlign: 'left',
                   transition: 'all 0.15s ease'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.12)';
+                  e.currentTarget.style.background = 'rgba(239, 68, 68, 0.08)';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.background = 'transparent';

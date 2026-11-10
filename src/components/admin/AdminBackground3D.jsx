@@ -172,26 +172,30 @@ export function AdminBackground3D() {
       ref={containerRef}
       className="admin-3d-bg"
       aria-hidden="true"
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 0,
+        pointerEvents: 'none',
+        overflow: 'hidden',
+        backgroundColor: '#F4F7FB'
+      }}
     >
-      {/* 1. Deep Obsidian-Charcoal Atmospheric Gradient Base */}
-      <div className="admin-bg-base" />
+      {/* 1. Ambient Porcelain Base Canvas */}
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: '#F4F7FB' }} />
 
-      {/* 2. Soft, Calm Ambient Illumination */}
-      <div className="admin-ambient-orb admin-orb-top" />
-      <div className="admin-ambient-orb admin-orb-bottom" />
-
-      {/* 3. Single Restrained Geometric Obsidian Glass Element */}
-      <div ref={layerRef} className="admin-geometry-layer">
-        <div className="admin-glass-prism">
-          <div className="admin-prism-sheen" />
-        </div>
+      {/* 2. Soft Ambient Aurora Blobs */}
+      <div className="aurora-blobs-canvas">
+        <div className="aurora-blob aurora-blob-emerald" />
+        <div className="aurora-blob aurora-blob-sky" />
+        <div className="aurora-blob aurora-blob-indigo" />
       </div>
 
-      {/* 4. Canvas for sparse particles */}
-      <canvas ref={canvasRef} className="admin-particles-canvas" />
+      {/* 3. Hardware-Accelerated Parallax Layer */}
+      <div ref={layerRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
 
-      {/* 5. Subtle Vignette */}
-      <div className="admin-bg-vignette" />
+      {/* 4. Canvas for sparse particles */}
+      <canvas ref={canvasRef} className="admin-particles-canvas" style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }} />
     </div>
   );
 }
