@@ -103,6 +103,7 @@ export function calculateSafeToSpend({
   incomes = [],
   expenses = [],
   safetyBuffer = 25000,
+  earmarkedSavings = 0,
   horizonDays = 30,
   currentDateStr = getCurrentLocalDate(),
   scenario = 'conservative',
@@ -113,6 +114,7 @@ export function calculateSafeToSpend({
 
   const safeIncomes = Array.isArray(incomes) ? incomes : [];
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
+  const numEarmarked = Number(earmarkedSavings || 0);
 
   // Find next reliable confirmed income date within planning horizon
   const upcomingConfirmed = safeIncomes
@@ -176,7 +178,8 @@ export function calculateSafeToSpend({
   // Pure conservative calculation
   const rawSpendable = (Number(availableCash || 0) + (scenario === 'conservative' ? 0 : eligibleFutureIncome * 0.5))
     - totalObligationsProtected
-    - Number(safetyBuffer || 0);
+    - Number(safetyBuffer || 0)
+    - numEarmarked;
 
   const safeToSpendToday = Math.max(0, rawSpendable);
   const projectedShortfall = rawSpendable < 0 ? Math.abs(rawSpendable) : 0;
@@ -187,6 +190,7 @@ export function calculateSafeToSpend({
     projectedShortfall,
     availableCash: Number(availableCash || 0),
     safetyBuffer: Number(safetyBuffer || 0),
+    earmarkedSavings: numEarmarked,
     essentialOverdue,
     upcomingEssential,
     totalEssentialCommitments,
