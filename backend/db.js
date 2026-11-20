@@ -481,6 +481,71 @@ async function syncScenarioToSupabase(userId, scen) {
   }
 }
 
+async function syncAnalyzerReportToSupabase(userId, report) {
+  if (!supabase || !userId || !report) return;
+  try {
+    await supabase.from('analyzer_reports').upsert({
+      id: report.id,
+      user_id: userId,
+      horizon: report.horizon || 'all',
+      mode: report.mode || 'single',
+      overview_summary: report.overviewSummary || null,
+      health_score: Number(report.cashFlowHealth?.score ?? report.healthScore ?? 0),
+      savings_rate: Number(report.cashFlowHealth?.savingsRate ?? report.savingsRate ?? 0),
+      runway_months: Number(report.cashFlowHealth?.runwayMonths ?? report.runwayMonths ?? 0),
+      spending_insights: report.spendingInsights || [],
+      risk_assessment: report.riskAssessment || [],
+      strategic_recommendations: report.strategicRecommendations || [],
+      verified_facts_snapshot: report.verifiedFactsSnapshot || {},
+      created_at: report.createdAt || new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    });
+  } catch (err) {
+    // Non-blocking resilient fallback
+  }
+}
+
+async function syncAnalyzerChatMessageToSupabase(userId, msg) {
+  if (!supabase || !userId || !msg) return;
+  try {
+    await supabase.from('analyzer_chat_messages').upsert({
+      id: msg.id,
+      user_id: userId,
+      sender: msg.sender || 'user',
+      message: msg.message || '',
+      mode: msg.mode || 'deterministic-chat-engine',
+      verified_evidence: msg.verifiedEvidence || null,
+      is_defused: Boolean(msg.isDefused),
+      horizon: msg.horizon || 'all',
+      created_at: msg.createdAt || new Date().toISOString()
+    });
+  } catch (err) {
+    // Non-blocking resilient fallback
+  }
+}
+
+async function syncAnalyzerStatementImportToSupabase(userId, imp) {
+  if (!supabase || !userId || !imp) return;
+  try {
+    await supabase.from('analyzer_statement_imports').upsert({
+      id: imp.id,
+      user_id: userId,
+      filename: imp.filename || 'statement',
+      file_type: imp.fileType || 'csv',
+      total_transactions: Number(imp.totalTransactions || 0),
+      total_inflows: Number(imp.totalInflows || 0),
+      total_outflows: Number(imp.totalOutflows || 0),
+      duplicate_count: Number(imp.duplicateCount || 0),
+      imported_incomes: Number(imp.importedIncomes || 0),
+      imported_expenses: Number(imp.importedExpenses || 0),
+      status: imp.status || 'completed',
+      imported_at: imp.importedAt || new Date().toISOString()
+    });
+  } catch (err) {
+    // Non-blocking resilient fallback
+  }
+}
+
 function syncDynamicNotifications(userFinancials) {
   if (!userFinancials || !Array.isArray(userFinancials.notifications)) return;
   const today = getCurrentLocalDate();
@@ -1069,6 +1134,84 @@ export const db = {
     writeJSON(FINANCIALS_FILE, financials);
     syncScenarioToSupabase(userId, newScenario);
     return newScenario;
+  },
+
+  saveAnalyzerReport(userId, reportData) {
+    const data = this.getUserFinancials(userId);
+    if (!Array.isArray(data.analyzerReports)) {
+      data.analyzerReports = [];
+    }
+    const newReport = {
+      ...reportData,
+      id: reportData.id || `rep_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      createdAt: reportData.createdAt || new Date().toISOString()
+    };
+    data.analyzerReports.unshift(newReport);
+    if (data.analyzerReports.length > 20) {
+      data.analyzerReports = data.analyzerReports.slice(0, 20);
+    }
+    const financials = readJSON(FINANCIALS_FILE, {});
+    financials[userId] = data;
+    writeJSON(FINANCIALS_FILE, financials);
+    syncAnalyzerReportToSupabase(userId, newReport);
+    return newReport;
+  },
+
+  getAnalyzerReports(userId) {
+    const data = this.getUserFinancials(userId);
+    return Array.isArray(data.analyzerReports) ? data.analyzerReports : [];
+  },
+
+  saveAnalyzerChatMessage(userId, messageData) {
+    const data = this.getUserFinancials(userId);
+    if (!Array.isArray(data.analyzerChatMessages)) {
+      data.analyzerChatMessages = [];
+    }
+    const newMsg = {
+      ...messageData,
+      id: messageData.id || `chat_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      createdAt: messageData.createdAt || new Date().toISOString()
+    };
+    data.analyzerChatMessages.push(newMsg);
+    if (data.analyzerChatMessages.length > 50) {
+      data.analyzerChatMessages = data.analyzerChatMessages.slice(-50);
+    }
+    const financials = readJSON(FINANCIALS_FILE, {});
+    financials[userId] = data;
+    writeJSON(FINANCIALS_FILE, financials);
+    syncAnalyzerChatMessageToSupabase(userId, newMsg);
+    return newMsg;
+  },
+
+  getAnalyzerChatMessages(userId) {
+    const data = this.getUserFinancials(userId);
+    return Array.isArray(data.analyzerChatMessages) ? data.analyzerChatMessages : [];
+  },
+
+  saveAnalyzerStatementImport(userId, importData) {
+    const data = this.getUserFinancials(userId);
+    if (!Array.isArray(data.analyzerStatementImports)) {
+      data.analyzerStatementImports = [];
+    }
+    const newImport = {
+      ...importData,
+      id: importData.id || `imp_${Date.now()}_${crypto.randomBytes(4).toString('hex')}`,
+      importedAt: importData.importedAt || new Date().toISOString()
+    };
+    data.analyzerStatementImports.unshift(newImport);
+    if (data.analyzerStatementImports.length > 30) {
+      data.analyzerStatementImports = data.analyzerStatementImports.slice(0, 30);
+    }
+    const financials = readJSON(FINANCIALS_FILE, {});
+    financials[userId] = data;
+    writeJSON(FINANCIALS_FILE, financials);
+    syncAnalyzerStatementImportToSupabase(userId, newImport);
+    return newImport;
+  },
+
+  getAnalyzerStatementImports(userId) {
+    const data = this.getUserFinancials(userId);
+    return Array.isArray(data.analyzerStatementImports) ? data.analyzerStatementImports : [];
   },
 
   resetUserToDemo(userId) {

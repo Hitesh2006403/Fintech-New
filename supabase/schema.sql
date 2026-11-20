@@ -261,5 +261,93 @@ CREATE TRIGGER trg_update_expenses_timestamp BEFORE UPDATE ON public.expenses FO
 DROP TRIGGER IF EXISTS trg_update_savings_timestamp ON public.savings_goals;
 CREATE TRIGGER trg_update_savings_timestamp BEFORE UPDATE ON public.savings_goals FOR EACH ROW EXECUTE FUNCTION public.update_timestamp();
 
+-- ====================================================================
+-- 9. PERSONAL FINANCE ANALYZER EXTENSIONS
+-- ====================================================================
+
+-- 1. ANALYZER REPORTS TABLE
+CREATE TABLE IF NOT EXISTS public.analyzer_reports (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  horizon TEXT NOT NULL DEFAULT 'all',
+  mode TEXT NOT NULL DEFAULT 'single',
+  overview_summary TEXT,
+  health_score NUMERIC(5, 2) DEFAULT 0,
+  savings_rate NUMERIC(5, 2) DEFAULT 0,
+  runway_months NUMERIC(6, 2) DEFAULT 0,
+  spending_insights JSONB DEFAULT '[]'::jsonb,
+  risk_assessment JSONB DEFAULT '[]'::jsonb,
+  strategic_recommendations JSONB DEFAULT '[]'::jsonb,
+  verified_facts_snapshot JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 2. ANALYZER CHAT MESSAGES TABLE
+CREATE TABLE IF NOT EXISTS public.analyzer_chat_messages (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  sender TEXT NOT NULL CHECK (sender IN ('user', 'ai', 'system')),
+  message TEXT NOT NULL,
+  mode TEXT DEFAULT 'deterministic-chat-engine',
+  verified_evidence TEXT,
+  is_defused BOOLEAN DEFAULT false,
+  horizon TEXT DEFAULT 'all',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 3. ANALYZER STATEMENT IMPORTS TABLE
+CREATE TABLE IF NOT EXISTS public.analyzer_statement_imports (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  filename TEXT NOT NULL,
+  file_type TEXT NOT NULL DEFAULT 'csv',
+  total_transactions INTEGER NOT NULL DEFAULT 0,
+  total_inflows NUMERIC(15, 2) NOT NULL DEFAULT 0,
+  total_outflows NUMERIC(15, 2) NOT NULL DEFAULT 0,
+  duplicate_count INTEGER NOT NULL DEFAULT 0,
+  imported_incomes INTEGER NOT NULL DEFAULT 0,
+  imported_expenses INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'completed',
+  imported_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Indexes
+CREATE INDEX IF NOT EXISTS idx_analyzer_reports_user ON public.analyzer_reports(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_analyzer_chat_user ON public.analyzer_chat_messages(user_id, created_at ASC);
+CREATE INDEX IF NOT EXISTS idx_analyzer_imports_user ON public.analyzer_statement_imports(user_id, imported_at DESC);
+
+-- RLS
+ALTER TABLE public.analyzer_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.analyzer_chat_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.analyzer_statement_imports ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Analyzer reports select policy" ON public.analyzer_reports;
+CREATE POLICY "Analyzer reports select policy" ON public.analyzer_reports FOR SELECT USING (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP POLICY IF EXISTS "Analyzer reports insert policy" ON public.analyzer_reports;
+CREATE POLICY "Analyzer reports insert policy" ON public.analyzer_reports FOR INSERT WITH CHECK (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP POLICY IF EXISTS "Analyzer reports delete policy" ON public.analyzer_reports;
+CREATE POLICY "Analyzer reports delete policy" ON public.analyzer_reports FOR DELETE USING (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP POLICY IF EXISTS "Analyzer chat select policy" ON public.analyzer_chat_messages;
+CREATE POLICY "Analyzer chat select policy" ON public.analyzer_chat_messages FOR SELECT USING (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP POLICY IF EXISTS "Analyzer chat insert policy" ON public.analyzer_chat_messages;
+CREATE POLICY "Analyzer chat insert policy" ON public.analyzer_chat_messages FOR INSERT WITH CHECK (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP POLICY IF EXISTS "Analyzer chat delete policy" ON public.analyzer_chat_messages;
+CREATE POLICY "Analyzer chat delete policy" ON public.analyzer_chat_messages FOR DELETE USING (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP POLICY IF EXISTS "Analyzer statement imports select policy" ON public.analyzer_statement_imports;
+CREATE POLICY "Analyzer statement imports select policy" ON public.analyzer_statement_imports FOR SELECT USING (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP POLICY IF EXISTS "Analyzer statement imports insert policy" ON public.analyzer_statement_imports;
+CREATE POLICY "Analyzer statement imports insert policy" ON public.analyzer_statement_imports FOR INSERT WITH CHECK (auth.uid()::text = user_id OR (current_setting('request.jwt.claim.sub', true) = user_id) OR current_setting('role', true) = 'service_role');
+
+DROP TRIGGER IF EXISTS trg_update_analyzer_reports_timestamp ON public.analyzer_reports;
+CREATE TRIGGER trg_update_analyzer_reports_timestamp BEFORE UPDATE ON public.analyzer_reports FOR EACH ROW EXECUTE FUNCTION public.update_timestamp();
+
 -- Force PostgREST to immediately refresh its schema cache
 NOTIFY pgrst, 'reload schema';

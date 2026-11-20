@@ -17,6 +17,7 @@ import { SmartBillPrioritization } from './pages/SmartBillPrioritization.jsx';
 import { LeanWeekSavings } from './pages/LeanWeekSavings.jsx';
 import { NotificationsPage } from './pages/NotificationsPage.jsx';
 import { ProfileSettings } from './pages/ProfileSettings.jsx';
+import { PersonalFinanceAnalyzer } from './pages/PersonalFinanceAnalyzer.jsx';
 import { AuthPage } from './pages/AuthPage.jsx';
 import { UpdatePasswordPage } from './pages/UpdatePasswordPage.jsx';
 import { NotFoundPage } from './pages/NotFoundPage.jsx';
@@ -120,11 +121,48 @@ function HomeRoute() {
   return <Navigate to="/login" replace />;
 }
 
+const ROUTE_PAGE_TITLES = {
+  '/': 'FinSight | Uncertain Income & Cash Flow Intelligence',
+  '/dashboard': 'Overview Dashboard | FinSight',
+  '/analyzer': 'Personal Finance Analyzer | FinSight',
+  '/income': 'Income Management | FinSight',
+  '/expenses': 'Expenses & Bills | FinSight',
+  '/transactions': 'Transactions Ledger | FinSight',
+  '/safe-to-spend': 'Safe-to-Spend Calculator | FinSight',
+  '/forecast': 'Cash Flow Forecast | FinSight',
+  '/simulator': 'Payment Delay Simulator | FinSight',
+  '/prioritization': 'Smart Bill Prioritization | FinSight',
+  '/savings': 'Lean-Week Savings | FinSight',
+  '/notifications': 'Notification Center | FinSight',
+  '/settings': 'Profile & Preferences | FinSight',
+  '/login': 'Sign In | FinSight',
+  '/register': 'Create Account | FinSight',
+  '/setup': 'Financial Setup Wizard | FinSight',
+  '/onboarding': 'Financial Setup Wizard | FinSight',
+  '/reset-password': 'Reset Password | FinSight',
+  '/update-password': 'Set New Password | FinSight',
+  '/admin': 'Administrator Portal | FinSight'
+};
+
 function NavigationWatcher() {
   const location = useLocation();
 
   React.useEffect(() => {
     navigationTracker.record(location.pathname + location.search);
+
+    // Dynamic Title Management
+    const cleanPath = location.pathname.toLowerCase().replace(/\/$/, '') || '/';
+    let title = ROUTE_PAGE_TITLES[cleanPath];
+    if (!title) {
+      if (cleanPath.startsWith('/admin')) {
+        title = 'Administrator Portal | FinSight';
+      } else {
+        title = 'Page Not Found | FinSight';
+      }
+    }
+    if (typeof document !== 'undefined') {
+      document.title = title;
+    }
   }, [location.pathname, location.search]);
 
   return null;
@@ -254,6 +292,7 @@ function AppRoutes() {
         {/* Protected User Dashboard Routes */}
         <Route element={<MainAppShellLayout />}>
           <Route path="/dashboard" element={<OverviewDashboard />} />
+          <Route path="/analyzer" element={<PersonalFinanceAnalyzer />} />
           <Route path="/income" element={<IncomeManagement />} />
           <Route path="/expenses" element={<ExpensesBills />} />
           <Route path="/transactions" element={<ExpensesBills />} />

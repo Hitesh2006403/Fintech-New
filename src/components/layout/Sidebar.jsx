@@ -12,7 +12,8 @@ import {
   Bell,
   Settings,
   X,
-  ShieldAlert
+  ShieldAlert,
+  Brain
 } from 'lucide-react';
 
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -38,6 +39,7 @@ export function Sidebar() {
 
   const navItems = [
     { id: 'dashboard', path: '/dashboard', label: 'Overview', icon: LayoutDashboard },
+    { id: 'analyzer', path: '/analyzer', label: 'Finance Analyzer', icon: Brain, badge: 'AI' },
     { id: 'income', path: '/income', label: 'Income', icon: TrendingUp },
     { id: 'expenses', path: '/expenses', label: 'Expenses & Bills', icon: Receipt },
     { id: 'safe-to-spend', path: '/safe-to-spend', label: 'Safe-to-Spend', icon: ShieldCheck },

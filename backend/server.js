@@ -28,6 +28,9 @@ import {
   generateDashboardInsights,
   getCurrentLocalDate
 } from './financialService.js';
+import { getUserAnalyzerData } from './analyzerService.js';
+import { aiAnalyzerEngine } from './aiAnalyzerEngine.js';
+import { statementParser } from './statementParser.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -99,7 +102,7 @@ app.use((req, res, next) => {
 });
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '20mb' }));
 app.use(cookieParser());
 
 // Disable caching on all API endpoints (auth, sessions, financial data, admin)
@@ -1191,6 +1194,211 @@ app.all(['/api/savings/calculations', '/api/api/savings/calculations'], requireA
   const data = db.getUserFinancials(req.user.id);
   const calcs = calculateLeanWeekSavings(data.leanSavings || data.savingsGoals || {});
   res.json({ success: true, data: calcs });
+});
+
+// ==========================================
+// PERSONAL FINANCE ANALYZER API (STRICT USER ISOLATION)
+// ==========================================
+
+// 1. Complete Tenant-Isolated Analyzer Dataset
+app.get('/api/analyzer/data', requireAuth, (req, res) => {
+  try {
+    // User ID is strictly derived from server-side authenticated session (req.user.id)
+    // Client-supplied identifiers in query params or body are completely ignored
+    const userId = req.user.id;
+    const horizon = req.query?.horizon || 'all';
+    const data = getUserAnalyzerData(userId, { horizon });
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('[Analyzer API Error]:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve personal finance analysis' });
+  }
+});
+
+// 2. Fast KPI Summary
+app.get('/api/analyzer/summary', requireAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const data = getUserAnalyzerData(userId, { horizon: req.query?.horizon || 'all' });
+    res.json({ success: true, summary: data.overview });
+  } catch (err) {
+    console.error('[Analyzer Summary Error]:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve analyzer summary' });
+  }
+});
+
+// 3. Normalized Combined Transactions Ledger
+app.get('/api/analyzer/transactions', requireAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const data = getUserAnalyzerData(userId, { horizon: req.query?.horizon || 'all' });
+    res.json({ success: true, transactions: data.transactions });
+  } catch (err) {
+    console.error('[Analyzer Transactions Error]:', err.message);
+    res.status(500).json({ error: 'Failed to retrieve analyzer transactions' });
+  }
+});
+
+// 4. AI Financial Intelligence Engine Analysis (Single or Multi-Agent)
+app.post('/api/analyzer/ai/analyze', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const mode = req.body?.mode === 'multi' ? 'multi' : 'single';
+    const horizon = req.body?.horizon || 'all';
+
+    const analysis = await aiAnalyzerEngine.runAnalysis(userId, { mode, horizon });
+    db.saveAnalyzerReport(userId, { ...analysis, horizon, mode });
+    res.json({ success: true, analysis });
+  } catch (err) {
+    console.error('[AI Analyzer Error]:', err.message);
+    res.status(500).json({ error: err.message || 'AI financial analysis failed' });
+  }
+});
+
+// 5. AI Engine Status & Configuration
+app.get('/api/analyzer/ai/status', requireAuth, (req, res) => {
+  const config = aiAnalyzerEngine.getLlmProviderConfig();
+  res.json({
+    success: true,
+    provider: config.provider,
+    model: config.model,
+    singleAgentAvailable: true,
+    multiAgentAvailable: true,
+    isExternalLlmActive: Boolean(config.apiKey)
+  });
+});
+
+// 6. Contextual Financial AI Chat ("Ask Your Finances")
+app.post('/api/analyzer/ai/chat', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { message, history = [], horizon = 'all' } = req.body;
+
+    if (!message || typeof message !== 'string' || !message.trim()) {
+      return res.status(400).json({ error: 'Message is required and must be non-empty' });
+    }
+
+    const result = await aiAnalyzerEngine.answerFinancialQuestion({
+      userId,
+      message,
+      history,
+      horizon
+    });
+
+    db.saveAnalyzerChatMessage(userId, {
+      sender: 'user',
+      message: message.trim(),
+      horizon
+    });
+    db.saveAnalyzerChatMessage(userId, {
+      sender: 'ai',
+      message: result.reply,
+      mode: result.mode,
+      verifiedEvidence: result.verifiedEvidence,
+      isDefused: result.isDefused,
+      horizon
+    });
+
+    res.json({
+      success: true,
+      reply: result.reply,
+      mode: result.mode,
+      isDefused: Boolean(result.isDefused),
+      verifiedEvidence: result.verifiedEvidence,
+      timestamp: result.timestamp
+    });
+  } catch (err) {
+    console.error('[AI Chat Error]:', err.message);
+    res.status(500).json({ error: err.message || 'Failed to process financial chat question' });
+  }
+});
+
+// 7. Statement Processing: Parse & Deduplicate
+app.post('/api/analyzer/statements/parse', requireAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { filename, content, fileType } = req.body;
+
+    if (!filename || typeof filename !== 'string') {
+      return res.status(400).json({ error: 'Filename is required' });
+    }
+
+    if (!content) {
+      return res.status(400).json({ error: 'File content is required' });
+    }
+
+    // Load active user's existing partition for duplicate reconciliation
+    const userFinancials = db.getUserFinancials(userId);
+
+    const result = statementParser.parseStatementFile({
+      filename,
+      content,
+      fileType,
+      existingFinancials: userFinancials
+    });
+
+    res.json({
+      success: true,
+      filename: result.filename,
+      summary: result.summary,
+      rows: result.rows
+    });
+  } catch (err) {
+    console.error('[Statement Parse Error]:', err.message);
+    res.status(400).json({ error: err.message || 'Failed to parse statement' });
+  }
+});
+
+// 8. Statement Processing: Confirmed Batch Import into FinSight Ledger
+app.post('/api/analyzer/statements/import', requireAuth, (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { transactions } = req.body;
+
+    if (!Array.isArray(transactions) || transactions.length === 0) {
+      return res.status(400).json({ error: 'At least one transaction is required for import' });
+    }
+
+    const result = statementParser.importConfirmedTransactions(userId, transactions);
+
+    db.saveAnalyzerStatementImport(userId, {
+      filename: req.body.filename || 'Bank Statement',
+      fileType: req.body.fileType || 'csv',
+      totalTransactions: transactions.length,
+      importedIncomes: result.importedIncomes,
+      importedExpenses: result.importedExpenses,
+      status: 'completed'
+    });
+
+    res.json({
+      success: true,
+      message: `Successfully imported ${result.totalImported} transaction(s)`,
+      importedIncomes: result.importedIncomes,
+      importedExpenses: result.importedExpenses,
+      totalImported: result.totalImported
+    });
+  } catch (err) {
+    console.error('[Statement Import Error]:', err.message);
+    res.status(400).json({ error: err.message || 'Failed to import transactions' });
+  }
+});
+
+// 9. Analyzer Reports History
+app.get('/api/analyzer/reports', requireAuth, (req, res) => {
+  const reports = db.getAnalyzerReports(req.user.id);
+  res.json({ success: true, reports });
+});
+
+// 10. Analyzer Chat History
+app.get('/api/analyzer/chat/history', requireAuth, (req, res) => {
+  const messages = db.getAnalyzerChatMessages(req.user.id);
+  res.json({ success: true, messages });
+});
+
+// 11. Analyzer Statement Import History
+app.get('/api/analyzer/statements/history', requireAuth, (req, res) => {
+  const history = db.getAnalyzerStatementImports(req.user.id);
+  res.json({ success: true, history });
 });
 
 // 2. Update user planning preferences

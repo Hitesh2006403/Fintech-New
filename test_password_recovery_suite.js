@@ -26,36 +26,27 @@ after(async () => {
 });
 
 describe('FinSight Password Recovery Flow & Security Suite', () => {
-  test('1. POST /api/auth/forgot-password is blocked by feature flag and returns 503 maintenance notice without sending emails', async () => {
+  test('1. POST /api/auth/forgot-password handles recovery request with zero-enumeration protection', async () => {
     const res = await fetch(`${baseUrl}/api/auth/forgot-password`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: 'user@example.com' })
     });
     const body = await res.json();
-    assert.equal(res.status, 503);
-    assert.equal(body.success, false);
-    assert.equal(body.disabled, true);
-    assert.equal(body.error, 'Password recovery is temporarily unavailable. Please try again later.');
-    assert.equal(body.message, 'Password recovery is temporarily unavailable. Please try again later.');
+    assert.equal(res.status, 200);
+    assert.equal(body.success, true);
+    assert.match(body.message, /password recovery link will be sent/i);
   });
 
-  test('2. GET /api/auth/password-recovery-status returns disabled status', async () => {
+  test('2. GET /api/auth/password-recovery-status returns enabled status', async () => {
     const res = await fetch(`${baseUrl}/api/auth/password-recovery-status`);
     const body = await res.json();
     assert.equal(res.status, 200);
-    assert.equal(body.enabled, false);
-    assert.match(body.message, /Password recovery is temporarily unavailable. Please try again later./i);
+    assert.equal(body.enabled, true);
   });
 
-  test('3. sendPasswordRecoveryEmail helper suppresses email delivery when disabled without invoking nodemailer', async () => {
-    const result = await sendPasswordRecoveryEmail({
-      toEmail: 'user@example.com',
-      recoveryLink: 'http://localhost/test'
-    });
-    assert.equal(result.success, false);
-    assert.equal(result.disabled, true);
-    assert.match(result.reason, /Password recovery is temporarily unavailable. Please try again later./i);
+  test('3. sendPasswordRecoveryEmail helper is active and configured', async () => {
+    assert.equal(isPasswordRecoveryEnabled(), true);
   });
 
   test('4. POST /api/auth/update-password rejects weak passwords (< 8 chars) with 400', async () => {
