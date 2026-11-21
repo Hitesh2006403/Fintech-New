@@ -8,7 +8,7 @@ import {
   simulatePaymentDelay,
   rankBills,
   calculateLeanWeekSavings
-} from './financialEngine.js';
+} from '../src/services/financialEngine.js';
 
 test('formatINR formats currency in Indian numbering style', () => {
   assert.strictEqual(formatINR(125000), '₹1,25,000');
