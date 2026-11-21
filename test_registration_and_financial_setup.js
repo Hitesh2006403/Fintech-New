@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { spawn } from 'node:child_process';
+import http from 'node:http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,7 +15,54 @@ const FINANCIALS_FILE = path.join(__dirname, 'backend', 'data', 'financials.json
 
 const BASE_URL = 'http://localhost:3001';
 
+function isServerListening() {
+  return new Promise((resolve) => {
+    http.get(`${BASE_URL}/api/health`, (res) => {
+      resolve(res.statusCode === 200);
+    }).on('error', () => resolve(false));
+  });
+}
+
+function waitForServer(maxAttempts = 20) {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      http.get(`${BASE_URL}/api/health`, (res) => {
+        if (res.statusCode === 200) {
+          clearInterval(interval);
+          resolve();
+        }
+      }).on('error', () => {
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          reject(new Error('Server did not start in time'));
+        }
+      });
+    }, 250);
+  });
+}
+
 test('End-to-End Registration, Database Persistence & Financial Setup Suite', async (t) => {
+  let serverProc = null;
+  const alreadyUp = await isServerListening();
+  if (!alreadyUp) {
+    serverProc = spawn('node', ['backend/server.js'], {
+      env: {
+        ...process.env,
+        PORT: '3001'
+      },
+      stdio: 'ignore'
+    });
+    await waitForServer();
+  }
+
+  t.after(() => {
+    if (serverProc) {
+      serverProc.kill();
+    }
+  });
+
   const testEmail = `e2e_setup_tester_${Date.now()}@example.com`;
   const testPassword = 'Password123#Secure!';
   const testName = 'E2E Setup Tester';

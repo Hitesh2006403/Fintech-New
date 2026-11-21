@@ -7,10 +7,11 @@ import { safeDate } from './analyzerService.js';
 const CATEGORY_RULES = [
   { category: 'Food & Dining', type: 'expense', regex: /swiggy|zomato|mcdonald|kfc|starbucks|domino|pizza|burger|cafe|restaurant|eats|barbeque|bistro|food/i },
   { category: 'Groceries', type: 'expense', regex: /blinkit|zepto|instamart|bigbasket|dmart|supermarket|grocery|groceries|kirana|spencer|nature\s*basket/i },
+  { category: 'Software & Subscriptions', type: 'expense', regex: /aws|azure|cloud|digitalocean|heroku|github|gitlab|atlassian|jira|slack|zoom|notion|figma|canva|adobe|domain|godaddy|cloudflare/i },
+  { category: 'Housing & Utilities', type: 'expense', regex: /rent|wework|maintenance|society|electricity|bescom|tneb|mseb|water|broadband|wifi|airtel|jio|vi\s*postpaid|gas|cylinder|lpg/i },
   { category: 'Shopping', type: 'expense', regex: /amazon|flipkart|myntra|ajio|meesho|tata\s*cliq|nykaa|retail|croma|reliance\s*digital|shopping|store/i },
   { category: 'Transportation', type: 'expense', regex: /uber|ola|rapido|metro|fuel|petrol|diesel|hpcl|bpcl|iocl|fastag|toll|parking|flight|indigo|air\s*india|irctc/i },
   { category: 'Entertainment & Subscriptions', type: 'expense', regex: /netflix|spotify|prime|hotstar|youtube|apple|google\s*play|disney|playstation|steam|multiplex|pvr|inox|bookmyshow/i },
-  { category: 'Housing & Utilities', type: 'expense', regex: /rent|maintenance|society|electricity|bescom|tneb|mseb|water|broadband|wifi|airtel|jio|vi\s*postpaid|gas|cylinder|lpg/i },
   { category: 'Health & Medical', type: 'expense', regex: /pharmacy|medplus|apollo|1mg|pharmeasy|hospital|clinic|doctor|diagnostic|lab|dental|health/i },
   { category: 'EMI or loan', type: 'expense', regex: /emi|loan|bajaj\s*finance|home\s*loan|car\s*loan|personal\s*loan|hdfc\s*bank\s*loan|icici\s*loan/i },
   { category: 'Insurance', type: 'expense', regex: /insurance|lic|hdfc\s*ergo|icici\s*lombard|star\s*health|max\s*life|tata\s*aig/i },
@@ -261,6 +262,16 @@ export function parseCsvStatement(csvContent = '') {
     });
   }
 
+  const totalInflows = parsedRows.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0);
+  const totalOutflows = parsedRows.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
+  parsedRows.rows = parsedRows;
+  parsedRows.summary = {
+    totalTransactions: parsedRows.length,
+    totalInflows: Math.round(totalInflows),
+    totalOutflows: Math.round(totalOutflows),
+    netMovement: Math.round(totalInflows - totalOutflows)
+  };
+
   return parsedRows;
 }
 
@@ -268,14 +279,15 @@ export function parseCsvStatement(csvContent = '') {
  * Robust zero-dependency PDF text stream and table extractor
  */
 export function parsePdfStatement(pdfBuffer) {
-  if (!pdfBuffer || !Buffer.isBuffer(pdfBuffer)) {
+  if (!pdfBuffer) {
     throw new Error('Valid PDF buffer is required');
   }
 
+  const buffer = Buffer.isBuffer(pdfBuffer) ? pdfBuffer : Buffer.from(String(pdfBuffer), 'latin1');
   let textContent = '';
 
   // 1. Scan for uncompressed text blocks: BT ... ET
-  const bufferStr = pdfBuffer.toString('latin1');
+  const bufferStr = buffer.toString('latin1');
   const btRegex = /\bBT\b([\s\S]*?)\bET\b/g;
   let match;
   while ((match = btRegex.exec(bufferStr)) !== null) {
@@ -283,8 +295,15 @@ export function parsePdfStatement(pdfBuffer) {
     // Extract strings inside parentheses: (Text) Tj or [(T)(e)(x)(t)] TJ
     const strRegex = /\(([^)]*)\)\s*(?:Tj|'|")/g;
     let strMatch;
+    let hasParenthesesText = false;
     while ((strMatch = strRegex.exec(block)) !== null) {
       textContent += strMatch[1] + ' ';
+      hasParenthesesText = true;
+    }
+    if (!hasParenthesesText) {
+      // Plain text tokens inside BT block without Tj parentheses (e.g. synthetic streams)
+      const cleanBlock = block.replace(/\/[A-Za-z0-9]+\s+\d+\s+Tf/g, '').trim();
+      textContent += cleanBlock + ' ';
     }
     textContent += '\n';
   }
@@ -331,7 +350,7 @@ export function parsePdfStatement(pdfBuffer) {
   const parsedRows = [];
 
   // Banking row regex: Date + Narration + Amount
-  const rowPattern = /(\d{1,2}[/-]\d{1,2}[/-]\d{2,4})\s+(.+?)\s+([₹$]?\s*[\d,]+\.\d{2}|[\d,]+)\s*(CR|DR|Cr|Dr)?(?:\s+([₹$]?\s*[\d,]+\.\d{2}))?$/;
+  const rowPattern = /(\d{1,4}[/-]\d{1,2}[/-]\d{1,4})\s+(.+?)\s+([₹$]?\s*[\d,]+\.\d{2}|[\d,]+)\s*(CR|DR|Cr|Dr)?(?:\s+([₹$]?\s*[\d,]+\.\d{2}))?$/i;
 
   for (const line of lines) {
     const match = line.match(rowPattern);
@@ -394,6 +413,16 @@ export function parsePdfStatement(pdfBuffer) {
   if (parsedRows.length === 0) {
     throw new Error('Unable to extract recognized transaction tables from this PDF statement. Please ensure it is an official bank account statement or upload the CSV version.');
   }
+
+  const totalInflows = parsedRows.filter(r => r.type === 'income').reduce((sum, r) => sum + r.amount, 0);
+  const totalOutflows = parsedRows.filter(r => r.type === 'expense').reduce((sum, r) => sum + r.amount, 0);
+  parsedRows.rows = parsedRows;
+  parsedRows.summary = {
+    totalTransactions: parsedRows.length,
+    totalInflows: Math.round(totalInflows),
+    totalOutflows: Math.round(totalOutflows),
+    netMovement: Math.round(totalInflows - totalOutflows)
+  };
 
   return parsedRows;
 }

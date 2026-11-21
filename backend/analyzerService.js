@@ -35,18 +35,44 @@ import {
 } from './financialService.js';
 
 /**
+ * Safely parses monetary amounts handling currency symbols (₹, $), commas,
+ * negative numbers/refunds, non-numeric strings, and NaN.
+ *
+ * @param {any} val - Value to parse
+ * @param {number} [fallback=0] - Fallback when unparseable
+ * @returns {number} Sanitized finite number
+ */
+export function parseSafeAmount(val, fallback = 0) {
+  if (typeof val === 'number') {
+    return isNaN(val) || !isFinite(val) ? fallback : val;
+  }
+  if (val === null || val === undefined || val === '') return fallback;
+  if (typeof val === 'string') {
+    const cleaned = val.replace(/[₹$,\s]/g, '').trim();
+    const parsed = parseFloat(cleaned);
+    return isNaN(parsed) || !isFinite(parsed) ? fallback : parsed;
+  }
+  const num = Number(val);
+  return isNaN(num) || !isFinite(num) ? fallback : num;
+}
+
+/**
  * Normalizes an ISO date string safely using Asia/Kolkata default
  */
-export function safeDate(val, fallback = getCurrentLocalDate()) {
-  if (!val || typeof val !== 'string') return fallback;
+export function safeDate(val, fallback) {
+  if (!val || typeof val !== 'string') return fallback || getCurrentLocalDate();
+  if (val.length === 10 && val.charCodeAt(4) === 45 && val.charCodeAt(7) === 45) return val;
   const match = val.match(/^\d{4}-\d{2}-\d{2}/);
-  return match ? match[0] : fallback;
+  return match ? match[0] : (fallback || getCurrentLocalDate());
 }
 
 /**
  * Extracts the calendar month string (YYYY-MM) from an ISO date string
  */
 export function getMonthKey(dateStr) {
+  if (typeof dateStr === 'string' && dateStr.length >= 7 && dateStr.charCodeAt(4) === 45) {
+    return dateStr.slice(0, 7);
+  }
   const safe = safeDate(dateStr);
   return safe.slice(0, 7);
 }
@@ -61,10 +87,10 @@ export function detectUnusualExpenses(expenses = []) {
   if (!Array.isArray(expenses) || expenses.length < 2) return [];
 
   // Filter positive amounts for statistical analysis
-  const positiveExpenses = expenses.filter(e => Number(e.amount) > 0);
+  const positiveExpenses = expenses.filter(e => parseSafeAmount(e.amount, 0) > 0);
   if (positiveExpenses.length < 2) return [];
 
-  const amounts = positiveExpenses.map(e => Number(e.amount));
+  const amounts = positiveExpenses.map(e => parseSafeAmount(e.amount, 0));
   const count = amounts.length;
   const sum = amounts.reduce((acc, a) => acc + a, 0);
   const mean = sum / count;
@@ -78,8 +104,9 @@ export function detectUnusualExpenses(expenses = []) {
   const catSums = {};
   const catCounts = {};
   positiveExpenses.forEach(e => {
+    const amt = parseSafeAmount(e.amount, 0);
     const cat = e.category || 'General';
-    catSums[cat] = (catSums[cat] || 0) + Number(e.amount);
+    catSums[cat] = (catSums[cat] || 0) + amt;
     catCounts[cat] = (catCounts[cat] || 0) + 1;
   });
 
@@ -91,7 +118,7 @@ export function detectUnusualExpenses(expenses = []) {
   const flagged = [];
 
   positiveExpenses.forEach(exp => {
-    const amt = Number(exp.amount);
+    const amt = parseSafeAmount(exp.amount, 0);
     const cat = exp.category || 'General';
     const catAvg = catAverages[cat] || mean;
     const catCount = catCounts[cat] || 1;
@@ -145,16 +172,32 @@ export function detectRecurringExpenses(expenses = []) {
   const seenIds = new Set();
 
   expenses.forEach(exp => {
-    const amt = Number(exp.amount || 0);
+    const amt = parseSafeAmount(exp.amount, 0);
     if (amt <= 0) return;
 
-    const isExplicitRecurring = Boolean(exp.recurring && exp.recurring !== 'none') || exp.isRecurring === true;
+    const recVal = String(exp.recurring || '').toLowerCase().trim();
+    const isNonRecurring = !recVal || recVal === 'none' || recVal === 'one-time' || recVal === 'never' || recVal === 'false';
+    const isExplicitRecurring = (!isNonRecurring) || exp.isRecurring === true;
     const isEmi = exp.isEMI === true || /emi|loan|mortgage/i.test(exp.title || '') || /emi|loan/i.test(exp.category || '');
 
     if ((isExplicitRecurring || isEmi) && !seenIds.has(exp.id)) {
       seenIds.add(exp.id);
-      const frequency = exp.recurring === 'weekly' ? 'weekly' : 'monthly';
-      const annualMultiplier = frequency === 'weekly' ? 52 : 12;
+      let frequency = 'monthly';
+      let annualMultiplier = 12;
+
+      if (recVal === 'weekly') {
+        frequency = 'weekly';
+        annualMultiplier = 52;
+      } else if (recVal === 'yearly' || recVal === 'annual') {
+        frequency = 'yearly';
+        annualMultiplier = 1;
+      } else if (recVal === 'quarterly') {
+        frequency = 'quarterly';
+        annualMultiplier = 4;
+      } else if (recVal === 'daily') {
+        frequency = 'daily';
+        annualMultiplier = 365;
+      }
 
       recurringList.push({
         id: exp.id,
@@ -175,6 +218,7 @@ export function detectRecurringExpenses(expenses = []) {
 
 /**
  * Detects duplicate or near-duplicate transactions.
+ * Uses amount-indexed bucketing for ultra-fast O(K) detection over large ledgers.
  *
  * @param {Array} transactions - List of transactions
  * @returns {Array} List of flagged duplicate items
@@ -185,19 +229,32 @@ export function detectDuplicateTransactions(transactions = []) {
   const duplicates = [];
   const checked = new Set();
 
+  // Bucket by amount for fast O(K) lookup instead of O(N^2)
+  const byAmount = new Map();
   for (let i = 0; i < transactions.length; i++) {
-    for (let j = i + 1; j < transactions.length; j++) {
-      const a = transactions[i];
-      const b = transactions[j];
+    const tx = transactions[i];
+    const amt = parseSafeAmount(tx.amount, 0);
+    if (amt <= 0) continue;
+    let list = byAmount.get(amt);
+    if (!list) {
+      list = [];
+      byAmount.set(amt, list);
+    }
+    list.push(tx);
+  }
 
-      if (checked.has(a.id) || checked.has(b.id)) continue;
-      if (a.type !== b.type) continue;
+  for (const list of byAmount.values()) {
+    if (list.length < 2) continue;
 
-      const amtA = Number(a.amount || 0);
-      const amtB = Number(b.amount || 0);
+    for (let i = 0; i < list.length; i++) {
+      for (let j = i + 1; j < list.length; j++) {
+        const a = list[i];
+        const b = list[j];
 
-      // Match criteria: identical amount, same type, similar title, within 2 days
-      if (amtA === amtB && amtA > 0) {
+        if (checked.has(a.id) || checked.has(b.id)) continue;
+        if (a.type && b.type && a.type !== b.type) continue;
+
+        const amtA = parseSafeAmount(a.amount, 0);
         const titleA = (a.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
         const titleB = (b.title || '').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
 
@@ -209,13 +266,14 @@ export function detectDuplicateTransactions(transactions = []) {
           if (daysGap <= 2) {
             duplicates.push({
               primaryId: a.id,
+              originalId: a.id,
               duplicateId: b.id,
               title: a.title,
               amount: amtA,
               dateA,
               dateB,
               daysGap,
-              reason: `Identical ${a.type} of ${formatINR(amtA)} found on ${dateA} and ${dateB} (${daysGap} day difference)`
+              reason: `Identical ${a.type || 'transaction'} of ${formatINR(amtA)} found on ${dateA} and ${dateB} (${daysGap} day difference)`
             });
             checked.add(b.id);
           }
@@ -481,30 +539,41 @@ export function generateRecommendations(metrics) {
  * @param {object} options - Optional filters (horizon: '30' | '90' | '365' | 'all')
  * @returns {object} Authoritative financial analyzer metrics
  */
-export function getUserAnalyzerData(userId, options = {}) {
-  if (!userId || typeof userId !== 'string') {
-    throw new Error('Unauthorized: Valid session-derived user ID is required');
-  }
+/**
+ * Calculates authoritative deterministic financial metrics for a set of incomes, expenses,
+ * starting balance, safety buffer, and designated reserve.
+ *
+ * @param {object} params
+ * @param {Array} params.incomes - Raw or user income records
+ * @param {Array} params.expenses - Raw or user expense records
+ * @param {number} [params.startingBalance=45000] - Starting cash balance
+ * @param {number} [params.safetyBuffer=25000] - Minimum reserve threshold
+ * @param {number} [params.designatedSavings=0] - Earmarked/locked savings
+ * @param {object} [params.budgets={}] - Category budgets
+ * @param {string} [params.horizon='all'] - Date filter ('30' | '90' | '365' | 'all')
+ * @param {string} [params.userId='session-user'] - User context ID
+ * @returns {object} Authoritative financial analyzer metrics
+ */
+export function calculateDeterministicMetrics({
+  incomes = [],
+  expenses = [],
+  startingBalance: rawStartingBalance = 45000,
+  safetyBuffer: rawSafetyBuffer = 25000,
+  designatedSavings: rawDesignatedSavings = 0,
+  budgets = {},
+  horizon = 'all',
+  userId = 'session-user'
+} = {}) {
+  const startingBalance = parseSafeAmount(rawStartingBalance, 45000);
+  const safetyBuffer = parseSafeAmount(rawSafetyBuffer, 25000);
+  const designatedSavings = parseSafeAmount(rawDesignatedSavings, 0);
 
-  // 1. Fetch user's isolated financial records
-  const userFinancials = db.getUserFinancials(userId);
-  if (!userFinancials) {
-    throw new Error('User financial partition not found');
-  }
-
-  const preferences = userFinancials.preferences || {};
-  const startingBalance = Number(preferences.startingBalance ?? 45000);
-  const safetyBuffer = Number(preferences.safetyBuffer ?? 25000);
-  const rawIncomes = Array.isArray(userFinancials.incomes) ? userFinancials.incomes : [];
-  const rawExpenses = Array.isArray(userFinancials.expenses) ? userFinancials.expenses : [];
-  const leanSavings = userFinancials.leanSavings || {};
-  const designatedSavings = Number(leanSavings.currentDesignatedReserve ?? 0);
-
+  const rawIncomes = Array.isArray(incomes) ? incomes : [];
+  const rawExpenses = Array.isArray(expenses) ? expenses : [];
   const todayStr = getCurrentLocalDate();
-  const horizon = options.horizon || 'all';
   const horizonDays = horizon === '30' ? 30 : horizon === '90' ? 90 : horizon === '365' ? 365 : null;
 
-  // 2. Filter records by date horizon if specified
+  // Filter records by date horizon if specified
   const isWithinHorizon = (dateStr) => {
     if (!horizonDays) return true;
     if (!dateStr) return false;
@@ -512,10 +581,10 @@ export function getUserAnalyzerData(userId, options = {}) {
     return Math.abs(diff) <= horizonDays;
   };
 
-  const incomes = rawIncomes.filter(inc => isWithinHorizon(inc.actualDate || inc.expectedDate));
-  const expenses = rawExpenses.filter(exp => isWithinHorizon(exp.paidDate || exp.dueDate));
+  const filteredIncomes = rawIncomes.filter(inc => isWithinHorizon(inc.actualDate || inc.expectedDate));
+  const filteredExpenses = rawExpenses.filter(exp => isWithinHorizon(exp.paidDate || exp.dueDate));
 
-  // 3. Central Balance & Cash Flow
+  // Central Balance & Cash Flow
   const balanceDetails = calculateCurrentBalance(
     startingBalance,
     rawIncomes,
@@ -526,7 +595,7 @@ export function getUserAnalyzerData(userId, options = {}) {
   const availableCash = balanceDetails.availableCash;
   const grossCash = balanceDetails.grossCash;
 
-  // 4. Income Intelligence & Breakdown
+  // Income Intelligence & Breakdown
   let totalGrossIncome = 0;
   let clearedIncome = 0;
   let confirmedIncome = 0;
@@ -535,8 +604,8 @@ export function getUserAnalyzerData(userId, options = {}) {
   const incomeCategoriesMap = {};
   const incomeSourcesMap = {};
 
-  const sanitizedIncomes = incomes.map(inc => {
-    const amt = Number(inc.amount || 0);
+  const sanitizedIncomes = filteredIncomes.map(inc => {
+    const amt = parseSafeAmount(inc.amount, 0);
     totalGrossIncome += amt;
 
     const isCleared = inc.status === 'received' || Boolean(inc.actualDate);
@@ -570,17 +639,19 @@ export function getUserAnalyzerData(userId, options = {}) {
     };
   });
 
-  const incomeByCategory = Object.entries(incomeCategoriesMap).map(([category, total]) => ({
-    category,
-    total,
-    percentage: totalGrossIncome > 0 ? Math.round((total / totalGrossIncome) * 100) : 0
-  })).sort((a, b) => b.total - a.total);
+  const incomeByCategory = Object.entries(incomeCategoriesMap)
+    .filter(([_, total]) => total > 0)
+    .map(([category, total]) => ({
+      category,
+      total,
+      percentage: totalGrossIncome > 0 ? Math.round((total / totalGrossIncome) * 100) : 0
+    })).sort((a, b) => b.total - a.total);
 
   const certaintyRatio = totalGrossIncome > 0
     ? Math.round(((clearedIncome + confirmedIncome) / totalGrossIncome) * 100)
     : 0;
 
-  // 5. Expense Intelligence & Breakdown
+  // Expense Intelligence & Breakdown
   let totalCommittedExpenses = 0;
   let paidExpenses = 0;
   let unpaidExpenses = 0;
@@ -593,13 +664,13 @@ export function getUserAnalyzerData(userId, options = {}) {
 
   const expenseCategoriesMap = {};
 
-  const sanitizedExpenses = expenses.map(exp => {
-    const amt = Number(exp.amount || 0);
+  const sanitizedExpenses = filteredExpenses.map(exp => {
+    const amt = parseSafeAmount(exp.amount, 0);
     totalCommittedExpenses += amt;
 
     const isPaid = exp.status === 'paid' || Boolean(exp.paidDate);
     const dueDateStr = safeDate(exp.dueDate);
-    const isOverdue = !isPaid && dueDateStr < todayStr;
+    const isOverdue = !isPaid && (exp.status === 'overdue' || (dueDateStr < todayStr && Boolean(exp.dueDate)));
 
     if (isPaid) paidExpenses += amt;
     else {
@@ -648,18 +719,20 @@ export function getUserAnalyzerData(userId, options = {}) {
     };
   });
 
-  const expensesByCategory = Object.entries(expenseCategoriesMap).map(([category, total]) => ({
-    category,
-    total,
-    percentage: totalCommittedExpenses > 0 ? Math.round((total / totalCommittedExpenses) * 100) : 0
-  })).sort((a, b) => b.total - a.total);
+  const expensesByCategory = Object.entries(expenseCategoriesMap)
+    .filter(([_, total]) => total > 0)
+    .map(([category, total]) => ({
+      category,
+      total,
+      percentage: totalCommittedExpenses > 0 ? Math.round((total / totalCommittedExpenses) * 100) : 0
+    })).sort((a, b) => b.total - a.total);
 
   const essentialRatio = totalCommittedExpenses > 0
     ? Math.round((essentialObligations / totalCommittedExpenses) * 100)
     : 0;
   const discretionaryRatio = 100 - essentialRatio;
 
-  // 6. Net Savings, Savings Rate & Expense-to-Income
+  // Net Savings, Savings Rate & Expense-to-Income
   const netSavings = clearedIncome - paidExpenses;
   const projectedNet = totalGrossIncome - totalCommittedExpenses;
 
@@ -682,7 +755,7 @@ export function getUserAnalyzerData(userId, options = {}) {
     ? Math.round((totalCommittedExpenses / totalGrossIncome) * 100)
     : (totalCommittedExpenses > 0 ? 100 : 0);
 
-  // 7. Daily & Monthly Averages
+  // Daily & Monthly Averages
   const effectiveDays = horizonDays || 90;
   const dailyAverageExpenses = Math.round(totalCommittedExpenses / effectiveDays);
   const monthlyAverageExpenses = Math.round((totalCommittedExpenses / effectiveDays) * 30);
@@ -704,7 +777,7 @@ export function getUserAnalyzerData(userId, options = {}) {
   const bufferCoveragePercent = Math.min(200, Math.round(bufferCoverageRatio * 100));
   const bufferStatus = bufferCoverageRatio >= 1.0 ? 'healthy' : bufferCoverageRatio >= 0.5 ? 'warning' : 'critical';
 
-  // 8. Deterministic Financial Health Score (0 - 100)
+  // Deterministic Financial Health Score (0 - 100)
   let healthScore = 0;
   if (savingsRate >= 30) healthScore += 30;
   else if (savingsRate > 0) healthScore += Math.round((savingsRate / 30) * 30);
@@ -720,27 +793,18 @@ export function getUserAnalyzerData(userId, options = {}) {
   healthScore += Math.max(0, 20 - overduePenalty);
   healthScore = Math.max(0, Math.min(100, Math.round(healthScore)));
 
-  // 9. PHASE 3 ADVANCED ENGINES:
-  // A. Unusual Expense Detection (Anomalies)
+  // Phase 3 Advanced Subsystems
   const unusualExpenses = detectUnusualExpenses(sanitizedExpenses);
-
-  // B. Recurring Expense Detection
   const recurringExpenses = detectRecurringExpenses(sanitizedExpenses);
-
-  // C. Month-over-Month Historical Analysis
   const monthOverMonth = calculateMonthOverMonthComparison(rawIncomes, rawExpenses);
+  const budgetUtilization = calculateBudgetUtilization(sanitizedExpenses, budgets);
 
-  // D. Category Budget Utilization
-  const budgetUtilization = calculateBudgetUtilization(sanitizedExpenses, preferences.expenseBudgets);
-
-  // E. Duplicate Transaction Detection
   const allTxForDuplicates = [
     ...sanitizedIncomes.map(i => ({ ...i, type: 'income', date: i.actualDate || i.expectedDate })),
     ...sanitizedExpenses.map(e => ({ ...e, type: 'expense', date: e.paidDate || e.dueDate }))
   ];
   const duplicateWarnings = detectDuplicateTransactions(allTxForDuplicates);
 
-  // F. Deterministic Actionable Recommendations
   const recommendations = generateRecommendations({
     savingsRate,
     expenseToIncomeRatio,
@@ -751,7 +815,6 @@ export function getUserAnalyzerData(userId, options = {}) {
     unusualExpenses
   });
 
-  // 10. Unified Chronological Transaction Ledger
   const transactions = allTxForDuplicates.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
 
   const upcomingBills = sanitizedExpenses
@@ -762,7 +825,6 @@ export function getUserAnalyzerData(userId, options = {}) {
     .filter(e => e.isOverdue)
     .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 
-  // 11. Return Complete Authoritative Report with Distinct Actual vs Forecast vs Estimates
   return {
     meta: {
       userId,
@@ -771,7 +833,6 @@ export function getUserAnalyzerData(userId, options = {}) {
       todayStr,
       engineVersion: '3.0.0-deterministic'
     },
-    // Distinct Category: Actual Realized Values
     actual: {
       clearedIncome,
       paidExpenses,
@@ -782,7 +843,6 @@ export function getUserAnalyzerData(userId, options = {}) {
       grossCash,
       designatedSavings
     },
-    // Distinct Category: Forecast / Projected Values
     forecast: {
       totalGrossIncome,
       confirmedIncome,
@@ -796,7 +856,6 @@ export function getUserAnalyzerData(userId, options = {}) {
       projectedSavingsRate,
       projectedExpenseToIncomeRatio
     },
-    // Distinct Category: Estimates & Benchmarks
     estimates: {
       dailyAverageExpenses,
       monthlyAverageExpenses,
@@ -809,9 +868,7 @@ export function getUserAnalyzerData(userId, options = {}) {
       bufferStatus,
       healthScore
     },
-    // Distinct Category: Actionable Recommendations
     recommendations,
-    // Deep Analytical Subsystems
     spending: {
       essentialObligations,
       discretionarySpending,
@@ -835,7 +892,6 @@ export function getUserAnalyzerData(userId, options = {}) {
       upcomingBills,
       overdueBills
     },
-    // Backwards compatibility layer for Phase 2 consumers
     overview: {
       availableCash,
       grossCash,
@@ -869,8 +925,48 @@ export function getUserAnalyzerData(userId, options = {}) {
   };
 }
 
+/**
+ * Authoritative Analyzer Data Engine: Returns comprehensive personal finance
+ * analysis by orchestrating pure deterministic financial calculations.
+ *
+ * @param {string} userId - Authenticated user ID (strictly from session)
+ * @param {object} options - Optional filters (horizon: '30' | '90' | '365' | 'all')
+ * @returns {object} Authoritative financial analyzer metrics
+ */
+export function getUserAnalyzerData(userId, options = {}) {
+  if (!userId || typeof userId !== 'string') {
+    throw new Error('Unauthorized: Valid session-derived user ID is required');
+  }
+
+  // 1. Fetch user's isolated financial records
+  const userFinancials = db.getUserFinancials(userId);
+  if (!userFinancials) {
+    throw new Error('User financial partition not found');
+  }
+
+  const preferences = userFinancials.preferences || {};
+  const startingBalance = Number(preferences.startingBalance ?? 45000);
+  const safetyBuffer = Number(preferences.safetyBuffer ?? 25000);
+  const rawIncomes = Array.isArray(userFinancials.incomes) ? userFinancials.incomes : [];
+  const rawExpenses = Array.isArray(userFinancials.expenses) ? userFinancials.expenses : [];
+  const leanSavings = userFinancials.leanSavings || {};
+  const designatedSavings = Number(leanSavings.currentDesignatedReserve ?? 0);
+
+  return calculateDeterministicMetrics({
+    incomes: rawIncomes,
+    expenses: rawExpenses,
+    startingBalance,
+    safetyBuffer,
+    designatedSavings,
+    budgets: preferences.expenseBudgets || {},
+    horizon: options.horizon || 'all',
+    userId
+  });
+}
+
 export const analyzerService = {
   getUserAnalyzerData,
+  calculateDeterministicMetrics,
   detectUnusualExpenses,
   detectRecurringExpenses,
   detectDuplicateTransactions,

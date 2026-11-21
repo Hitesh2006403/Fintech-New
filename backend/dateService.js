@@ -5,17 +5,35 @@
 
 export const DEFAULT_TIMEZONE = 'Asia/Kolkata';
 
+const _localDateFormatter = new Intl.DateTimeFormat('en-CA', {
+  timeZone: DEFAULT_TIMEZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit'
+});
+let _cachedDate = null;
+let _lastCacheTime = 0;
+
 export function getCurrentLocalDate(timeZone = DEFAULT_TIMEZONE) {
+  const now = Date.now();
+  if (timeZone === DEFAULT_TIMEZONE && _cachedDate && (now - _lastCacheTime < 60000)) {
+    return _cachedDate;
+  }
   try {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
+    const formatter = timeZone === DEFAULT_TIMEZONE ? _localDateFormatter : new Intl.DateTimeFormat('en-CA', {
       timeZone,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
     });
-    return formatter.format(new Date());
+    const formatted = formatter.format(new Date(now));
+    if (timeZone === DEFAULT_TIMEZONE) {
+      _cachedDate = formatted;
+      _lastCacheTime = now;
+    }
+    return formatted;
   } catch {
-    const d = new Date();
+    const d = new Date(now);
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');

@@ -48,9 +48,9 @@ function checkRateLimit(userId) {
  * Resolves the active external LLM provider configuration (server-side only)
  */
 export function getLlmProviderConfig() {
-  const openRouterKey = (process.env.OPENROUTER_API_KEY || '').trim();
-  const openAiKey = (process.env.OPENAI_API_KEY || '').trim();
-  const geminiKey = (process.env.GEMINI_API_KEY || '').trim();
+  const openRouterKey = (process.env.OPENROUTER_API_KEY || '').replace(/[\"']/g, '').trim();
+  const openAiKey = (process.env.OPENAI_API_KEY || '').replace(/[\"']/g, '').trim();
+  const geminiKey = (process.env.GEMINI_API_KEY || '').replace(/[\"']/g, '').trim();
 
   if (openRouterKey) {
     return {
@@ -75,7 +75,7 @@ export function getLlmProviderConfig() {
       provider: 'gemini',
       apiKey: geminiKey,
       endpoint: 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-      model: process.env.AI_MODEL || 'gemini-1.5-flash'
+      model: process.env.AI_MODEL || 'gemini-3.5-flash-lite'
     };
   }
 
@@ -152,11 +152,21 @@ export function retrieveFinancialContext(userId, horizon = 'all') {
 /**
  * Safely invokes the external LLM provider with timeout, retries, and headers
  */
-async function callLlmWithTimeout(providerConfig, messages, maxTokens = 800) {
+async function callLlmWithTimeout(providerConfig, messages, maxTokens = 1200, jsonMode = false) {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), DEFAULT_TIMEOUT_MS);
 
   try {
+    const payload = {
+      model: providerConfig.model,
+      messages,
+      max_tokens: maxTokens,
+      temperature: 0.2
+    };
+    if (jsonMode) {
+      payload.response_format = { type: 'json_object' };
+    }
+
     const res = await fetch(providerConfig.endpoint, {
       method: 'POST',
       headers: {
@@ -165,12 +175,7 @@ async function callLlmWithTimeout(providerConfig, messages, maxTokens = 800) {
         'HTTP-Referer': 'https://finsight.internal',
         'X-Title': 'FinSight Financial Analyzer'
       },
-      body: JSON.stringify({
-        model: providerConfig.model,
-        messages,
-        max_tokens: maxTokens,
-        temperature: 0.2
-      }),
+      body: JSON.stringify(payload),
       signal: controller.signal
     });
 
@@ -364,7 +369,7 @@ Produce a structured JSON report with keys:
     const rawContent = await callLlmWithTimeout(provider, [
       { role: 'system', content: systemPrompt },
       { role: 'user', content: userPrompt }
-    ]);
+    ], 2000, true);
 
     if (!rawContent) throw new Error('Empty response from LLM provider');
 

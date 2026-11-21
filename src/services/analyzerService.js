@@ -256,6 +256,63 @@ export const analyzerService = {
       console.warn('[AnalyzerService] Error importing statement transactions:', err.message);
       throw err;
     }
+  },
+
+  /**
+   * Fetches saved financial analysis reports history
+   */
+  async getAnalyzerReports() {
+    try {
+      const res = await fetch(`${API_BASE}/analyzer/reports`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return json.reports || [];
+    } catch (err) {
+      console.warn('[AnalyzerService] Error fetching reports history:', err.message);
+      return [];
+    }
+  },
+
+  /**
+   * Fetches conversation chat history
+   */
+  async getChatHistory() {
+    try {
+      const res = await fetch(`${API_BASE}/analyzer/chat/history`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return json.messages || [];
+    } catch (err) {
+      console.warn('[AnalyzerService] Error fetching chat history:', err.message);
+      return [];
+    }
+  },
+
+  /**
+   * Fetches statement imports audit history
+   */
+  async getStatementImportHistory() {
+    try {
+      const res = await fetch(`${API_BASE}/analyzer/statements/history`, {
+        method: 'GET',
+        headers: getAuthHeaders(),
+        credentials: 'include'
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const json = await res.json();
+      return json.history || [];
+    } catch (err) {
+      console.warn('[AnalyzerService] Error fetching statement import history:', err.message);
+      return [];
+    }
   }
 };
 

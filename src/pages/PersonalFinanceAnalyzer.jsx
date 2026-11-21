@@ -111,6 +111,9 @@ export function PersonalFinanceAnalyzer() {
   const [isUploading, setIsUploading] = useState(false);
   const [extractedRows, setExtractedRows] = useState([]);
   const [uploadFeedback, setUploadFeedback] = useState(null);
+  const [extractedSearchQuery, setExtractedSearchQuery] = useState('');
+  const [extractedTypeFilter, setExtractedTypeFilter] = useState('all'); // 'all' | 'income' | 'expense' | 'duplicate'
+  const [statementHistory, setStatementHistory] = useState([]);
   const fileInputRef = useRef(null);
 
   // Chat State ("Ask Your Finances")
@@ -125,6 +128,54 @@ export function PersonalFinanceAnalyzer() {
   const [inputQuery, setInputQuery] = useState('');
   const [isAiThinking, setIsAiThinking] = useState(false);
   const chatBottomRef = useRef(null);
+
+  // Load chat history from backend on initial mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadPastChat() {
+      if (!user?.id) return;
+      try {
+        const history = await analyzerService.getChatHistory();
+        if (isMounted && Array.isArray(history) && history.length > 0) {
+          const formatted = history.map(h => ({
+            id: h.id,
+            sender: h.sender,
+            text: h.message,
+            timestamp: h.created_at ? new Date(h.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '',
+            verifiedEvidence: h.verified_evidence,
+            mode: h.mode,
+            isDefused: h.is_defused
+          }));
+          setChatMessages(prev => {
+            const welcome = prev[0];
+            return [welcome, ...formatted];
+          });
+        }
+      } catch (err) {
+        // quiet fallback
+      }
+    }
+    loadPastChat();
+    return () => { isMounted = false; };
+  }, [user?.id]);
+
+  // Load Statement Import History when activeTab === 'statements'
+  useEffect(() => {
+    let isMounted = true;
+    async function loadStatements() {
+      if (!user?.id || activeTab !== 'statements') return;
+      try {
+        const hist = await analyzerService.getStatementImportHistory();
+        if (isMounted && Array.isArray(hist)) {
+          setStatementHistory(hist);
+        }
+      } catch (err) {
+        // quiet fallback
+      }
+    }
+    loadStatements();
+    return () => { isMounted = false; };
+  }, [user?.id, activeTab]);
 
   // Auto-scroll chat to latest message
   useEffect(() => {
@@ -526,6 +577,26 @@ export function PersonalFinanceAnalyzer() {
     setExtractedRows(prev => prev.map(r => r.id === rowId ? { ...r, [field]: value } : r));
   };
 
+  // Filtered Extracted Statement Rows (Search & Type Filter)
+  const filteredExtractedRows = useMemo(() => {
+    return extractedRows.filter(r => {
+      if (extractedTypeFilter === 'income' && r.type !== 'income') return false;
+      if (extractedTypeFilter === 'expense' && r.type !== 'expense') return false;
+      if (extractedTypeFilter === 'duplicate' && !r.isDuplicate) return false;
+
+      if (extractedSearchQuery.trim()) {
+        const q = extractedSearchQuery.toLowerCase();
+        const narration = String(r.narration || '').toLowerCase();
+        const category = String(r.category || '').toLowerCase();
+        const amount = String(r.amount || '');
+        if (!narration.includes(q) && !category.includes(q) && !amount.includes(q)) {
+          return false;
+        }
+      }
+      return true;
+    });
+  }, [extractedRows, extractedTypeFilter, extractedSearchQuery]);
+
   // Handle Confirmed Statement Import
   const handleConfirmImport = async () => {
     const approvedRows = extractedRows.filter(r => r.approved);
@@ -549,9 +620,17 @@ export function PersonalFinanceAnalyzer() {
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
 
-      // Immediately refresh central application state
+      // Immediately refresh central application state and backend analytics
       if (typeof refreshData === 'function') {
         refreshData();
+      }
+      try {
+        const fresh = await analyzerService.getAnalyzerData({ horizon: timeHorizon });
+        if (fresh) setBackendData(fresh);
+        const hist = await analyzerService.getStatementImportHistory();
+        if (Array.isArray(hist)) setStatementHistory(hist);
+      } catch (e) {
+        // quiet fallback
       }
     } catch (err) {
       setIsUploading(false);
@@ -643,6 +722,7 @@ export function PersonalFinanceAnalyzer() {
             <Calendar size={14} color="var(--neu-text-secondary, #64748B)" style={{ marginLeft: 6 }} />
             {[
               { id: '30', label: '30 Days' },
+              { id: '60', label: '60 Days' },
               { id: '90', label: '90 Days' },
               { id: '365', label: '1 Year' },
               { id: 'all', label: 'All Time' }
@@ -673,14 +753,25 @@ export function PersonalFinanceAnalyzer() {
             className="btn-secondary"
             onClick={async () => {
               setLoading(true);
-              await refreshData();
-              setTimeout(() => setLoading(false), 400);
+              setIsBackendSyncing(true);
+              try {
+                if (typeof refreshData === 'function') await refreshData();
+                const fresh = await analyzerService.getAnalyzerData({ horizon: timeHorizon });
+                if (fresh) setBackendData(fresh);
+              } catch (e) {
+                console.warn('[Manual Refresh]:', e.message);
+              } finally {
+                setTimeout(() => {
+                  setIsBackendSyncing(false);
+                  setLoading(false);
+                }, 300);
+              }
             }}
-            disabled={isSyncing || loading}
+            disabled={isSyncing || loading || isBackendSyncing}
             title="Refresh financial analytics"
           >
-            <RefreshCw size={14} style={{ animation: (isSyncing || loading) ? 'spin 1s linear infinite' : 'none' }} />
-            <span>{(isSyncing || loading) ? 'Syncing...' : 'Refresh'}</span>
+            <RefreshCw size={14} style={{ animation: (isSyncing || loading || isBackendSyncing) ? 'spin 1s linear infinite' : 'none' }} />
+            <span>{(isSyncing || loading || isBackendSyncing) ? 'Syncing...' : 'Refresh'}</span>
           </button>
         </div>
       </div>
@@ -742,6 +833,47 @@ export function PersonalFinanceAnalyzer() {
       {/* TAB A: FINANCIAL OVERVIEW */}
       {activeTab === 'overview' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {analytics.totalPipelineIncome === 0 && analytics.totalCommittedExpenses === 0 && (
+            <div className="card" style={{ padding: 28, textAlign: 'center', background: 'linear-gradient(135deg, rgba(5, 150, 105, 0.05) 0%, rgba(2, 132, 199, 0.05) 100%)', border: '1px dashed var(--neu-border, #DCE4EB)', marginBottom: 8 }}>
+              <Wallet size={36} color="#059669" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--neu-text-primary, #172033)', marginBottom: 6 }}>
+                Welcome to your Personal Finance Analyzer!
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--neu-text-secondary, #64748B)', maxWidth: 480, margin: '0 auto 18px', lineHeight: 1.5 }}>
+                To unlock cash flow intelligence, automated health scores, and AI recommendations, start by recording your income streams or importing a bank statement.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <button
+                  type="button"
+                  className="btn-primary"
+                  onClick={() => { setActiveRoute('income'); setQuickAddModalOpen(true); }}
+                  style={{ fontSize: 13 }}
+                >
+                  <Plus size={14} />
+                  <span>Add First Income</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => { setActiveRoute('expenses'); setQuickAddModalOpen(true); }}
+                  style={{ fontSize: 13 }}
+                >
+                  <Plus size={14} />
+                  <span>Record Expense</span>
+                </button>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => setActiveTab('statements')}
+                  style={{ fontSize: 13 }}
+                >
+                  <FileSpreadsheet size={14} />
+                  <span>Upload Statement</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Key Metric KPI Cards (4 columns) */}
           <div className="kpi-cards-grid-4">
             {/* Card 1: Total Cleared Income */}
@@ -1426,6 +1558,54 @@ export function PersonalFinanceAnalyzer() {
             )}
           </div>
 
+          {/* Multi-Agent Orchestration Skeleton Loader */}
+          {isAiAnalyzing && (
+            <div className="card" style={{ padding: 24, textAlign: 'center', background: 'var(--neu-bg-primary, #E9EEF3)', border: '1px solid var(--neu-border, #DCE4EB)' }}>
+              <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+                <Sparkles size={20} color="#059669" className="spin" />
+                <span style={{ fontSize: 15, fontWeight: 700, color: 'var(--neu-text-primary, #172033)' }}>
+                  Orchestrating 6-Agent Financial Intelligence Workflow...
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 10, maxWidth: 780, margin: '0 auto', textAlign: 'left' }}>
+                <div style={{ padding: 12, borderRadius: 8, background: '#FFFFFF', boxShadow: 'var(--neu-shadow-raised-sm)', fontSize: 12 }}>
+                  <div style={{ fontWeight: 700, color: '#059669', marginBottom: 2 }}>Agents 1 & 2: Facts & Solvency</div>
+                  <div style={{ color: 'var(--neu-text-secondary, #64748B)' }}>Aggregating PII-scrubbed facts & cash flow velocity</div>
+                </div>
+                <div style={{ padding: 12, borderRadius: 8, background: '#FFFFFF', boxShadow: 'var(--neu-shadow-raised-sm)', fontSize: 12 }}>
+                  <div style={{ fontWeight: 700, color: '#0284C7', marginBottom: 2 }}>Agents 3 & 4: Spending & Risk</div>
+                  <div style={{ color: 'var(--neu-text-secondary, #64748B)' }}>Evaluating category concentrations & runway risks</div>
+                </div>
+                <div style={{ padding: 12, borderRadius: 8, background: '#FFFFFF', boxShadow: 'var(--neu-shadow-raised-sm)', fontSize: 12 }}>
+                  <div style={{ fontWeight: 700, color: '#8B5CF6', marginBottom: 2 }}>Agents 5 & 6: Action & Guardrail</div>
+                  <div style={{ color: 'var(--neu-text-secondary, #64748B)' }}>Synthesizing actions & validating strict arithmetic</div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Initial Prompt Banner before first run */}
+          {!aiAnalysisResult && !isAiAnalyzing && (
+            <div className="card" style={{ padding: 36, textAlign: 'center', background: 'var(--neu-bg-primary, #E9EEF3)', border: '1px dashed var(--neu-border, #DCE4EB)' }}>
+              <Brain size={36} color="#059669" style={{ margin: '0 auto 12px' }} />
+              <h3 style={{ fontSize: 17, fontWeight: 800, color: 'var(--neu-text-primary, #172033)', marginBottom: 6 }}>
+                Ready to Generate Your AI Financial Intelligence Dossier
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--neu-text-secondary, #64748B)', maxWidth: 460, margin: '0 auto 18px', lineHeight: 1.5 }}>
+                FinSight's multi-agent engine evaluates your cleared cash velocity, stress-tests unconfirmed receivables, and generates actionable, prioritized recommendations.
+              </p>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => handleRunAiAnalysis(aiExecutionMode)}
+                style={{ fontSize: 13 }}
+              >
+                <Sparkles size={14} />
+                <span>Run {aiExecutionMode === 'multi' ? 'Multi-Agent (Deep)' : 'Single-Agent (Fast)'} Analysis</span>
+              </button>
+            </div>
+          )}
+
           {/* If AI Analysis Result is available, render the full multi-agent dossier */}
           {aiAnalysisResult && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -1695,6 +1875,53 @@ export function PersonalFinanceAnalyzer() {
                 </div>
               </div>
 
+              {/* Filter & Search Bar */}
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap', marginBottom: 14 }}>
+                <input
+                  type="text"
+                  placeholder="Filter transactions by narration, category, amount..."
+                  value={extractedSearchQuery}
+                  onChange={(e) => setExtractedSearchQuery(e.target.value)}
+                  style={{
+                    flex: '1 1 240px',
+                    padding: '8px 12px',
+                    borderRadius: 8,
+                    border: '1px solid var(--neu-border, #DCE4EB)',
+                    background: 'var(--neu-bg-primary, #E9EEF3)',
+                    boxShadow: 'var(--neu-shadow-inset-sm)',
+                    fontSize: 12.5,
+                    color: 'var(--neu-text-primary, #172033)'
+                  }}
+                />
+
+                <div style={{ display: 'inline-flex', padding: 3, borderRadius: 8, background: 'var(--neu-bg-primary, #E9EEF3)', border: '1px solid var(--neu-border, #DCE4EB)' }}>
+                  {[
+                    { id: 'all', label: `All (${extractedRows.length})` },
+                    { id: 'income', label: `Inflows (${extractedRows.filter(r => r.type === 'income').length})` },
+                    { id: 'expense', label: `Outflows (${extractedRows.filter(r => r.type === 'expense').length})` },
+                    { id: 'duplicate', label: `Duplicates (${extractedRows.filter(r => r.isDuplicate).length})` }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setExtractedTypeFilter(tab.id)}
+                      style={{
+                        border: 'none',
+                        background: extractedTypeFilter === tab.id ? '#059669' : 'transparent',
+                        color: extractedTypeFilter === tab.id ? '#FFFFFF' : 'var(--neu-text-secondary, #64748B)',
+                        fontWeight: extractedTypeFilter === tab.id ? 700 : 500,
+                        fontSize: 11.5,
+                        padding: '4px 8px',
+                        borderRadius: 6,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               <div className="table-responsive">
                 <table className="custom-table">
                   <thead>
@@ -1709,43 +1936,101 @@ export function PersonalFinanceAnalyzer() {
                     </tr>
                   </thead>
                   <tbody>
-                    {extractedRows.map(row => (
-                      <tr key={row.id} style={{ opacity: row.approved ? 1 : 0.55 }}>
-                        <td style={{ textAlign: 'center' }}>
-                          <input
-                            type="checkbox"
-                            checked={row.approved}
-                            onChange={() => toggleRowApproval(row.id)}
-                            style={{ cursor: 'pointer', width: 16, height: 16 }}
-                          />
+                    {filteredExtractedRows.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--neu-text-secondary, #64748B)', fontSize: 13 }}>
+                          No transactions match your search filter.
                         </td>
-                        <td style={{ whiteSpace: 'nowrap', fontSize: 12.5 }}>{row.date}</td>
-                        <td style={{ fontWeight: 600, color: 'var(--neu-text-primary, #172033)' }}>
-                          <div>{row.description}</div>
-                          {row.duplicateReason && (
-                            <div style={{ fontSize: 10.5, color: '#D97706', marginTop: 2 }}>{row.duplicateReason}</div>
-                          )}
+                      </tr>
+                    ) : (
+                      filteredExtractedRows.map(row => (
+                        <tr key={row.id} style={{ opacity: row.approved ? 1 : 0.55 }}>
+                          <td style={{ textAlign: 'center' }}>
+                            <input
+                              type="checkbox"
+                              checked={row.approved}
+                              onChange={() => toggleRowApproval(row.id)}
+                              style={{ cursor: 'pointer', width: 16, height: 16 }}
+                            />
+                          </td>
+                          <td style={{ whiteSpace: 'nowrap', fontSize: 12.5 }}>{row.date}</td>
+                          <td style={{ fontWeight: 600, color: 'var(--neu-text-primary, #172033)' }}>
+                            <div>{row.description}</div>
+                            {row.duplicateReason && (
+                              <div style={{ fontSize: 10.5, color: '#D97706', marginTop: 2 }}>{row.duplicateReason}</div>
+                            )}
+                          </td>
+                          <td style={{ fontSize: 12.5, color: 'var(--neu-text-secondary, #64748B)' }}>{row.category}</td>
+                          <td>
+                            <span className={`status-badge ${row.type === 'income' ? 'received' : 'overdue'}`}>
+                              {row.type}
+                            </span>
+                          </td>
+                          <td className="num-val" style={{ fontWeight: 700, color: row.type === 'income' ? '#059669' : '#EF4444' }}>
+                            {row.type === 'income' ? '+' : '-'}{formatINR(row.amount)}
+                          </td>
+                          <td>
+                            {row.isDuplicate ? (
+                              <span style={{ fontSize: 11, color: '#D97706', background: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                                <AlertTriangle size={12} />
+                                Potential Duplicate
+                              </span>
+                            ) : (
+                              <span style={{ fontSize: 11, color: '#059669', background: 'rgba(5, 150, 105, 0.12)', padding: '2px 8px', borderRadius: 4 }}>
+                                Ready
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* Statement Ingestion Audit History */}
+          {statementHistory.length > 0 && (
+            <div className="card">
+              <div className="card-header-flex" style={{ marginBottom: 12 }}>
+                <div>
+                  <h3 className="card-title-h3">Statement Ingestion Audit History</h3>
+                  <p className="card-subtitle-p">Record of previously ingested statements and committed transactions.</p>
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: '#059669', background: 'rgba(5, 150, 105, 0.1)', padding: '2px 8px', borderRadius: 6 }}>
+                  {statementHistory.length} Upload(s)
+                </span>
+              </div>
+
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
+                  <thead>
+                    <tr style={{ borderBottom: '2px solid var(--neu-border, #DCE4EB)', textAlign: 'left', color: 'var(--neu-text-secondary, #64748B)' }}>
+                      <th style={{ padding: '8px 10px' }}>Filename</th>
+                      <th style={{ padding: '8px 10px' }}>Type</th>
+                      <th style={{ padding: '8px 10px' }}>Imported Inflows</th>
+                      <th style={{ padding: '8px 10px' }}>Imported Outflows</th>
+                      <th style={{ padding: '8px 10px' }}>Total Rows</th>
+                      <th style={{ padding: '8px 10px' }}>Import Date</th>
+                      <th style={{ padding: '8px 10px' }}>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {statementHistory.map((item, idx) => (
+                      <tr key={item.id || idx} style={{ borderBottom: '1px solid var(--neu-border, #DCE4EB)' }}>
+                        <td style={{ padding: '9px 10px', fontWeight: 600, color: 'var(--neu-text-primary, #172033)' }}>{item.filename}</td>
+                        <td style={{ padding: '9px 10px', textTransform: 'uppercase', fontSize: 11 }}>{item.file_type || item.fileType || 'csv'}</td>
+                        <td style={{ padding: '9px 10px', color: '#059669', fontWeight: 600 }}>+{item.imported_incomes ?? item.importedIncomes ?? 0}</td>
+                        <td style={{ padding: '9px 10px', color: '#EF4444', fontWeight: 600 }}>-{item.imported_expenses ?? item.importedExpenses ?? 0}</td>
+                        <td style={{ padding: '9px 10px' }}>{item.total_transactions ?? item.totalTransactions ?? 0}</td>
+                        <td style={{ padding: '9px 10px', color: 'var(--neu-text-secondary, #64748B)' }}>
+                          {item.imported_at ? new Date(item.imported_at).toLocaleDateString() : 'Recent'}
                         </td>
-                        <td style={{ fontSize: 12.5, color: 'var(--neu-text-secondary, #64748B)' }}>{row.category}</td>
-                        <td>
-                          <span className={`status-badge ${row.type === 'income' ? 'received' : 'overdue'}`}>
-                            {row.type}
+                        <td style={{ padding: '9px 10px' }}>
+                          <span style={{ fontSize: 10.5, fontWeight: 700, color: '#059669', background: 'rgba(5, 150, 105, 0.1)', padding: '2px 6px', borderRadius: 4 }}>
+                            {item.status || 'completed'}
                           </span>
-                        </td>
-                        <td className="num-val" style={{ fontWeight: 700, color: row.type === 'income' ? '#059669' : '#EF4444' }}>
-                          {row.type === 'income' ? '+' : '-'}{formatINR(row.amount)}
-                        </td>
-                        <td>
-                          {row.isDuplicate ? (
-                            <span style={{ fontSize: 11, color: '#D97706', background: 'rgba(245, 158, 11, 0.12)', padding: '2px 8px', borderRadius: 4, display: 'inline-flex', alignItems: 'center', gap: 4 }}>
-                              <AlertTriangle size={12} />
-                              Potential Duplicate
-                            </span>
-                          ) : (
-                            <span style={{ fontSize: 11, color: '#059669', background: 'rgba(5, 150, 105, 0.12)', padding: '2px 8px', borderRadius: 4 }}>
-                              Ready
-                            </span>
-                          )}
                         </td>
                       </tr>
                     ))}

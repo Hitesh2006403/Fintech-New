@@ -58,24 +58,36 @@ export function calculateCurrentBalance(startingBalance, incomes = [], expenses 
   const safeIncomes = Array.isArray(incomes) ? incomes : [];
   const safeExpenses = Array.isArray(expenses) ? expenses : [];
 
+  const parseNum = (val, fallback = 0) => {
+    if (typeof val === 'number') return isNaN(val) || !isFinite(val) ? fallback : val;
+    if (val === null || val === undefined || val === '') return fallback;
+    if (typeof val === 'string') {
+      const clean = val.replace(/[₹$,\s]/g, '').trim();
+      const n = parseFloat(clean);
+      return isNaN(n) || !isFinite(n) ? fallback : n;
+    }
+    const n = Number(val);
+    return isNaN(n) || !isFinite(n) ? fallback : n;
+  };
+
   const totalReceived = safeIncomes
     .filter(inc => inc && (inc.status === 'received' || inc.actualDate))
-    .reduce((sum, inc) => sum + Number(inc.amount || 0), 0);
+    .reduce((sum, inc) => sum + parseNum(inc.amount, 0), 0);
 
   const totalPaid = safeExpenses
     .filter(exp => exp && (exp.status === 'paid' || exp.paidDate))
-    .reduce((sum, exp) => sum + Number(exp.amount || 0), 0);
+    .reduce((sum, exp) => sum + parseNum(exp.amount, 0), 0);
 
   // Available cash in bank (excluding earmarked designated savings reserve)
-  const grossCash = Number(startingBalance || 0) + totalReceived - totalPaid;
-  const availableCash = Math.max(0, grossCash - Number(designatedSavings || 0));
+  const grossCash = parseNum(startingBalance, 0) + totalReceived - totalPaid;
+  const availableCash = Math.max(0, grossCash - parseNum(designatedSavings, 0));
 
   return {
     grossCash,
     availableCash,
     totalReceived,
     totalPaid,
-    designatedSavings: Number(designatedSavings || 0)
+    designatedSavings: parseNum(designatedSavings, 0)
   };
 }
 

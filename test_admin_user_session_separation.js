@@ -1,14 +1,70 @@
-import { describe, it } from 'node:test';
+import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawn } from 'node:child_process';
+import http from 'node:http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const BASE_URL = 'http://localhost:3001';
+const PORT = 3001;
+const BASE_URL = `http://localhost:${PORT}`;
+
+let serverProc = null;
+let serverStartedByTest = false;
+
+function isServerListening() {
+  return new Promise((resolve) => {
+    http.get(`${BASE_URL}/api/health`, (res) => {
+      resolve(res.statusCode === 200);
+    }).on('error', () => resolve(false));
+  });
+}
+
+function waitForServer(maxAttempts = 20) {
+  return new Promise((resolve, reject) => {
+    let attempts = 0;
+    const interval = setInterval(() => {
+      attempts++;
+      http.get(`${BASE_URL}/api/health`, (res) => {
+        if (res.statusCode === 200) {
+          clearInterval(interval);
+          resolve();
+        }
+      }).on('error', () => {
+        if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          reject(new Error('Server did not start in time'));
+        }
+      });
+    }, 250);
+  });
+}
 
 describe('FinSight Admin & User Strict Session Separation Suite', () => {
+  before(async () => {
+    const alreadyUp = await isServerListening();
+    if (!alreadyUp) {
+      serverStartedByTest = true;
+      serverProc = spawn('node', ['backend/server.js'], {
+        env: {
+          ...process.env,
+          PORT: '3001',
+          ADMIN_EMAIL: 'hiteshav2006@gmail.com',
+          ADMIN_EMAILS: 'hiteshav2006@gmail.com,dishankbs04@gmail.com'
+        },
+        stdio: 'ignore'
+      });
+      await waitForServer();
+    }
+  });
+
+  after(() => {
+    if (serverStartedByTest && serverProc) {
+      serverProc.kill();
+    }
+  });
   it('1. App.jsx eliminates separate admin login page and redirects /admin/login to /login', () => {
     const appPath = path.join(__dirname, 'src/App.jsx');
     const appContent = fs.readFileSync(appPath, 'utf8');
