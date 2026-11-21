@@ -1533,50 +1533,6 @@ app.get('/api/database/status', async (req, res) => {
   });
 });
 
-// 9b. Live Supabase Database Inspector Endpoint
-app.get('/api/database/supabase-inspector', async (req, res) => {
-  if (!isSupabaseConfigured || !supabase) {
-    return res.json({
-      success: false,
-      message: 'Supabase is not configured',
-      connected: false
-    });
-  }
-
-  try {
-    const [profilesRes, prefsRes, incomeRes, expensesRes] = await Promise.all([
-      supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(10),
-      supabase.from('user_preferences').select('*').limit(10),
-      supabase.from('income_entries').select('*').order('created_at', { ascending: false }).limit(10),
-      supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(10)
-    ]);
-
-    res.json({
-      success: true,
-      connected: true,
-      cloudProject: supabaseUrl,
-      timestamp: new Date().toISOString(),
-      counts: {
-        profiles: profilesRes.data ? profilesRes.data.length : 0,
-        preferences: prefsRes.data ? prefsRes.data.length : 0,
-        income_entries: incomeRes.data ? incomeRes.data.length : 0,
-        expenses: expensesRes.data ? expensesRes.data.length : 0
-      },
-      tables: {
-        profiles: profilesRes.data || [],
-        user_preferences: prefsRes.data || [],
-        income_entries: incomeRes.data || [],
-        expenses: expensesRes.data || []
-      }
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    });
-  }
-});
-
 // Ensure all unmatched API routes return structured JSON (HTTP 404) instead of HTML
 app.use('/api', (req, res) => {
   res.status(404).json({

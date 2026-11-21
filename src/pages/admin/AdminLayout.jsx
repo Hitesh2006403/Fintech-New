@@ -9,7 +9,6 @@ import { AdminIssuesView } from './AdminIssuesView.jsx';
 import { AdminSecurityLogsView } from './AdminSecurityLogsView.jsx';
 import { AdminSettingsView } from './AdminSettingsView.jsx';
 import { AdminNotificationsView } from './AdminNotificationsView.jsx';
-import { AdminSupabaseView } from './AdminSupabaseView.jsx';
 import {
   LayoutDashboard,
   Users,
@@ -28,8 +27,7 @@ import {
   ArrowLeft,
   X,
   Menu,
-  ShieldCheck,
-  Database
+  ShieldCheck
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -78,7 +76,6 @@ export function AdminLayout({ onReturnToClient }) {
     { id: 'issues', label: 'Feedback & Issues', icon: MessageSquare, badge: openIssuesCount > 0 ? openIssuesCount : undefined, badgeColor: '#EF4444', section: 'management' },
     { id: 'security', label: 'Security Logs', icon: ShieldAlert, section: 'management' },
     { id: 'settings', label: 'App Settings', icon: Settings, section: 'settings' },
-    { id: 'database', label: 'Supabase Cloud', icon: Database, section: 'settings', badge: 'Live', badgeColor: '#059669' },
     { id: 'notifications', label: 'Notifications', icon: Bell, section: 'settings' }
   ];
 
@@ -114,8 +111,6 @@ export function AdminLayout({ onReturnToClient }) {
         return <AdminSecurityLogsView />;
       case 'settings':
         return <AdminSettingsView />;
-      case 'database':
-        return <AdminSupabaseView />;
       case 'notifications':
         return <AdminNotificationsView />;
       default:

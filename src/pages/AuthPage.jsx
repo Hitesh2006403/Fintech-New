@@ -23,6 +23,7 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { authService, isPasswordRecoveryDisabled, decodeGoogleJwt } from '../services/authService.js';
 import { adminService } from '../services/adminService.js';
 import { navigationTracker } from '../services/navigationTracker.js';
+import { INITIAL_USER } from '../services/storageService.js';
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '261321779368-ruajq5gea9jtv1lkrqqa2cupa6jsim9a.apps.googleusercontent.com';
 
