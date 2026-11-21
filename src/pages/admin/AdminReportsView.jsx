@@ -18,8 +18,8 @@ export function AdminReportsView() {
   const safeTransactions = Array.isArray(transactions) ? transactions : [];
   const safeUsersList = Array.isArray(usersList) ? usersList : [];
 
-  const totalVolume = safeTransactions.reduce((acc, t) => acc + Number(t?.amount || 0), 0) || 345000;
-  const avgTx = safeTransactions.length > 0 ? Math.round(totalVolume / safeTransactions.length) : 4800;
+  const totalVolume = safeTransactions.reduce((acc, t) => acc + Number(t?.amount || 0), 0);
+  const avgTx = safeTransactions.length > 0 ? Math.round(totalVolume / safeTransactions.length) : 0;
 
   // Category breakdown
   const categoryMap = {};
@@ -37,8 +37,8 @@ export function AdminReportsView() {
       generatedAt: new Date().toISOString(),
       platform: 'FinSight Treasury Platform',
       summary: {
-        totalUsers: stats?.totalUsers || safeUsersList.length,
-        activeUsers: stats?.activeUsers || 1102,
+        totalUsers: safeUsersList.length,
+        activeUsers: safeUsersList.filter(u => u?.status?.toLowerCase() === 'active').length,
         totalTransactions: safeTransactions.length,
         totalVolumeINR: totalVolume,
         averageTransactionINR: avgTx
@@ -151,7 +151,7 @@ export function AdminReportsView() {
         }}>
           <div style={{ fontSize: 12, color: '#475569', fontWeight: 600 }}>Active Treasury Accounts</div>
           <div style={{ fontSize: 24, fontWeight: 800, color: '#4338CA', marginTop: 4 }}>
-            {usersList.length || 28} Live Users
+            {safeUsersList.length} Live Users
           </div>
           <div style={{ fontSize: 11.5, color: '#059669', marginTop: 4, fontWeight: 700 }}>
             94.2% retention cohort
@@ -192,26 +192,32 @@ export function AdminReportsView() {
         </h3>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {categories.map(([category, amount]) => {
-            const pct = Math.min(100, Math.round((amount / (totalVolume || 1)) * 100));
-            return (
-              <div key={category}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
-                  <span style={{ color: '#1E293B', fontWeight: 600 }}>{category}</span>
-                  <span style={{ color: '#2563EB', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{formatINR(amount)} ({pct}%)</span>
+          {categories.length === 0 ? (
+            <div style={{ padding: '36px 16px', textAlign: 'center', color: '#64748B', fontSize: 13.5, fontWeight: 500 }}>
+              No transactions recorded yet. Live user transactions will appear here in real time.
+            </div>
+          ) : (
+            categories.map(([category, amount]) => {
+              const pct = Math.min(100, Math.round((amount / (totalVolume || 1)) * 100));
+              return (
+                <div key={category}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, marginBottom: 6 }}>
+                    <span style={{ color: '#1E293B', fontWeight: 600 }}>{category}</span>
+                    <span style={{ color: '#2563EB', fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>{formatINR(amount)} ({pct}%)</span>
+                  </div>
+                  <div style={{ width: '100%', height: 8, background: 'rgba(226, 232, 240, 0.8)', borderRadius: 99 }}>
+                    <div style={{
+                      width: `${pct}%`,
+                      height: '100%',
+                      background: 'linear-gradient(90deg, #2563EB 0%, #3B82F6 100%)',
+                      borderRadius: 99,
+                      boxShadow: '0 0 10px rgba(37, 99, 235, 0.25)'
+                    }} />
+                  </div>
                 </div>
-                <div style={{ width: '100%', height: 8, background: 'rgba(226, 232, 240, 0.8)', borderRadius: 99 }}>
-                  <div style={{
-                    width: `${pct}%`,
-                    height: '100%',
-                    background: 'linear-gradient(90deg, #2563EB 0%, #3B82F6 100%)',
-                    borderRadius: 99,
-                    boxShadow: '0 0 10px rgba(37, 99, 235, 0.25)'
-                  }} />
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
       </div>
     </div>

@@ -13,7 +13,8 @@ import {
   Settings,
   X,
   ShieldAlert,
-  Brain
+  Brain,
+  SlidersHorizontal
 } from 'lucide-react';
 
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -47,6 +48,7 @@ export function Sidebar() {
     { id: 'simulator', path: '/simulator', label: 'Delay Simulator', icon: Sliders, badge: 'Key Feature' },
     { id: 'prioritization', path: '/prioritization', label: 'Bill Prioritization', icon: ArrowDownUp },
     { id: 'savings', path: '/savings', label: 'Lean-Week Savings', icon: PiggyBank },
+    { id: 'setup', path: '/setup?step=1', label: 'Financial Baseline', icon: SlidersHorizontal },
     { id: 'notifications', path: '/notifications', label: 'Notifications', icon: Bell, count: unreadNotificationCount },
     { id: 'settings', path: '/settings', label: 'Settings', icon: Settings },
   ];
@@ -99,6 +101,7 @@ export function Sidebar() {
         {navItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path ||
+            (item.id === 'setup' && location.pathname.startsWith('/setup')) ||
             (item.id === 'dashboard' && location.pathname === '/') ||
             (item.id === 'expenses' && location.pathname === '/transactions');
 

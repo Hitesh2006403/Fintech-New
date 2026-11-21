@@ -84,6 +84,104 @@ async function safeJsonParse(res) {
   }
 }
 
+export const DEMO_FALLBACK_USERS = [
+  {
+    id: '#1001',
+    rawId: 'demo_usr_01',
+    name: 'Rohan Mehta',
+    email: 'rohan.mehta@demo.finsight.app',
+    status: 'Active',
+    joinedOn: '18 Oct 2026',
+    role: 'Senior UX Designer',
+    avatarInitials: 'RM',
+    picture: null,
+    authProvider: 'local'
+  },
+  {
+    id: '#1002',
+    rawId: 'demo_usr_02',
+    name: 'Aarav Sharma',
+    email: 'aarav.sharma@demo.finsight.app',
+    status: 'Active',
+    joinedOn: '19 Oct 2026',
+    role: 'Freelance Cloud Architect',
+    avatarInitials: 'AS',
+    picture: null,
+    authProvider: 'local'
+  },
+  {
+    id: '#1003',
+    rawId: 'demo_usr_03',
+    name: 'Neha Verma',
+    email: 'neha.verma@demo.finsight.app',
+    status: 'Active',
+    joinedOn: '20 Oct 2026',
+    role: 'Financial Consultant',
+    avatarInitials: 'NV',
+    picture: null,
+    authProvider: 'local'
+  }
+];
+
+export const DEMO_FALLBACK_TRANSACTIONS = [
+  { id: 'tx_demo_01', type: 'income', title: 'Client UX Retainer', category: 'Client Retainer', amount: 65000, date: '2026-11-15', status: 'Completed', userName: 'Rohan Mehta', email: 'rohan.mehta@demo.finsight.app' },
+  { id: 'tx_demo_02', type: 'expense', title: 'Studio Workspace Lease', category: 'Workspace & Rent', amount: 15000, date: '2026-11-14', status: 'Completed', userName: 'Rohan Mehta', email: 'rohan.mehta@demo.finsight.app' },
+  { id: 'tx_demo_03', type: 'income', title: 'Backend Architecture Retainer', category: 'Client Retainer', amount: 75000, date: '2026-11-12', status: 'Completed', userName: 'Aarav Sharma', email: 'aarav.sharma@demo.finsight.app' },
+  { id: 'tx_demo_04', type: 'expense', title: 'AWS Staging & Production Nodes', category: 'Cloud & Tech', amount: 8500, date: '2026-11-11', status: 'Completed', userName: 'Aarav Sharma', email: 'aarav.sharma@demo.finsight.app' },
+  { id: 'tx_demo_05', type: 'income', title: 'Advisory Consultation Retainer', category: 'Consulting', amount: 50000, date: '2026-11-10', status: 'Completed', userName: 'Neha Verma', email: 'neha.verma@demo.finsight.app' },
+  { id: 'tx_demo_06', type: 'expense', title: 'Coworking Dedicated Desk', category: 'Workspace & Rent', amount: 12000, date: '2026-11-09', status: 'Completed', userName: 'Neha Verma', email: 'neha.verma@demo.finsight.app' }
+];
+
+export const DEMO_FALLBACK_STATS = {
+  totalUsers: 3,
+  activeUsers: 3,
+  blockedUsers: 0,
+  reportedIssues: 0,
+  openIssues: 0,
+  totalTransactions: 6,
+  actualTransactionCount: 6,
+  totalVolumeINR: 225500,
+  userGrowthTrends: { percentageChange: 15, isPositive: true },
+  activeUserTrends: { percentageChange: 12, isPositive: true },
+  reportedIssuesTrends: { percentageChange: 0, isPositive: true },
+  transactionsTrends: { percentageChange: 18, isPositive: true },
+  userGrowth: {
+    '7days': [
+      { date: 'Day 1', count: 1 },
+      { date: 'Day 2', count: 1 },
+      { date: 'Day 3', count: 2 },
+      { date: 'Day 4', count: 2 },
+      { date: 'Day 5', count: 3 },
+      { date: 'Day 6', count: 3 },
+      { date: 'Today', count: 3 }
+    ]
+  },
+  incomeVsExpense: {
+    'thisMonth': [
+      { date: 'Day 1', income: 0, expenses: 0 },
+      { date: 'Day 2', income: 50000, expenses: 12000 },
+      { date: 'Day 3', income: 0, expenses: 0 },
+      { date: 'Day 4', income: 75000, expenses: 8500 },
+      { date: 'Day 5', income: 0, expenses: 0 },
+      { date: 'Day 6', income: 65000, expenses: 15000 },
+      { date: 'Today', income: 0, expenses: 0 }
+    ]
+  },
+  recentActivity: [
+    { id: 'act_demo_1', type: 'user_register', title: 'New user registered', meta: 'rohan.mehta@demo.finsight.app', time: '10 mins ago', color: '#10B981' },
+    { id: 'act_demo_2', type: 'transaction', title: 'Client Retainer Received', meta: '₹65,000 - Rohan Mehta', time: '1 hour ago', color: '#38BDF8' },
+    { id: 'act_demo_3', type: 'user_register', title: 'New user registered', meta: 'aarav.sharma@demo.finsight.app', time: '2 hours ago', color: '#10B981' },
+    { id: 'act_demo_4', type: 'transaction', title: 'Architecture Retainer Received', meta: '₹75,000 - Aarav Sharma', time: '3 hours ago', color: '#38BDF8' },
+    { id: 'act_demo_5', type: 'user_register', title: 'New user registered', meta: 'neha.verma@demo.finsight.app', time: '5 hours ago', color: '#10B981' }
+  ],
+  systemStatus: {
+    frontend: 'Online',
+    backendApi: 'Degraded / Local Fallback',
+    database: 'Fallback Cache',
+    authentication: 'Online'
+  }
+};
+
 export const adminService = {
   /**
    * Authenticate admin using Google Identity Services credential
@@ -241,56 +339,12 @@ export const adminService = {
         headers: getAdminAuthHeaders(),
         credentials: 'include'
       });
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const data = await safeJsonParse(res);
       return data.data;
     } catch (err) {
-      console.warn('Failed to fetch admin stats from server, using local fallback:', err);
-      // Resilient fallback dataset matching screenshot
-      return {
-        totalUsers: 1248,
-        activeUsers: 1102,
-        reportedIssues: 18,
-        totalTransactions: 8532,
-        userGrowthTrends: { percentageChange: 12, isPositive: true },
-        activeUserTrends: { percentageChange: 10, isPositive: true },
-        reportedIssuesTrends: { percentageChange: -40, isPositive: false },
-        transactionsTrends: { percentageChange: 16, isPositive: true },
-        userGrowth: {
-          '7days': [
-            { date: 'Oct 12', count: 280 },
-            { date: 'Oct 13', count: 520 },
-            { date: 'Oct 14', count: 680 },
-            { date: 'Oct 15', count: 750 },
-            { date: 'Oct 16', count: 890 },
-            { date: 'Oct 17', count: 1040 },
-            { date: 'Oct 18', count: 1248 }
-          ]
-        },
-        incomeVsExpense: {
-          'thisMonth': [
-            { date: 'Oct 12', income: 24000, expenses: 14000 },
-            { date: 'Oct 13', income: 38000, expenses: 21000 },
-            { date: 'Oct 14', income: 32000, expenses: 18000 },
-            { date: 'Oct 15', income: 29000, expenses: 19000 },
-            { date: 'Oct 16', income: 22000, expenses: 15000 },
-            { date: 'Oct 17', income: 34000, expenses: 23000 },
-            { date: 'Oct 18', income: 45000, expenses: 28000 }
-          ]
-        },
-        recentActivity: [
-          { id: 'act_1', type: 'user_register', title: 'New user registered', meta: 'rohan@gmail.com', time: '2 mins ago', icon: 'user', color: '#10B981' },
-          { id: 'act_2', type: 'issue_reported', title: 'Issue reported', meta: 'Login not working', time: '12 mins ago', icon: 'alert', color: '#EF4444' },
-          { id: 'act_3', type: 'user_blocked', title: 'User blocked', meta: 'sneha123@abc.com', time: '25 mins ago', icon: 'block', color: '#F59E0B' },
-          { id: 'act_4', type: 'transaction', title: 'Transaction completed', meta: '₹2,450 - Food & Dining', time: '1 hour ago', icon: 'transaction', color: '#38BDF8' },
-          { id: 'act_5', type: 'feedback', title: 'New feedback', meta: 'Great app!', time: '2 hours ago', icon: 'feedback', color: '#A78BFA' }
-        ],
-        systemStatus: {
-          frontend: 'Online',
-          backendApi: 'Online',
-          database: 'Online',
-          authentication: 'Online'
-        }
-      };
+      console.warn('Real-time admin stats fetch failed, activating 3-user demo fallback:', err?.message || err);
+      return DEMO_FALLBACK_STATS;
     }
   },
 
@@ -304,16 +358,12 @@ export const adminService = {
         headers: getAdminAuthHeaders(),
         credentials: 'include'
       });
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const data = await safeJsonParse(res);
       return data.users || [];
-    } catch {
-      return [
-        { id: '#1024', name: 'Rohan Mehta', email: 'rohan@gmail.com', status: 'Active', joinedOn: '18 Oct 2025', role: 'Verified Pro User', avatarInitials: 'RM' },
-        { id: '#1023', name: 'Aarav Sharma', email: 'aarav@gmail.com', status: 'Active', joinedOn: '17 Oct 2025', role: 'Freelance Architect', avatarInitials: 'AS' },
-        { id: '#1022', name: 'Priya Nair', email: 'priya@gmail.com', status: 'Blocked', joinedOn: '16 Oct 2025', role: 'Client Account', avatarInitials: 'PN' },
-        { id: '#1021', name: 'Karan Singh', email: 'karan@gmail.com', status: 'Active', joinedOn: '15 Oct 2025', role: 'Senior Consultant', avatarInitials: 'KS' },
-        { id: '#1020', name: 'Neha Verma', email: 'neha@gmail.com', status: 'Active', joinedOn: '14 Oct 2025', role: 'Financial Planner', avatarInitials: 'NV' }
-      ];
+    } catch (err) {
+      console.warn('Real-time admin users fetch failed, activating 3-user demo fallback:', err?.message || err);
+      return DEMO_FALLBACK_USERS;
     }
   },
 
@@ -352,10 +402,12 @@ export const adminService = {
         headers: getAdminAuthHeaders(),
         credentials: 'include'
       });
+      if (!res.ok) throw new Error(`HTTP error ${res.status}`);
       const data = await safeJsonParse(res);
       return data.transactions || [];
-    } catch {
-      return [];
+    } catch (err) {
+      console.warn('Real-time admin transactions fetch failed, activating 3-user demo fallback:', err?.message || err);
+      return DEMO_FALLBACK_TRANSACTIONS;
     }
   },
 
@@ -455,5 +507,67 @@ export const adminService = {
       body: JSON.stringify(notification)
     });
     return await safeJsonParse(res);
+  },
+
+  /**
+   * Fetch all broadcast announcements history
+   */
+  async getBroadcasts() {
+    try {
+      const res = await fetch(`${ADMIN_API_BASE}/broadcasts`, {
+        method: 'GET',
+        headers: getAdminAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await safeJsonParse(res);
+      return data.broadcasts || [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Delete broadcast announcement
+   */
+  async deleteBroadcast(broadcastId) {
+    const res = await fetch(`${ADMIN_API_BASE}/broadcasts/${encodeURIComponent(broadcastId)}`, {
+      method: 'DELETE',
+      headers: getAdminAuthHeaders(),
+      credentials: 'include'
+    });
+    return await safeJsonParse(res);
+  },
+
+  /**
+   * Fetch system notifications for administrator
+   */
+  async getAdminNotifications() {
+    try {
+      const res = await fetch(`${ADMIN_API_BASE}/notifications`, {
+        method: 'GET',
+        headers: getAdminAuthHeaders(),
+        credentials: 'include'
+      });
+      const data = await safeJsonParse(res);
+      return data.notifications || [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Mark all admin notifications as read
+   */
+  async markAllNotificationsRead() {
+    try {
+      const res = await fetch(`${ADMIN_API_BASE}/notifications/mark-read`, {
+        method: 'PUT',
+        headers: getAdminAuthHeaders(),
+        credentials: 'include'
+      });
+      return await safeJsonParse(res);
+    } catch {
+      return { success: false };
+    }
   }
 };

@@ -122,10 +122,10 @@ describe('FinSight Admin Portal Backend Test Suite', () => {
 
     assert.strictEqual(res.status, 200);
     const data = await res.json();
-    assert.ok(data.data.totalUsers >= 1200, 'Total users should match benchmark order');
-    assert.ok(data.data.activeUsers >= 1000, 'Active users should match benchmark order');
+    assert.ok(data.data.totalUsers >= 1, 'Total users should be present');
+    assert.ok(data.data.activeUsers >= 0, 'Active users should be present');
     assert.ok(data.data.reportedIssues !== undefined, 'Reported issues should be present');
-    assert.ok(data.data.totalTransactions >= 8000, 'Total transactions should be present');
+    assert.ok(data.data.totalTransactions !== undefined, 'Total transactions should be present');
     assert.ok(data.data.userGrowth['7days'].length === 7, 'User growth 7 days series present');
     assert.ok(data.data.incomeVsExpense['thisMonth'].length === 7, 'Income vs expense series present');
     assert.strictEqual(data.data.systemStatus.frontend, 'Online');
@@ -141,7 +141,7 @@ describe('FinSight Admin Portal Backend Test Suite', () => {
     assert.strictEqual(res.status, 200);
     const data = await res.json();
     assert.ok(Array.isArray(data.users));
-    assert.ok(data.users.length >= 5, 'Should include benchmark and database users');
+    assert.ok(data.users.length >= 1, 'Should include registered database users');
 
     // Toggle status of first user
     const targetUser = data.users[0];
@@ -159,6 +159,16 @@ describe('FinSight Admin Portal Backend Test Suite', () => {
     assert.strictEqual(updateRes.status, 200);
     const updateData = await updateRes.json();
     assert.strictEqual(updateData.success, true);
+
+    // Revert status to Active
+    await fetch(`${BASE_URL}/api/admin/users/${encodeURIComponent(targetUser.id)}/status`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${adminToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ status: 'Active', reason: 'Revert test' })
+    });
   });
 
   it('6. /api/admin/settings returns authorized whitelist and allows updates', async () => {

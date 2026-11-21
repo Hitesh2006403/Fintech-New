@@ -1044,6 +1044,26 @@ app.post('/api/admin/broadcast', requireAdmin, (req, res) => {
   res.json(result);
 });
 
+app.get('/api/admin/broadcasts', requireAdmin, (req, res) => {
+  const broadcasts = db.getBroadcastHistory();
+  res.json({ success: true, broadcasts });
+});
+
+app.delete('/api/admin/broadcasts/:id', requireAdmin, (req, res) => {
+  db.deleteBroadcast(req.params.id);
+  res.json({ success: true });
+});
+
+app.get('/api/admin/notifications', requireAdmin, (req, res) => {
+  const notifications = db.getAdminNotifications();
+  res.json({ success: true, notifications });
+});
+
+app.put('/api/admin/notifications/mark-read', requireAdmin, (req, res) => {
+  db.markAllAdminNotificationsRead();
+  res.json({ success: true, message: 'All admin notifications marked as read' });
+});
+
 // ==========================================
 // FINANCIAL DATA API ROUTES (USER-ISOLATED)
 // ==========================================
@@ -1511,6 +1531,50 @@ app.get('/api/database/status', async (req, res) => {
     serverPersistence: 'Active',
     serverTime: new Date().toISOString()
   });
+});
+
+// 9b. Live Supabase Database Inspector Endpoint
+app.get('/api/database/supabase-inspector', async (req, res) => {
+  if (!isSupabaseConfigured || !supabase) {
+    return res.json({
+      success: false,
+      message: 'Supabase is not configured',
+      connected: false
+    });
+  }
+
+  try {
+    const [profilesRes, prefsRes, incomeRes, expensesRes] = await Promise.all([
+      supabase.from('profiles').select('*').order('created_at', { ascending: false }).limit(10),
+      supabase.from('user_preferences').select('*').limit(10),
+      supabase.from('income_entries').select('*').order('created_at', { ascending: false }).limit(10),
+      supabase.from('expenses').select('*').order('created_at', { ascending: false }).limit(10)
+    ]);
+
+    res.json({
+      success: true,
+      connected: true,
+      cloudProject: supabaseUrl,
+      timestamp: new Date().toISOString(),
+      counts: {
+        profiles: profilesRes.data ? profilesRes.data.length : 0,
+        preferences: prefsRes.data ? prefsRes.data.length : 0,
+        income_entries: incomeRes.data ? incomeRes.data.length : 0,
+        expenses: expensesRes.data ? expensesRes.data.length : 0
+      },
+      tables: {
+        profiles: profilesRes.data || [],
+        user_preferences: prefsRes.data || [],
+        income_entries: incomeRes.data || [],
+        expenses: expensesRes.data || []
+      }
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
 });
 
 // Ensure all unmatched API routes return structured JSON (HTTP 404) instead of HTML

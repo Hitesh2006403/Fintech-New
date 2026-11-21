@@ -19,6 +19,8 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
   const {
     stats,
     usersList,
+    transactions,
+    issues,
     toggleUserStatus
   } = useAdmin();
 
@@ -28,14 +30,15 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
   const [hoveredPoint, setHoveredPoint] = useState(null);
   const [hoveredBar, setHoveredBar] = useState(null);
 
-  // Safe users list
+  // Safe users list & real aggregates
   const safeUsersList = Array.isArray(usersList) ? usersList : [];
+  const safeTransactions = Array.isArray(transactions) ? transactions : [];
+  const safeIssues = Array.isArray(issues) ? issues : [];
 
-  // Fallback defaults if stats still loading
-  const totalUsers = stats?.totalUsers || safeUsersList.length || 1248;
-  const activeUsers = stats?.activeUsers || 1102;
-  const reportedIssues = stats?.reportedIssues || 18;
-  const totalTransactions = stats?.totalTransactions || 8532;
+  const totalUsers = safeUsersList.length;
+  const activeUsers = safeUsersList.filter(u => u.status?.toLowerCase() === 'active').length;
+  const reportedIssues = safeIssues.length;
+  const totalTransactions = safeTransactions.length;
 
   // Recent users (take first 5)
   const recentUsers = safeUsersList.slice(0, 5);
@@ -43,37 +46,31 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
   // Growth Chart Data
   const growthSeries = useMemo(() => {
     return stats?.userGrowth?.[growthTimeframe] || [
-      { date: 'Oct 12', count: 280 },
-      { date: 'Oct 13', count: 520 },
-      { date: 'Oct 14', count: 680 },
-      { date: 'Oct 15', count: 750 },
-      { date: 'Oct 16', count: 890 },
-      { date: 'Oct 17', count: 1040 },
-      { date: 'Oct 18', count: 1248 }
+      { date: 'Day 1', count: totalUsers },
+      { date: 'Day 2', count: totalUsers },
+      { date: 'Day 3', count: totalUsers },
+      { date: 'Day 4', count: totalUsers },
+      { date: 'Day 5', count: totalUsers },
+      { date: 'Day 6', count: totalUsers },
+      { date: 'Today', count: totalUsers }
     ];
-  }, [stats?.userGrowth, growthTimeframe]);
+  }, [stats?.userGrowth, growthTimeframe, totalUsers]);
 
   // Bar Chart Data
   const barSeries = useMemo(() => {
     return stats?.incomeVsExpense?.[expenseTimeframe] || [
-      { date: 'Oct 12', income: 24000, expenses: 14000 },
-      { date: 'Oct 13', income: 38000, expenses: 21000 },
-      { date: 'Oct 14', income: 32000, expenses: 18000 },
-      { date: 'Oct 15', income: 29000, expenses: 19000 },
-      { date: 'Oct 16', income: 22000, expenses: 15000 },
-      { date: 'Oct 17', income: 34000, expenses: 23000 },
-      { date: 'Oct 18', income: 45000, expenses: 28000 }
+      { date: 'Day 1', income: 0, expenses: 0 },
+      { date: 'Day 2', income: 0, expenses: 0 },
+      { date: 'Day 3', income: 0, expenses: 0 },
+      { date: 'Day 4', income: 0, expenses: 0 },
+      { date: 'Day 5', income: 0, expenses: 0 },
+      { date: 'Day 6', income: 0, expenses: 0 },
+      { date: 'Today', income: 0, expenses: 0 }
     ];
   }, [stats?.incomeVsExpense, expenseTimeframe]);
 
   // Recent Activity items
-  const recentActivity = stats?.recentActivity || [
-    { id: 'act_1', type: 'user_register', title: 'New user registered', meta: 'rohan@gmail.com', time: '2 mins ago', color: '#10B981' },
-    { id: 'act_2', type: 'issue_reported', title: 'Issue reported', meta: 'Login not working', time: '12 mins ago', color: '#EF4444' },
-    { id: 'act_3', type: 'user_blocked', title: 'User blocked', meta: 'sneha123@abc.com', time: '25 mins ago', color: '#F59E0B' },
-    { id: 'act_4', type: 'transaction', title: 'Transaction completed', meta: '₹2,450 - Food & Dining', time: '1 hour ago', color: '#818CF8' },
-    { id: 'act_5', type: 'feedback', title: 'New feedback', meta: 'Great app!', time: '2 hours ago', color: '#A5B4FC' }
-  ];
+  const recentActivity = Array.isArray(stats?.recentActivity) ? stats.recentActivity : [];
 
   // SVG Coordinates calculation for Spline Line Chart (Memoized)
   const { points, pathD, areaD, svgWidth, svgHeight, paddingX, paddingY, maxVal } = useMemo(() => {
@@ -713,7 +710,12 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
           </div>
 
           <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-            {recentActivity.map((act) => (
+            {recentActivity.length === 0 ? (
+              <div style={{ padding: '24px 12px', textAlign: 'center', color: '#64748B', fontSize: 13, fontWeight: 500 }}>
+                No recent activity recorded.
+              </div>
+            ) : (
+              recentActivity.map((act) => (
               <div key={act.id} style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
                 <div style={{
                   width: 32,
@@ -747,7 +749,7 @@ export function AdminDashboardView({ onViewAllUsers, onViewAllIssues, onViewAllL
                   {act.time}
                 </div>
               </div>
-            ))}
+            )))}
           </div>
         </div>
       </div>

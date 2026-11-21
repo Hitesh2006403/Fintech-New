@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 import { formatINR } from '../services/financialEngine.js';
 import { exportTransactionsCSV, exportForecastCSV } from '../services/exportService.js';
@@ -14,7 +15,8 @@ import {
   Lock,
   Wallet,
   DollarSign,
-  Trash2
+  Trash2,
+  Sparkles
 } from 'lucide-react';
 
 export function ProfileSettings() {
@@ -35,6 +37,8 @@ export function ProfileSettings() {
 
   const [activeTab, setActiveTab] = useState('personal'); // 'personal' | 'financial' | 'security' | 'data'
 
+  const navigate = useNavigate();
+
   // Personal form
   const [name, setName] = useState(user?.name || '');
   const [email, setEmail] = useState(user?.email || '');
@@ -44,6 +48,7 @@ export function ProfileSettings() {
   // Financial form
   const [startingBalance, setStartingBalance] = useState(preferences?.startingBalance ?? 45000);
   const [safetyBuffer, setSafetyBuffer] = useState(preferences?.safetyBuffer ?? 25000);
+  const [incomeFrequency, setIncomeFrequency] = useState(preferences?.incomeFrequency || 'Irregular / Milestone-based');
   const [defaultHorizon, setDefaultHorizon] = useState(preferences?.defaultHorizonDays ?? 30);
   const [defaultScenario, setDefaultScenario] = useState(preferences?.defaultScenario || 'expected');
 
@@ -78,10 +83,11 @@ export function ProfileSettings() {
       ...preferences,
       startingBalance: Number(startingBalance),
       safetyBuffer: Number(safetyBuffer),
+      incomeFrequency,
       defaultHorizonDays: Number(defaultHorizon),
       defaultScenario
     });
-    showToast('Financial parameters updated and recalculated across all screens!');
+    showToast('Financial baseline parameters updated and recalculated across all screens!');
   };
 
   const handlePasswordChange = (e) => {
@@ -234,11 +240,28 @@ export function ProfileSettings() {
           {/* Tab 2: Financial Rules */}
           {activeTab === 'financial' && (
             <div className="card">
-              <h3 className="card-title-h3" style={{ marginBottom: 18 }}>Authoritative Financial Parameters</h3>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18, flexWrap: 'wrap', gap: 12 }}>
+                <div>
+                  <h3 className="card-title-h3" style={{ margin: 0 }}>Starting Financial Baseline</h3>
+                  <p style={{ fontSize: 13, color: 'var(--neu-text-secondary)', margin: '4px 0 0 0' }}>
+                    Configure your live bank balance, safety reserve buffer, and earning cadence.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => navigate('/setup?step=1')}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px', fontSize: 12.5 }}
+                >
+                  <Sparkles size={14} color="var(--neu-brand-primary)" />
+                  <span>Launch Setup Wizard</span>
+                </button>
+              </div>
+
               <form onSubmit={handleSaveFinancial}>
                 <div className="form-grid-2">
                   <div className="form-group-item">
-                    <label className="form-label-title">Baseline Opening Cash (₹ INR)</label>
+                    <label className="form-label-title">Current Cash In Bank (₹ INR) *</label>
                     <input
                       type="number"
                       step="1000"
@@ -246,12 +269,15 @@ export function ProfileSettings() {
                       value={startingBalance}
                       onChange={(e) => setStartingBalance(e.target.value)}
                       required
+                      id="settings-starting-balance"
                     />
-                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, display: 'block' }}>Live balance before added received income and bills.</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, display: 'block' }}>
+                      Real liquid cash in bank before pending milestones or bills.
+                    </span>
                   </div>
 
                   <div className="form-group-item">
-                    <label className="form-label-title">Default Minimum Safety Buffer (₹ INR)</label>
+                    <label className="form-label-title">Safety Reserve Buffer (₹ INR) *</label>
                     <input
                       type="number"
                       step="2500"
@@ -259,12 +285,33 @@ export function ProfileSettings() {
                       value={safetyBuffer}
                       onChange={(e) => setSafetyBuffer(e.target.value)}
                       required
+                      id="settings-safety-buffer"
                     />
-                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, display: 'block' }}>Emergency cash threshold protected from Safe-to-Spend.</span>
+                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, display: 'block' }}>
+                      Emergency floor permanently protected from Safe-to-Spend calculations.
+                    </span>
                   </div>
                 </div>
 
                 <div className="form-grid-2">
+                  <div className="form-group-item">
+                    <label className="form-label-title">Income Cadence (Typical Frequency)</label>
+                    <select
+                      className="form-input-control"
+                      value={incomeFrequency}
+                      onChange={(e) => setIncomeFrequency(e.target.value)}
+                      id="settings-income-frequency"
+                    >
+                      <option value="Irregular / Milestone-based">Irregular / Milestone-based</option>
+                      <option value="Gig / Weekly Variable">Gig / Weekly Variable</option>
+                      <option value="Commission-based">Commission-based</option>
+                      <option value="Monthly Retainer with Delays">Monthly Retainer with Delays</option>
+                    </select>
+                    <span style={{ fontSize: 11, color: 'var(--text-secondary)', marginTop: 2, display: 'block' }}>
+                      Defines planning cadence and cash-flow pacing.
+                    </span>
+                  </div>
+
                   <div className="form-group-item">
                     <label className="form-label-title">Default Planning Horizon</label>
                     <select
@@ -278,24 +325,33 @@ export function ProfileSettings() {
                       <option value={60}>60 Days (Bi-Monthly Runway)</option>
                     </select>
                   </div>
-
-                  <div className="form-group-item">
-                    <label className="form-label-title">Default Forecast Scenario</label>
-                    <select
-                      className="form-input-control"
-                      value={defaultScenario}
-                      onChange={(e) => setDefaultScenario(e.target.value)}
-                    >
-                      <option value="conservative">Conservative (No unreceived income counted)</option>
-                      <option value="expected">Expected (Includes signed/confirmed invoices)</option>
-                      <option value="optimistic">Optimistic (Includes speculative proposals)</option>
-                    </select>
-                  </div>
                 </div>
 
-                <button type="submit" className="btn-primary" style={{ marginTop: 10 }}>
-                  Apply & Recalculate
-                </button>
+                <div className="form-group-item" style={{ maxWidth: 480, marginTop: 12 }}>
+                  <label className="form-label-title">Default Forecast Scenario</label>
+                  <select
+                    className="form-input-control"
+                    value={defaultScenario}
+                    onChange={(e) => setDefaultScenario(e.target.value)}
+                  >
+                    <option value="conservative">Conservative (No unreceived income counted)</option>
+                    <option value="expected">Expected (Includes signed/confirmed invoices)</option>
+                    <option value="optimistic">Optimistic (Includes speculative proposals)</option>
+                  </select>
+                </div>
+
+                <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
+                  <button type="submit" className="btn-primary" id="save-financial-settings-btn">
+                    Apply & Recalculate
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary"
+                    onClick={() => navigate('/setup?step=1')}
+                  >
+                    Open Step-by-Step Wizard
+                  </button>
+                </div>
               </form>
             </div>
           )}

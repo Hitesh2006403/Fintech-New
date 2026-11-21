@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext.jsx';
 import { formatINR } from '../services/financialEngine.js';
 import { getCurrentLocalDate, toISODate } from '../services/dateService.js';
@@ -14,10 +15,12 @@ import {
   CheckCircle2,
   Clock,
   Sparkles,
-  Plus
+  Plus,
+  Sliders
 } from 'lucide-react';
 
 export function OverviewDashboard() {
+  const navigate = useNavigate();
   const {
     user,
     balanceDetails,
@@ -115,25 +118,55 @@ export function OverviewDashboard() {
         <h2 style={{ fontSize: 26, fontWeight: 700, color: 'var(--neu-text-primary, #172033)', marginBottom: 8, letterSpacing: -0.4 }}>
           Welcome to Uncertain Income Planner, {user?.name || 'Treasury Planner'}
         </h2>
-        <p style={{ color: 'var(--neu-text-secondary, #64748B)', maxWidth: 480, marginBottom: 28, fontSize: 15, lineHeight: 1.6 }}>
+        <p style={{ color: 'var(--neu-text-secondary, #64748B)', maxWidth: 480, marginBottom: 20, fontSize: 15, lineHeight: 1.6 }}>
           Take the stress out of irregular earnings. Record your current cash, upcoming gigs, and essential bills to see your true Safe-to-Spend.
         </p>
+        <div style={{
+          display: 'flex',
+          gap: 16,
+          background: 'var(--neu-bg-secondary, #F1F5F9)',
+          border: '1px solid var(--neu-border, #DCE4EB)',
+          borderRadius: 12,
+          padding: '10px 18px',
+          marginBottom: 24,
+          fontSize: 12.5,
+          color: 'var(--neu-text-secondary, #64748B)',
+          flexWrap: 'wrap',
+          justifyContent: 'center'
+        }}>
+          <div>Current Cash In Bank: <strong style={{ color: 'var(--neu-text-primary)' }}>{formatINR(safePrefs.startingBalance ?? 60000)}</strong></div>
+          <div style={{ color: 'var(--neu-border)' }}>•</div>
+          <div>Safety Buffer: <strong style={{ color: '#D97706' }}>{formatINR(safePrefs.safetyBuffer ?? 15000)}</strong></div>
+          <div style={{ color: 'var(--neu-border)' }}>•</div>
+          <div>Cadence: <strong style={{ color: 'var(--neu-text-primary)' }}>{safePrefs.incomeFrequency || 'Irregular / Milestone-based'}</strong></div>
+        </div>
         <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', justifyContent: 'center' }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => navigate('/setup?step=1')}
+            id="empty-state-baseline-btn"
+          >
+            <Sliders size={16} />
+            <span>Set Starting Financial Baseline</span>
+          </button>
           <button
             type="button"
             className="btn-primary"
             onClick={() => { setActiveRoute('income'); setQuickAddModalOpen(true); }}
+            id="empty-state-income-btn"
           >
             <Plus size={16} />
-            <span>Add Your First Income</span>
+            <span>Add Income</span>
           </button>
           <button
             type="button"
             className="btn-secondary"
             onClick={() => { setActiveRoute('expenses'); setQuickAddModalOpen(true); }}
+            id="empty-state-expense-btn"
           >
             <Receipt size={16} />
-            <span>Add Your First Bill</span>
+            <span>Add Bill / Expense</span>
           </button>
         </div>
       </div>
@@ -144,7 +177,7 @@ export function OverviewDashboard() {
     <div className="page-container">
       
       {/* A. Header Row */}
-      <div className="page-header-row">
+      <div className="page-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
             <span style={{
@@ -167,6 +200,19 @@ export function OverviewDashboard() {
           <p className="page-subtitle">
             Here's your real-time spendable cash, protected obligations, and 30-day runway.
           </p>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <button
+            type="button"
+            className="btn-secondary"
+            onClick={() => navigate('/setup?step=1')}
+            title="Adjust Starting Cash & Safety Buffer"
+            style={{ fontSize: 12.5, padding: '8px 14px', display: 'flex', alignItems: 'center', gap: 7 }}
+            id="dashboard-baseline-setup-btn"
+          >
+            <Sliders size={14} color="var(--neu-brand-primary)" />
+            <span>Adjust Baseline (₹{formatINR(safePrefs.startingBalance ?? 60000)})</span>
+          </button>
         </div>
       </div>
 

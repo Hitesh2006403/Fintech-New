@@ -51,7 +51,9 @@ export function AdminProvider({ children }) {
   const [settings, setSettings] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [notificationCount, setNotificationCount] = useState(3);
+  const [adminNotifications, setAdminNotifications] = useState([]);
+  const [broadcastsList, setBroadcastsList] = useState([]);
+  const [notificationCount, setNotificationCount] = useState(0);
 
   // Check existing admin session on mount
   useEffect(() => {
@@ -97,13 +99,15 @@ export function AdminProvider({ children }) {
     if (!isAdminAuthenticated) return;
     setIsRefreshing(true);
     try {
-      const [statsData, usersData, txData, issuesData, logsData, settingsData] = await Promise.allSettled([
+      const [statsData, usersData, txData, issuesData, logsData, settingsData, broadcastsData, notifsData] = await Promise.allSettled([
         adminService.getStats(),
         adminService.getUsers(),
         adminService.getTransactions(),
         adminService.getIssues(),
         adminService.getSecurityLogs(),
-        adminService.getSettings()
+        adminService.getSettings(),
+        adminService.getBroadcasts(),
+        adminService.getAdminNotifications()
       ]);
 
       if (statsData.status === 'fulfilled' && statsData.value) setStats(statsData.value);
@@ -112,6 +116,11 @@ export function AdminProvider({ children }) {
       if (issuesData.status === 'fulfilled' && Array.isArray(issuesData.value)) setIssues(issuesData.value);
       if (logsData.status === 'fulfilled' && Array.isArray(logsData.value)) setSecurityLogs(logsData.value);
       if (settingsData.status === 'fulfilled' && settingsData.value) setSettings(settingsData.value);
+      if (broadcastsData.status === 'fulfilled' && Array.isArray(broadcastsData.value)) setBroadcastsList(broadcastsData.value);
+      if (notifsData.status === 'fulfilled' && Array.isArray(notifsData.value)) {
+        setAdminNotifications(notifsData.value);
+        setNotificationCount(notifsData.value.filter(n => !n.isRead).length);
+      }
     } catch (err) {
       console.warn('Error fetching admin datasets:', err);
     } finally {
@@ -280,6 +289,26 @@ export function AdminProvider({ children }) {
     }
   };
 
+  const deleteBroadcast = async (broadcastId) => {
+    setBroadcastsList(prev => prev.filter(b => b.id !== broadcastId));
+    try {
+      await adminService.deleteBroadcast(broadcastId);
+      await loadAdminData();
+    } catch (e) {
+      console.warn('Error deleting broadcast:', e);
+    }
+  };
+
+  const markAllNotificationsAsRead = async () => {
+    setAdminNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
+    setNotificationCount(0);
+    try {
+      await adminService.markAllNotificationsRead();
+    } catch (e) {
+      console.warn('Error marking admin notifications as read:', e);
+    }
+  };
+
   // Global Search Filter Results
   const searchResults = useMemo(() => {
     if (!globalSearch || !globalSearch.trim()) return null;
@@ -337,6 +366,10 @@ export function AdminProvider({ children }) {
     searchResults,
     notificationCount,
     setNotificationCount,
+    adminNotifications,
+    broadcastsList,
+    deleteBroadcast,
+    markAllNotificationsAsRead,
     loginWithGoogle,
     loginWithCredentials,
     loginWithAdminEmail,

@@ -25,6 +25,7 @@ const FINANCIALS_FILE = path.join(DATA_DIR, 'financials.json');
 const ISSUES_FILE = path.join(DATA_DIR, 'issues.json');
 const SECURITY_LOGS_FILE = path.join(DATA_DIR, 'security_logs.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const BROADCASTS_FILE = path.join(DATA_DIR, 'broadcasts.json');
 
 // Ensure data directory exists and seed initial data if running in serverless /tmp
 try {
@@ -1363,99 +1364,98 @@ export const db = {
     const issues = readJSON(ISSUES_FILE, []);
     const securityLogs = readJSON(SECURITY_LOGS_FILE, []);
 
-    // Aggregate transactions across all users
-    let allIncomes = [];
-    let allExpenses = [];
-    Object.values(financials).forEach(userData => {
-      if (userData?.incomes) allIncomes.push(...userData.incomes);
-      if (userData?.expenses) allExpenses.push(...userData.expenses);
-    });
+    const realUsers = this.getAllUsers();
+    const realTx = this.getAllTransactions();
 
-    const activeUsersCount = users.filter(u => u.status !== 'blocked').length;
-    const blockedUsersCount = users.filter(u => u.status === 'blocked').length;
+    const activeUsersCount = realUsers.filter(u => u.status !== 'Blocked').length;
+    const blockedUsersCount = realUsers.filter(u => u.status === 'Blocked').length;
     const openIssuesCount = issues.filter(i => i.status !== 'resolved').length;
-    const totalTxCount = allIncomes.length + allExpenses.length;
-    const totalVolume = allIncomes.reduce((acc, i) => acc + (Number(i.amount) || 0), 0) +
-                        allExpenses.reduce((acc, e) => acc + (Number(e.amount) || 0), 0);
+    const totalTxCount = realTx.length;
+    const totalVolume = realTx.reduce((acc, t) => acc + (Number(t.amount) || 0), 0);
+
+    const recentActivity = securityLogs.slice(0, 5).map(log => ({
+      id: log.id || `act_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      type: log.event?.toLowerCase().includes('register') ? 'user_register' :
+            log.event?.toLowerCase().includes('block') ? 'user_blocked' :
+            log.event?.toLowerCase().includes('issue') ? 'issue_reported' : 'system_log',
+      title: log.event,
+      meta: log.details,
+      time: log.time || 'Recently',
+      color: log.severity === 'high' ? '#EF4444' : log.severity === 'warning' ? '#F59E0B' : '#10B981'
+    }));
 
     return {
-      totalUsers: 1248,
-      actualUsersCount: users.length,
-      activeUsers: 1102,
+      totalUsers: realUsers.length,
+      actualUsersCount: realUsers.length,
+      activeUsers: activeUsersCount,
       blockedUsers: blockedUsersCount,
-      reportedIssues: issues.length || 18,
-      openIssues: openIssuesCount || 3,
-      totalTransactions: 8532,
+      reportedIssues: issues.length,
+      openIssues: openIssuesCount,
+      totalTransactions: totalTxCount,
       actualTransactionCount: totalTxCount,
-      totalVolumeINR: totalVolume || 184520,
+      totalVolumeINR: totalVolume,
       userGrowthTrends: {
-        percentageChange: 12,
+        percentageChange: realUsers.length > 0 ? 100 : 0,
         isPositive: true
       },
       activeUserTrends: {
-        percentageChange: 10,
+        percentageChange: activeUsersCount > 0 ? 100 : 0,
         isPositive: true
       },
       reportedIssuesTrends: {
-        percentageChange: -40,
-        isPositive: false // drop in issues is good, but shown as -40% in red pill
+        percentageChange: 0,
+        isPositive: true
       },
       transactionsTrends: {
-        percentageChange: 16,
+        percentageChange: totalTxCount > 0 ? 100 : 0,
         isPositive: true
       },
       userGrowth: {
         '7days': [
-          { date: 'Oct 12', count: 280 },
-          { date: 'Oct 13', count: 520 },
-          { date: 'Oct 14', count: 680 },
-          { date: 'Oct 15', count: 750 },
-          { date: 'Oct 16', count: 890 },
-          { date: 'Oct 17', count: 1040 },
-          { date: 'Oct 18', count: 1248 }
+          { date: 'Day 1', count: realUsers.length },
+          { date: 'Day 2', count: realUsers.length },
+          { date: 'Day 3', count: realUsers.length },
+          { date: 'Day 4', count: realUsers.length },
+          { date: 'Day 5', count: realUsers.length },
+          { date: 'Day 6', count: realUsers.length },
+          { date: 'Today', count: realUsers.length }
         ],
         '30days': [
-          { date: 'Sep 20', count: 140 },
-          { date: 'Sep 27', count: 320 },
-          { date: 'Oct 04', count: 650 },
-          { date: 'Oct 11', count: 910 },
-          { date: 'Oct 18', count: 1248 }
+          { date: 'Week 1', count: realUsers.length },
+          { date: 'Week 2', count: realUsers.length },
+          { date: 'Week 3', count: realUsers.length },
+          { date: 'Week 4', count: realUsers.length },
+          { date: 'Today', count: realUsers.length }
         ],
         '1year': [
-          { date: 'Nov 2025', count: 90 },
-          { date: 'Jan 2026', count: 280 },
-          { date: 'Apr 2026', count: 580 },
-          { date: 'Jul 2026', count: 840 },
-          { date: 'Oct 2026', count: 1248 }
+          { date: 'Q1', count: realUsers.length },
+          { date: 'Q2', count: realUsers.length },
+          { date: 'Q3', count: realUsers.length },
+          { date: 'Q4', count: realUsers.length },
+          { date: 'Present', count: realUsers.length }
         ]
       },
       incomeVsExpense: {
         'thisMonth': [
-          { date: 'Oct 12', income: 24000, expenses: 14000 },
-          { date: 'Oct 13', income: 38000, expenses: 21000 },
-          { date: 'Oct 14', income: 32000, expenses: 18000 },
-          { date: 'Oct 15', income: 29000, expenses: 19000 },
-          { date: 'Oct 16', income: 22000, expenses: 15000 },
-          { date: 'Oct 17', income: 34000, expenses: 23000 },
-          { date: 'Oct 18', income: 45000, expenses: 28000 }
+          { date: 'Day 1', income: 0, expenses: 0 },
+          { date: 'Day 2', income: 0, expenses: 0 },
+          { date: 'Day 3', income: 0, expenses: 0 },
+          { date: 'Day 4', income: 0, expenses: 0 },
+          { date: 'Day 5', income: 0, expenses: 0 },
+          { date: 'Day 6', income: 0, expenses: 0 },
+          { date: 'Today', income: totalVolume, expenses: 0 }
         ],
         'lastMonth': [
-          { date: 'Sep 12', income: 18000, expenses: 12000 },
-          { date: 'Sep 13', income: 22000, expenses: 16000 },
-          { date: 'Sep 14', income: 28000, expenses: 19000 },
-          { date: 'Sep 15', income: 25000, expenses: 14000 },
-          { date: 'Sep 16', income: 31000, expenses: 20000 },
-          { date: 'Sep 17', income: 27000, expenses: 18000 },
-          { date: 'Sep 18', income: 36000, expenses: 22000 }
+          { date: 'W1', income: 0, expenses: 0 },
+          { date: 'W2', income: 0, expenses: 0 },
+          { date: 'W3', income: 0, expenses: 0 },
+          { date: 'W4', income: 0, expenses: 0 },
+          { date: 'W5', income: 0, expenses: 0 },
+          { date: 'W6', income: 0, expenses: 0 },
+          { date: 'W7', income: 0, expenses: 0 }
         ]
       },
-      recentActivity: [
-        { id: 'act_1', type: 'user_register', title: 'New user registered', meta: 'rohan@gmail.com', time: '2 mins ago', icon: 'user', color: '#10B981' },
-        { id: 'act_2', type: 'issue_reported', title: 'Issue reported', meta: 'Login not working', time: '12 mins ago', icon: 'alert', color: '#EF4444' },
-        { id: 'act_3', type: 'user_blocked', title: 'User blocked', meta: 'sneha123@abc.com', time: '25 mins ago', icon: 'block', color: '#F59E0B' },
-        { id: 'act_4', type: 'transaction', title: 'Transaction completed', meta: '₹2,450 - Food & Dining', time: '1 hour ago', icon: 'transaction', color: '#38BDF8' },
-        { id: 'act_5', type: 'feedback', title: 'New feedback', meta: 'Great app!', time: '2 hours ago', icon: 'feedback', color: '#A78BFA' }
-      ],
+      recentActivity,
       systemStatus: {
         frontend: 'Online',
         backendApi: 'Online',
@@ -1468,60 +1468,21 @@ export const db = {
   getAllUsers() {
     users = readJSON(USERS_FILE, users);
     
-    // Ensure standard benchmark users exist alongside actual database users
-    const benchmarkUsers = [
-      {
-        id: '#1024',
-        name: 'Rohan Mehta',
-        email: 'rohan@gmail.com',
-        status: 'Active',
-        joinedOn: '18 Oct 2025',
-        role: 'Verified Pro User',
-        avatarInitials: 'RM'
-      },
-      {
-        id: '#1023',
-        name: 'Aarav Sharma',
-        email: 'aarav@gmail.com',
-        status: 'Active',
-        joinedOn: '17 Oct 2025',
-        role: 'Freelance Architect',
-        avatarInitials: 'AS'
-      },
-      {
-        id: '#1022',
-        name: 'Priya Nair',
-        email: 'priya@gmail.com',
-        status: 'Blocked',
-        joinedOn: '16 Oct 2025',
-        role: 'Client Account',
-        avatarInitials: 'PN'
-      },
-      {
-        id: '#1021',
-        name: 'Karan Singh',
-        email: 'karan@gmail.com',
-        status: 'Active',
-        joinedOn: '15 Oct 2025',
-        role: 'Senior Consultant',
-        avatarInitials: 'KS'
-      },
-      {
-        id: '#1020',
-        name: 'Neha Verma',
-        email: 'neha@gmail.com',
-        status: 'Active',
-        joinedOn: '14 Oct 2025',
-        role: 'Financial Planner',
-        avatarInitials: 'NV'
-      }
-    ];
+    // Filter out internal automated test-runner accounts so admin panel strictly shows real registered members
+    const realDatabaseUsers = users.filter(u => {
+      if (!u.email) return false;
+      const e = u.email.toLowerCase().trim();
+      if (e.includes('@example.com') || e.includes('@regularcustomer.com') || e.includes('@test.com')) return false;
+      if (e.startsWith('regular_user_') || e.startsWith('pwtest_') || e.startsWith('tokenflow_') || e.startsWith('e2e_test_')) return false;
+      if (e.startsWith('audit_') || e.startsWith('chat_') || e.startsWith('stmt_') || e.startsWith('ph7_') || e.startsWith('prod_audit_') || e.startsWith('final_audit_') || e.startsWith('dup_test_')) return false;
+      if (u.id && u.id.startsWith('usr_phase14_status_')) return false;
+      return true;
+    });
 
-    // Map real database users to standard format
-    const realUsers = users.map((u, idx) => {
-      const joinDate = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '14 Oct 2025';
+    return realDatabaseUsers.map((u, idx) => {
+      const joinDate = u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Today';
       return {
-        id: `#${1025 + idx}`,
+        id: `#${1001 + idx}`,
         rawId: u.id,
         name: u.name || 'User',
         email: u.email,
@@ -1533,16 +1494,21 @@ export const db = {
         authProvider: u.authProvider || 'local'
       };
     });
-
-    // Merge benchmark users with real users, avoiding duplicate emails
-    const existingEmails = new Set(realUsers.map(u => u.email.toLowerCase()));
-    const merged = [...benchmarkUsers.filter(b => !existingEmails.has(b.email.toLowerCase())), ...realUsers];
-    return merged;
   },
 
   updateUserStatus(userIdOrEmail, newStatus, reason = '') {
     users = readJSON(USERS_FILE, users);
-    let target = users.find(u => u.id === userIdOrEmail || u.email.toLowerCase() === userIdOrEmail.toLowerCase());
+    let target = users.find(u => 
+      u.id === userIdOrEmail || 
+      (u.email && u.email.toLowerCase() === userIdOrEmail.toLowerCase())
+    );
+    if (!target) {
+      const all = this.getAllUsers();
+      const matched = all.find(x => x.id === userIdOrEmail);
+      if (matched && matched.rawId) {
+        target = users.find(u => u.id === matched.rawId);
+      }
+    }
     
     if (target) {
       target.status = newStatus.toLowerCase();
@@ -1566,8 +1532,14 @@ export const db = {
 
   deleteUser(userIdOrEmail) {
     users = readJSON(USERS_FILE, users);
+    let targetRawId = userIdOrEmail;
+    const all = this.getAllUsers();
+    const matched = all.find(x => x.id === userIdOrEmail);
+    if (matched && matched.rawId) {
+      targetRawId = matched.rawId;
+    }
     const beforeLen = users.length;
-    users = users.filter(u => u.id !== userIdOrEmail && u.email.toLowerCase() !== userIdOrEmail.toLowerCase());
+    users = users.filter(u => u.id !== targetRawId && u.id !== userIdOrEmail && (!u.email || u.email.toLowerCase() !== userIdOrEmail.toLowerCase()));
     writeJSON(USERS_FILE, users);
 
     this.addSecurityLog({
@@ -1584,31 +1556,24 @@ export const db = {
 
   getAllTransactions() {
     const financials = readJSON(FINANCIALS_FILE, {});
-    const usersList = readJSON(USERS_FILE, users);
-    const userMap = new Map(usersList.map(u => [u.id, u]));
-
+    const realUsers = this.getAllUsers();
     const allTx = [];
+    const benchmarkIds = new Set([
+      'inc_101', 'inc_102', 'inc_103', 'inc_104', 'inc_105',
+      'exp_201', 'exp_202', 'exp_203', 'exp_204', 'exp_205', 'exp_206', 'exp_207', 'exp_208'
+    ]);
 
-    // Add baseline authentic transactions
-    const benchmarkTx = [
-      { id: 'tx_8532', type: 'expense', title: 'Food & Dining (Work Lunch)', category: 'Dining', amount: 2450, date: '2026-10-20', status: 'Completed', userName: 'Rohan Mehta', email: 'rohan@gmail.com' },
-      { id: 'tx_8531', type: 'income', title: 'UX Design Retainer Q4', category: 'Client Retainer', amount: 65000, date: '2026-10-20', status: 'Completed', userName: 'Aarav Sharma', email: 'aarav@gmail.com' },
-      { id: 'tx_8530', type: 'expense', title: 'Commercial Fiber Internet', category: 'Utilities', amount: 2400, date: '2026-10-19', status: 'Completed', userName: 'Karan Singh', email: 'karan@gmail.com' },
-      { id: 'tx_8529', type: 'expense', title: 'Workstation Hardware EMI', category: 'EMI or loan', amount: 8500, date: '2026-10-18', status: 'Pending', userName: 'Neha Verma', email: 'neha@gmail.com' },
-      { id: 'tx_8528', type: 'income', title: 'Advisory Consultation Payout', category: 'Consulting', amount: 42000, date: '2026-10-17', status: 'Completed', userName: 'Alex Vance', email: 'alex@example.com' },
-      { id: 'tx_8527', type: 'expense', title: 'AWS Cloud & Staging Servers', category: 'Subscriptions', amount: 4800, date: '2026-10-16', status: 'Completed', userName: 'Hitesh Av', email: 'hiteshav2006@gmail.com' }
-    ];
-    allTx.push(...benchmarkTx);
+    for (const u of realUsers) {
+      const uData = financials[u.rawId] || financials[u.id];
+      if (!uData) continue;
 
-    // Collect real records
-    Object.entries(financials).forEach(([userId, uData]) => {
-      const u = userMap.get(userId) || { name: 'User', email: 'user@finsight.app' };
-      if (uData.incomes) {
+      if (Array.isArray(uData.incomes)) {
         uData.incomes.forEach(inc => {
+          if (!inc || benchmarkIds.has(inc.id)) return;
           allTx.push({
             id: inc.id,
             type: 'income',
-            title: inc.title,
+            title: inc.title || 'Income',
             category: inc.source || 'Income',
             amount: Number(inc.amount || 0),
             date: inc.actualDate || inc.expectedDate || '2026-10-18',
@@ -1618,13 +1583,15 @@ export const db = {
           });
         });
       }
-      if (uData.expenses) {
+
+      if (Array.isArray(uData.expenses)) {
         uData.expenses.forEach(exp => {
+          if (!exp || benchmarkIds.has(exp.id)) return;
           allTx.push({
             id: exp.id,
             type: 'expense',
-            title: exp.title,
-            category: exp.category,
+            title: exp.title || 'Expense',
+            category: exp.category || 'General',
             amount: Number(exp.amount || 0),
             date: exp.paidDate || exp.dueDate || '2026-10-18',
             status: exp.status === 'paid' ? 'Completed' : 'Pending',
@@ -1633,9 +1600,9 @@ export const db = {
           });
         });
       }
-    });
+    }
 
-    return allTx.sort((a, b) => b.date.localeCompare(a.date));
+    return allTx.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
   },
 
   getIssues() {
@@ -1747,11 +1714,13 @@ export const db = {
 
   broadcastNotification(notificationData) {
     const financials = readJSON(FINANCIALS_FILE, {});
+    const broadcasts = readJSON(BROADCASTS_FILE, []);
     const notif = {
       id: `notif_broadcast_${Date.now()}`,
       title: notificationData.title || 'System Announcement',
       description: notificationData.description || notificationData.message || '',
       date: new Date().toISOString().slice(0, 10),
+      createdAt: new Date().toISOString(),
       severity: notificationData.severity || 'info',
       isRead: false,
       isBroadcast: true
@@ -1766,6 +1735,12 @@ export const db = {
 
     writeJSON(FINANCIALS_FILE, financials);
 
+    broadcasts.unshift({
+      ...notif,
+      deliveredCount
+    });
+    writeJSON(BROADCASTS_FILE, broadcasts);
+
     this.addSecurityLog({
       event: 'Broadcast Announcement Dispatched',
       details: `Announcement "${notif.title}" delivered to ${deliveredCount} active users`,
@@ -1776,6 +1751,45 @@ export const db = {
     });
 
     return { success: true, deliveredCount, notification: notif };
+  },
+
+  getBroadcastHistory() {
+    return readJSON(BROADCASTS_FILE, []);
+  },
+
+  deleteBroadcast(broadcastId) {
+    let broadcasts = readJSON(BROADCASTS_FILE, []);
+    broadcasts = broadcasts.filter(b => b.id !== broadcastId);
+    writeJSON(BROADCASTS_FILE, broadcasts);
+
+    const financials = readJSON(FINANCIALS_FILE, {});
+    Object.keys(financials).forEach(userId => {
+      if (Array.isArray(financials[userId].notifications)) {
+        financials[userId].notifications = financials[userId].notifications.filter(n => n.id !== broadcastId);
+      }
+    });
+    writeJSON(FINANCIALS_FILE, financials);
+    return true;
+  },
+
+  getAdminNotifications() {
+    const broadcasts = this.getBroadcastHistory().slice(0, 10);
+    return broadcasts.map(b => ({
+      id: b.id,
+      text: `Broadcast: ${b.title}`,
+      time: b.date || 'Today',
+      severity: b.severity || 'info',
+      isRead: Boolean(b.isRead)
+    }));
+  },
+
+  markAllAdminNotificationsRead() {
+    const broadcasts = readJSON(BROADCASTS_FILE, []);
+    broadcasts.forEach(b => {
+      b.isRead = true;
+    });
+    writeJSON(BROADCASTS_FILE, broadcasts);
+    return true;
   }
 };
 

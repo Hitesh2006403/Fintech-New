@@ -9,6 +9,7 @@ import { AdminIssuesView } from './AdminIssuesView.jsx';
 import { AdminSecurityLogsView } from './AdminSecurityLogsView.jsx';
 import { AdminSettingsView } from './AdminSettingsView.jsx';
 import { AdminNotificationsView } from './AdminNotificationsView.jsx';
+import { AdminSupabaseView } from './AdminSupabaseView.jsx';
 import {
   LayoutDashboard,
   Users,
@@ -27,7 +28,8 @@ import {
   ArrowLeft,
   X,
   Menu,
-  ShieldCheck
+  ShieldCheck,
+  Database
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -44,7 +46,9 @@ export function AdminLayout({ onReturnToClient }) {
     searchResults,
     refreshAdminData,
     isRefreshing,
-    notificationCount
+    notificationCount,
+    adminNotifications,
+    markAllNotificationsAsRead
   } = useAdmin();
 
   const navigate = useNavigate();
@@ -64,16 +68,17 @@ export function AdminLayout({ onReturnToClient }) {
 
   const safeIssues = Array.isArray(issues) ? issues : [];
   const safeUsers = Array.isArray(usersList) ? usersList : [];
-  const openIssuesCount = safeIssues.filter(i => i?.status !== 'resolved').length || 5;
+  const openIssuesCount = safeIssues.filter(i => i?.status !== 'resolved').length;
 
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, section: 'main' },
-    { id: 'users', label: 'Users', icon: Users, badge: safeUsers.length || 24, badgeColor: '#10B981', section: 'management' },
+    { id: 'users', label: 'Users', icon: Users, badge: safeUsers.length, badgeColor: '#10B981', section: 'management' },
     { id: 'transactions', label: 'Transactions', icon: ArrowLeftRight, section: 'management' },
     { id: 'reports', label: 'Reports', icon: BarChart2, section: 'management' },
-    { id: 'issues', label: 'Feedback & Issues', icon: MessageSquare, badge: openIssuesCount, badgeColor: '#EF4444', section: 'management' },
+    { id: 'issues', label: 'Feedback & Issues', icon: MessageSquare, badge: openIssuesCount > 0 ? openIssuesCount : undefined, badgeColor: '#EF4444', section: 'management' },
     { id: 'security', label: 'Security Logs', icon: ShieldAlert, section: 'management' },
     { id: 'settings', label: 'App Settings', icon: Settings, section: 'settings' },
+    { id: 'database', label: 'Supabase Cloud', icon: Database, section: 'settings', badge: 'Live', badgeColor: '#059669' },
     { id: 'notifications', label: 'Notifications', icon: Bell, section: 'settings' }
   ];
 
@@ -109,6 +114,8 @@ export function AdminLayout({ onReturnToClient }) {
         return <AdminSecurityLogsView />;
       case 'settings':
         return <AdminSettingsView />;
+      case 'database':
+        return <AdminSupabaseView />;
       case 'notifications':
         return <AdminNotificationsView />;
       default:
@@ -598,24 +605,26 @@ export function AdminLayout({ onReturnToClient }) {
                 onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255, 255, 255, 0.85)'; }}
               >
                 <Bell size={18} color="#0F172A" />
-                <span style={{
-                  position: 'absolute',
-                  top: -4,
-                  right: -4,
-                  background: '#E11D48',
-                  color: '#FFFFFF',
-                  fontSize: 10,
-                  fontWeight: 800,
-                  width: 17,
-                  height: 17,
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  boxShadow: '0 0 8px rgba(225, 29, 72, 0.4)'
-                }}>
-                  {notificationCount}
-                </span>
+                {notificationCount > 0 && (
+                  <span style={{
+                    position: 'absolute',
+                    top: -4,
+                    right: -4,
+                    background: '#E11D48',
+                    color: '#FFFFFF',
+                    fontSize: 10,
+                    fontWeight: 800,
+                    width: 17,
+                    height: 17,
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 8px rgba(225, 29, 72, 0.4)'
+                  }}>
+                    {notificationCount}
+                  </span>
+                )}
               </button>
 
               {notificationDropdownOpen && (
@@ -623,7 +632,7 @@ export function AdminLayout({ onReturnToClient }) {
                   position: 'absolute',
                   top: '125%',
                   right: 0,
-                  width: 300,
+                  width: 320,
                   background: 'rgba(255, 255, 255, 0.96)',
                   backdropFilter: 'blur(25px)',
                   border: '1px solid rgba(226, 232, 240, 0.9)',
@@ -632,19 +641,32 @@ export function AdminLayout({ onReturnToClient }) {
                   padding: '12px 0',
                   zIndex: 200
                 }}>
-                  <div style={{ padding: '4px 16px 8px', fontSize: 13, fontWeight: 700, color: '#0F172A', borderBottom: '1px solid rgba(226, 232, 240, 0.8)' }}>
-                    Admin Notifications
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '4px 16px 8px', borderBottom: '1px solid rgba(226, 232, 240, 0.8)' }}>
+                    <span style={{ fontSize: 13, fontWeight: 700, color: '#0F172A' }}>Admin Notifications</span>
+                    {notificationCount > 0 && (
+                      <button
+                        type="button"
+                        onClick={markAllNotificationsAsRead}
+                        style={{ background: 'none', border: 'none', color: '#4F46E5', fontSize: 11, fontWeight: 700, cursor: 'pointer' }}
+                      >
+                        Mark all read
+                      </button>
+                    )}
                   </div>
-                  {[
-                    { text: 'Google SSO auth policy synchronized', time: '10m ago' },
-                    { text: 'High severity issue reported by user', time: '12m ago' },
-                    { text: 'Daily database backup verified', time: '1h ago' }
-                  ].map((n, idx) => (
-                    <div key={idx} style={{ padding: '10px 16px', borderBottom: '1px solid rgba(226, 232, 240, 0.5)', fontSize: 12 }}>
-                      <div style={{ color: '#1E293B', fontWeight: 600 }}>{n.text}</div>
-                      <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>{n.time}</div>
+                  {(!adminNotifications || adminNotifications.length === 0) ? (
+                    <div style={{ padding: '24px 16px', textAlign: 'center', color: '#64748B' }}>
+                      <Bell size={22} style={{ opacity: 0.35, margin: '0 auto 8px', display: 'block' }} />
+                      <div style={{ fontSize: 12.5, fontWeight: 600 }}>No new notifications</div>
+                      <div style={{ fontSize: 11, color: '#94A3B8', marginTop: 2 }}>All systems operating normally.</div>
                     </div>
-                  ))}
+                  ) : (
+                    adminNotifications.map((n, idx) => (
+                      <div key={n.id || idx} style={{ padding: '10px 16px', borderBottom: '1px solid rgba(226, 232, 240, 0.5)', fontSize: 12 }}>
+                        <div style={{ color: '#1E293B', fontWeight: 600 }}>{n.text}</div>
+                        <div style={{ color: '#64748B', fontSize: 11, marginTop: 2 }}>{n.time}</div>
+                      </div>
+                    ))
+                  )}
                 </div>
               )}
             </div>

@@ -1591,49 +1591,51 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
               {onboardingStep === 1 ? (
                 <div>
                   <h3 style={{ fontSize: 20, fontWeight: 800, color: 'var(--neu-text-primary)', marginBottom: 6 }}>
-                    Baseline Cash & Safety Buffer
+                    Set Your Starting Financial Baseline
                   </h3>
                   <p style={{ fontSize: 13, color: 'var(--neu-text-secondary)', marginBottom: 20 }}>
-                    Establish your true recorded available balance and minimum comfort reserve.
+                    Enter your live cash in bank, safety reserve buffer, and regular income cadence.
                   </p>
 
                   <div className="form-group-item" style={{ marginBottom: 16 }}>
                     <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>
-                      Current Recorded Bank Balance (₹ INR) *
+                      Current Cash In Bank (₹ INR) *
                     </label>
                     <input
                       type="number"
                       className="form-input-control auth-neu-input"
                       value={obBalance}
                       onChange={(e) => setObBalance(e.target.value)}
+                      placeholder="e.g. 60000"
                       required
                       id="wizard-balance-input"
                     />
                     <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary)', marginTop: 4, display: 'block' }}>
-                      Total liquid cash across your bank accounts right now.
+                      Total liquid cash across your bank accounts right now (e.g. ₹60,000).
                     </span>
                   </div>
 
                   <div className="form-group-item" style={{ marginBottom: 16 }}>
                     <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>
-                      Minimum Safety Buffer Target (₹ INR) *
+                      Safety Reserve Buffer (₹ INR) *
                     </label>
                     <input
                       type="number"
                       className="form-input-control auth-neu-input"
                       value={obBuffer}
                       onChange={(e) => setObBuffer(e.target.value)}
+                      placeholder="e.g. 15000"
                       required
                       id="wizard-buffer-input"
                     />
                     <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary)', marginTop: 4, display: 'block' }}>
-                      Untouchable emergency floor (recommended: ₹20,000–₹50,000).
+                      Untouchable emergency buffer protected from spending (e.g. ₹15,000).
                     </span>
                   </div>
 
                   <div className="form-group-item" style={{ marginBottom: 20 }}>
                     <label className="form-label-title" style={{ color: 'var(--neu-text-primary)' }}>
-                      Typical Income Frequency
+                      Income Cadence (Typical Frequency)
                     </label>
                     <select
                       className="form-input-control auth-neu-input"
@@ -1646,6 +1648,9 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
                       <option value="Commission-based">Commission-based</option>
                       <option value="Monthly Retainer with Delays">Monthly Retainer with Delays</option>
                     </select>
+                    <span style={{ fontSize: 11.5, color: 'var(--neu-text-secondary)', marginTop: 4, display: 'block' }}>
+                      Select how your freelance/consulting earnings arrive.
+                    </span>
                   </div>
 
                   <button
