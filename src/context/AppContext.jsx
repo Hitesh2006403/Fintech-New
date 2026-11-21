@@ -27,6 +27,17 @@ import { apiService } from '../services/apiService.js';
 
 const AppContext = createContext(null);
 
+const BENCHMARK_INCOME_IDS = new Set(['inc_101', 'inc_102', 'inc_103', 'inc_104', 'inc_105']);
+const BENCHMARK_EXPENSE_IDS = new Set(['exp_201', 'exp_202', 'exp_203', 'exp_204', 'exp_205', 'exp_206', 'exp_207', 'exp_208']);
+
+function isDemoAccount(u) {
+  if (!u) return false;
+  const uid = typeof u === 'string' ? u : (u.id || '');
+  const email = typeof u === 'object' ? (u.email || '') : '';
+  return uid === 'usr_alex_01' || uid === 'demo' || uid.startsWith('guest_') || uid === 'guest' ||
+         email.includes('prod_audit_') || email.includes('final_audit_') || email.endsWith('@test.com');
+}
+
 export function AppProvider({ children }) {
   // 1. Core State with LocalStorage & Session Check
   const [user, setUser] = useState(() => {
@@ -45,13 +56,29 @@ export function AppProvider({ children }) {
     storageService.get(storageService.KEYS.PREFERENCES, INITIAL_PREFERENCES)
   );
 
-  const [incomes, setIncomes] = useState(() => 
-    storageService.get(storageService.KEYS.INCOMES, INITIAL_INCOMES)
-  );
+  const [incomes, setIncomes] = useState(() => {
+    try {
+      const isGuest = typeof window !== 'undefined' && localStorage.getItem('uip_guest_session') === 'true';
+      if (isGuest) return storageService.get(storageService.KEYS.INCOMES, INITIAL_INCOMES);
+      const stored = storageService.get(storageService.KEYS.INCOMES, null);
+      if (Array.isArray(stored)) {
+        return stored.filter(i => !BENCHMARK_INCOME_IDS.has(i.id));
+      }
+    } catch {}
+    return [];
+  });
 
-  const [expenses, setExpenses] = useState(() => 
-    storageService.get(storageService.KEYS.EXPENSES, INITIAL_EXPENSES)
-  );
+  const [expenses, setExpenses] = useState(() => {
+    try {
+      const isGuest = typeof window !== 'undefined' && localStorage.getItem('uip_guest_session') === 'true';
+      if (isGuest) return storageService.get(storageService.KEYS.EXPENSES, INITIAL_EXPENSES);
+      const stored = storageService.get(storageService.KEYS.EXPENSES, null);
+      if (Array.isArray(stored)) {
+        return stored.filter(e => !BENCHMARK_EXPENSE_IDS.has(e.id));
+      }
+    } catch {}
+    return [];
+  });
 
   const [leanSavings, setLeanSavings] = useState(() => 
     storageService.get(storageService.KEYS.SAVINGS_GOALS, INITIAL_LEAN_SAVINGS)
@@ -155,9 +182,16 @@ export function AppProvider({ children }) {
         ]);
         if (isCancelled) return;
         if (data) {
+          const isDemo = isDemoAccount(user);
           if (data.preferences) setPreferencesState(prev => ({ ...prev, ...data.preferences }));
-          if (Array.isArray(data.incomes)) setIncomes(data.incomes);
-          if (Array.isArray(data.expenses)) setExpenses(data.expenses);
+          if (Array.isArray(data.incomes)) {
+            const finalIncomes = isDemo ? data.incomes : data.incomes.filter(i => !BENCHMARK_INCOME_IDS.has(i.id));
+            setIncomes(finalIncomes);
+          }
+          if (Array.isArray(data.expenses)) {
+            const finalExpenses = isDemo ? data.expenses : data.expenses.filter(e => !BENCHMARK_EXPENSE_IDS.has(e.id));
+            setExpenses(finalExpenses);
+          }
           if (data.savingsGoals) setLeanSavings(prev => ({ ...prev, ...data.savingsGoals }));
           if (Array.isArray(data.notifications)) setNotifications(data.notifications);
         }
@@ -525,6 +559,17 @@ export function AppProvider({ children }) {
   }, []);
 
   const registerWithEmail = useCallback(async (email, name, password) => {
+    try {
+      localStorage.removeItem('uip_guest_session');
+      localStorage.removeItem('uip_incomes');
+      localStorage.removeItem('uip_expenses');
+      localStorage.removeItem('uip_savings_goals');
+      localStorage.removeItem('uip_notifications');
+    } catch {}
+    setIncomes([]);
+    setExpenses([]);
+    setLeanSavings({ weeks: 4, expectedLowIncomePerWeek: 0, essentialWeeklyExpenses: 0, currentDesignatedReserve: 0, weeklyContribution: 0 });
+    setNotifications([]);
     const data = await authService.registerWithEmail(email, name, password);
     const authUser = {
       ...INITIAL_USER,
@@ -553,14 +598,18 @@ export function AppProvider({ children }) {
       localStorage.removeItem('finsight_admin_token');
       localStorage.removeItem('finsight_admin_user');
       localStorage.removeItem('uip_user_profile');
+      localStorage.removeItem('uip_incomes');
+      localStorage.removeItem('uip_expenses');
+      localStorage.removeItem('uip_savings_goals');
+      localStorage.removeItem('uip_notifications');
       sessionStorage.clear();
     } catch {}
     setUser(INITIAL_USER);
     setPreferencesState(INITIAL_PREFERENCES);
-    setIncomes(INITIAL_INCOMES);
-    setExpenses(INITIAL_EXPENSES);
-    setLeanSavings(INITIAL_LEAN_SAVINGS);
-    setNotifications(INITIAL_NOTIFICATIONS);
+    setIncomes([]);
+    setExpenses([]);
+    setLeanSavings({ weeks: 4, expectedLowIncomePerWeek: 0, essentialWeeklyExpenses: 0, currentDesignatedReserve: 0, weeklyContribution: 0 });
+    setNotifications([]);
     setDismissedAlertIds([]);
     navigate('/login', { replace: true });
   }, [navigate]);

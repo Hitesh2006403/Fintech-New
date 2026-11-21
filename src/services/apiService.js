@@ -29,16 +29,28 @@ function getUserStorageKey(userId, key) {
 }
 
 function getLocalPartition(userId) {
+  const isGuest = !userId || userId === 'guest' || userId === 'demo' || (typeof userId === 'string' && userId.startsWith('guest_'));
   try {
     const raw = localStorage.getItem(`uip_partition_${userId || 'guest'}`);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (!isGuest && parsed) {
+        if (Array.isArray(parsed.incomes)) {
+          parsed.incomes = parsed.incomes.filter(i => !['inc_101', 'inc_102', 'inc_103', 'inc_104', 'inc_105'].includes(i.id));
+        }
+        if (Array.isArray(parsed.expenses)) {
+          parsed.expenses = parsed.expenses.filter(e => !['exp_201', 'exp_202', 'exp_203', 'exp_204', 'exp_205', 'exp_206', 'exp_207', 'exp_208'].includes(e.id));
+        }
+      }
+      return parsed;
+    }
   } catch {}
   return {
     preferences: { ...INITIAL_PREFERENCES },
-    incomes: [...INITIAL_INCOMES],
-    expenses: [...INITIAL_EXPENSES],
-    savingsGoals: { ...INITIAL_LEAN_SAVINGS },
-    notifications: [...INITIAL_NOTIFICATIONS],
+    incomes: isGuest ? [...INITIAL_INCOMES] : [],
+    expenses: isGuest ? [...INITIAL_EXPENSES] : [],
+    savingsGoals: isGuest ? { ...INITIAL_LEAN_SAVINGS } : { weeks: 4, expectedLowIncomePerWeek: 0, essentialWeeklyExpenses: 0, currentDesignatedReserve: 0, weeklyContribution: 0 },
+    notifications: isGuest ? [...INITIAL_NOTIFICATIONS] : [],
     scenarios: []
   };
 }

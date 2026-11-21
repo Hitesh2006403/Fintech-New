@@ -604,6 +604,36 @@ export function AuthPage({ initialMode = 'login', onOpenAdmin }) {
     }
   };
 
+  // Handle Finish Setup on Step 2
+  const handleOnboardingFinish = async () => {
+    setLoading(true);
+    setAuthError(null);
+    try {
+      setPreferences(prev => ({
+        ...prev,
+        startingBalance: Number(obBalance) || 0,
+        safetyBuffer: Number(obBuffer) || 10000,
+        incomeFrequency: obFrequency || 'Irregular / Milestone-based',
+        lowBalanceAlertThreshold: Number(obThreshold) || 10000
+      }));
+
+      await completeOnboarding();
+      navigationTracker.clearSetupDraft();
+
+      const isAdminUser = Boolean(
+        user?.isAdmin ||
+        user?.role === 'Super Administrator' ||
+        ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'].includes((user?.email || '').toLowerCase().trim())
+      );
+      navigate(isAdminUser ? '/admin' : '/dashboard', { replace: true });
+    } catch (err) {
+      console.error('Error completing onboarding:', err);
+      navigate('/dashboard', { replace: true });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Handle Skip Setup With Defaults (Allows immediate dashboard entry)
   const handleSkipWithDefaults = async () => {
     setLoading(true);

@@ -159,7 +159,21 @@ describe('Phase 5: Contextual Financial AI Chat ("Ask Your Finances") Suite', ()
     assert.equal(chatARes.status, 200);
     assert.ok(chatAData.reply.includes('Travel & Lifestyle') || chatAData.reply.includes('222,000') || chatAData.reply.includes('222000'));
 
-    // User B asks "Where did I spend the most?" (User B has seeded Rent 22000 as highest)
+    // User B adds Rent expense
+    await fetch(`${baseUrl}/api/expenses`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${regB.token}` },
+      body: JSON.stringify({
+        title: 'Apartment Rent B',
+        amount: 22000,
+        dueDate: '2026-06-25',
+        category: 'Rent',
+        status: 'Paid',
+        isEssential: true
+      })
+    });
+
+    // User B asks "Where did I spend the most?" (User B has Rent 22000 as highest)
     const chatBRes = await fetch(`${baseUrl}/api/analyzer/ai/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${regB.token}` },
