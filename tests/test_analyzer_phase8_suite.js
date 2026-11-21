@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, 'backend/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../backend/.env') });
 
 import {
   getLlmProviderConfig,
@@ -28,9 +28,9 @@ import {
   answerFinancialQuestion,
   validateAndSanitizeResponse,
   retrieveFinancialContext
-} from './backend/aiAnalyzerEngine.js';
-import { testSupabaseCloudConnection, isSupabaseConfigured } from './backend/supabase.js';
-import db from './backend/db.js';
+} from '../backend/aiAnalyzerEngine.js';
+import { testSupabaseCloudConnection, isSupabaseConfigured } from '../backend/supabase.js';
+import db from '../backend/db.js';
 
 let totalTests = 0;
 let passedTests = 0;

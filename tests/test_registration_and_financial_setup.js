@@ -9,9 +9,9 @@ import http from 'node:http';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const USERS_FILE = path.join(__dirname, 'backend', 'data', 'users.json');
-const SESSIONS_FILE = path.join(__dirname, 'backend', 'data', 'sessions.json');
-const FINANCIALS_FILE = path.join(__dirname, 'backend', 'data', 'financials.json');
+const USERS_FILE = path.join(__dirname, '..', 'backend', 'data', 'users.json');
+const SESSIONS_FILE = path.join(__dirname, '..', 'backend', 'data', 'sessions.json');
+const FINANCIALS_FILE = path.join(__dirname, '..', 'backend', 'data', 'financials.json');
 
 const BASE_URL = 'http://localhost:3001';
 

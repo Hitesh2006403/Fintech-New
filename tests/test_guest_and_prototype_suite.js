@@ -7,7 +7,7 @@ import {
   rankBills,
   calculateLeanWeekSavings,
   generateDashboardInsights
-} from './src/services/financialEngine.js';
+} from '../src/services/financialEngine.js';
 import {
   INITIAL_USER,
   INITIAL_PREFERENCES,
@@ -15,9 +15,9 @@ import {
   INITIAL_EXPENSES,
   INITIAL_LEAN_SAVINGS,
   INITIAL_NOTIFICATIONS
-} from './src/services/storageService.js';
-import { authService } from './src/services/authService.js';
-import { adminService } from './src/services/adminService.js';
+} from '../src/services/storageService.js';
+import { authService } from '../src/services/authService.js';
+import { adminService } from '../src/services/adminService.js';
 
 const AUTHORIZED_ADMIN_EMAILS = ['hiteshav2006@gmail.com', 'dishankbs04@gmail.com'];
 function checkIsAdmin(user) {

@@ -22,7 +22,7 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, 'backend/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../backend/.env') });
 
 import {
   getUserAnalyzerData,
@@ -30,7 +30,7 @@ import {
   detectUnusualExpenses,
   detectRecurringExpenses,
   detectDuplicateTransactions
-} from './backend/analyzerService.js';
+} from '../backend/analyzerService.js';
 import {
   runAnalysis,
   runSingleAgentAnalysis,
@@ -39,10 +39,10 @@ import {
   detectPromptInjection,
   validateAndSanitizeResponse,
   retrieveFinancialContext
-} from './backend/aiAnalyzerEngine.js';
-import { statementParser } from './backend/statementParser.js';
-import db from './backend/db.js';
-import { formatINR } from './backend/financialService.js';
+} from '../backend/aiAnalyzerEngine.js';
+import { statementParser } from '../backend/statementParser.js';
+import db from '../backend/db.js';
+import { formatINR } from '../backend/financialService.js';
 
 let totalTests = 0;
 let passedTests = 0;

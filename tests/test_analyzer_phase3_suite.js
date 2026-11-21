@@ -1,7 +1,7 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import app from './backend/server.js';
+import app from '../backend/server.js';
 import {
   getUserAnalyzerData,
   detectUnusualExpenses,
@@ -12,7 +12,7 @@ import {
   generateRecommendations,
   safeDate,
   getMonthKey
-} from './backend/analyzerService.js';
+} from '../backend/analyzerService.js';
 
 let server;
 let baseUrl;

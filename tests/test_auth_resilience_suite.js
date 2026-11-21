@@ -1,7 +1,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { authService } from './src/services/authService.js';
-import app from './backend/server.js';
+import { authService } from '../src/services/authService.js';
+import app from '../backend/server.js';
 import http from 'http';
 
 // Polyfill localStorage for Node test environment

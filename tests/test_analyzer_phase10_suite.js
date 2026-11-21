@@ -40,8 +40,8 @@ console.log('======================================================\n');
 
 // 1. Template Files Completeness
 runTest('Template Completeness: .env.example files document all essential environment variables', () => {
-  const rootExamplePath = path.join(__dirname, '.env.example');
-  const backendExamplePath = path.join(__dirname, 'backend/.env.example');
+  const rootExamplePath = path.join(__dirname, '../.env.example');
+  const backendExamplePath = path.join(__dirname, '../backend/.env.example');
 
   assert.ok(fs.existsSync(rootExamplePath), 'Root .env.example must exist');
   assert.ok(fs.existsSync(backendExamplePath), 'backend/.env.example must exist');
@@ -66,7 +66,7 @@ runTest('Template Completeness: .env.example files document all essential enviro
 
 // 2. Zero Real Secrets in Example Templates
 runTest('Secret Defense: .env.example templates contain zero real credentials or live keys', () => {
-  const rootExamplePath = path.join(__dirname, '.env.example');
+  const rootExamplePath = path.join(__dirname, '../.env.example');
   const content = fs.readFileSync(rootExamplePath, 'utf8');
 
   // Verify generic placeholder usage
@@ -82,7 +82,7 @@ runTest('Secret Defense: .env.example templates contain zero real credentials or
 
 // 3. Git Repository Secret Isolation
 runTest('Git Security: .gitignore strictly isolates backend/.env and all secret credential files', () => {
-  const gitignorePath = path.join(__dirname, '.gitignore');
+  const gitignorePath = path.join(__dirname, '../.gitignore');
   const gitignore = fs.readFileSync(gitignorePath, 'utf8');
 
   assert.ok(gitignore.includes('.env'), '.gitignore must ignore .env');
@@ -96,7 +96,7 @@ runTest('Git Security: .gitignore strictly isolates backend/.env and all secret 
 
 // 4. Client Bundle Privacy Audit (Zero Secret Leakage in Frontend)
 runTest('Client Privacy Audit: Production build bundle (dist) does NOT leak backend secrets', () => {
-  const distAssetsDir = path.join(__dirname, 'dist', 'assets');
+  const distAssetsDir = path.join(__dirname, '../dist', 'assets');
   if (!fs.existsSync(distAssetsDir)) {
     console.log('    [Note: dist/assets not yet built, building first...]');
     execSync('npm run build', { stdio: 'ignore' });
@@ -114,7 +114,7 @@ runTest('Client Privacy Audit: Production build bundle (dist) does NOT leak back
 
 // 5. Environment Variable Fallback Resilience (Safe Defaults When Unset)
 runTest('Fallback Resilience: Server helpers degrade gracefully when provider keys are absent', async () => {
-  const { getLlmProviderConfig } = await import('./backend/aiAnalyzerEngine.js');
+  const { getLlmProviderConfig } = await import('../backend/aiAnalyzerEngine.js');
   const prevGemini = process.env.GEMINI_API_KEY;
   const prevOpenAi = process.env.OPENAI_API_KEY;
   const prevOpenRouter = process.env.OPENROUTER_API_KEY;
@@ -136,8 +136,8 @@ runTest('Fallback Resilience: Server helpers degrade gracefully when provider ke
 
 // 6. Active Production Configuration Certification
 runTest('Production Certification: Current backend environment contains valid active keys', async () => {
-  const { getLlmProviderConfig } = await import('./backend/aiAnalyzerEngine.js');
-  const { isSupabaseConfigured, supabaseUrl } = await import('./backend/supabase.js');
+  const { getLlmProviderConfig } = await import('../backend/aiAnalyzerEngine.js');
+  const { isSupabaseConfigured, supabaseUrl } = await import('../backend/supabase.js');
 
   const llmConfig = getLlmProviderConfig();
   assert.ok(llmConfig.apiKey && llmConfig.apiKey.length > 15, 'Active Gemini/LLM key must be configured in backend/.env');

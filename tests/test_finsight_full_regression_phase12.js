@@ -21,8 +21,8 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import app from './backend/server.js';
-import db from './backend/db.js';
+import app from '../backend/server.js';
+import db from '../backend/db.js';
 import {
   calculateCurrentBalance,
   calculateSafeToSpend,
@@ -31,7 +31,7 @@ import {
   rankBills,
   calculateLeanWeekSavings,
   formatINR
-} from './src/services/financialEngine.js';
+} from '../src/services/financialEngine.js';
 import {
   getCurrentLocalDate,
   toISODate,
@@ -39,8 +39,8 @@ import {
   diffInDays,
   classifyBillStatus,
   classifyIncomeStatus
-} from './src/services/dateService.js';
-import { getUserAnalyzerData } from './backend/analyzerService.js';
+} from '../src/services/dateService.js';
+import { getUserAnalyzerData } from '../backend/analyzerService.js';
 
 let server;
 let baseUrl;

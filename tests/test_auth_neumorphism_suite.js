@@ -8,12 +8,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 test('FinSight Authentication Neumorphism Redesign Suite', async (t) => {
-  const cssPath = path.join(__dirname, 'src/styles/neumorphismTheme.css');
-  const authPagePath = path.join(__dirname, 'src/pages/AuthPage.jsx');
-  const updatePasswordPath = path.join(__dirname, 'src/pages/UpdatePasswordPage.jsx');
-  const appPath = path.join(__dirname, 'src/App.jsx');
-  const adminLoginPath = path.join(__dirname, 'src/pages/admin/AdminLoginPage.jsx');
-  const adminPortalPath = path.join(__dirname, 'src/pages/admin/AdminPortal.jsx');
+  const cssPath = path.join(__dirname, '../src/styles/neumorphismTheme.css');
+  const authPagePath = path.join(__dirname, '../src/pages/AuthPage.jsx');
+  const updatePasswordPath = path.join(__dirname, '../src/pages/UpdatePasswordPage.jsx');
+  const appPath = path.join(__dirname, '../src/App.jsx');
+  const adminLoginPath = path.join(__dirname, '../src/pages/admin/AdminLoginPage.jsx');
+  const adminPortalPath = path.join(__dirname, '../src/pages/admin/AdminPortal.jsx');
 
   const cssContent = fs.readFileSync(cssPath, 'utf8');
   const authContent = fs.readFileSync(authPagePath, 'utf8');

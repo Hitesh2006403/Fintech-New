@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import app from './backend/server.js';
+import app from '../backend/server.js';
 import {
   calculateCurrentBalance,
   calculateSafeToSpend,
@@ -10,7 +10,7 @@ import {
   rankBills,
   calculateLeanWeekSavings,
   addDays
-} from './src/services/financialEngine.js';
+} from '../src/services/financialEngine.js';
 
 const BASE_URL = 'http://127.0.0.1:3001';
 

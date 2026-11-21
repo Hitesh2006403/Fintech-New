@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import fs from 'node:fs';
-import { navigationTracker } from './src/services/navigationTracker.js';
+import { navigationTracker } from '../src/services/navigationTracker.js';
 
 describe('FinSight Responsive Navigation & Setup Flow Comprehensive Suite', () => {
   // Mock sessionStorage for Node environment

@@ -20,14 +20,14 @@ import {
   detectUnusualExpenses,
   detectRecurringExpenses,
   detectDuplicateTransactions
-} from './backend/analyzerService.js';
+} from '../backend/analyzerService.js';
 import {
   getCurrentLocalDate,
   addDays,
   diffInDays,
   toISODate
-} from './backend/dateService.js';
-import { formatINR } from './backend/financialService.js';
+} from '../backend/dateService.js';
+import { formatINR } from '../backend/financialService.js';
 
 describe('Phase 13: Self-Correction Loop & Edge Case Hardening', () => {
 

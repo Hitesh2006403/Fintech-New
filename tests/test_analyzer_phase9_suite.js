@@ -19,11 +19,11 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-dotenv.config({ path: path.resolve(__dirname, 'backend/.env') });
+dotenv.config({ path: path.resolve(__dirname, '../backend/.env') });
 
-import { getUserAnalyzerData } from './backend/analyzerService.js';
-import { statementParser } from './backend/statementParser.js';
-import db from './backend/db.js';
+import { getUserAnalyzerData } from '../backend/analyzerService.js';
+import { statementParser } from '../backend/statementParser.js';
+import db from '../backend/db.js';
 
 let totalTests = 0;
 let passedTests = 0;
@@ -59,7 +59,7 @@ console.log('======================================================\n');
 // 1. Analyzer Service API Client Contract Verification
 runTest('Service Contract: analyzerService exports all required frontend API hooks', async () => {
   const fs = await import('fs');
-  const serviceContent = fs.readFileSync(path.join(__dirname, 'src/services/analyzerService.js'), 'utf8');
+  const serviceContent = fs.readFileSync(path.join(__dirname, '../src/services/analyzerService.js'), 'utf8');
 
   const requiredMethods = [
     'getAnalyzerData',
@@ -222,7 +222,7 @@ runTest('Empty State Safety: Fresh user with 0 records computes graceful zero-di
 // 7. UI Component Neumorphic Styling & Tabs Adherence
 runTest('UI Verification: PersonalFinanceAnalyzer component has all 6 tabs and empty state hooks', async () => {
   const fs = await import('fs');
-  const uiContent = fs.readFileSync(path.join(__dirname, 'src/pages/PersonalFinanceAnalyzer.jsx'), 'utf8');
+  const uiContent = fs.readFileSync(path.join(__dirname, '../src/pages/PersonalFinanceAnalyzer.jsx'), 'utf8');
 
   assert.ok(uiContent.includes("id: 'overview'"));
   assert.ok(uiContent.includes("id: 'spending'"));
@@ -241,7 +241,7 @@ runTest('UI Verification: PersonalFinanceAnalyzer component has all 6 tabs and e
 // 8. End-to-End API Router Verification
 runTest('API Verification: Backend server declares all Phase 9 required routes', async () => {
   const fs = await import('fs');
-  const serverContent = fs.readFileSync(path.join(__dirname, 'backend/server.js'), 'utf8');
+  const serverContent = fs.readFileSync(path.join(__dirname, '../backend/server.js'), 'utf8');
 
   assert.ok(serverContent.includes("app.get('/api/analyzer/data'"));
   assert.ok(serverContent.includes("app.get('/api/analyzer/summary'"));

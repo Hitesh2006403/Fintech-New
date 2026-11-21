@@ -1,9 +1,9 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import app from './backend/server.js';
-import db from './backend/db.js';
-import { sendPasswordRecoveryEmail, isPasswordRecoveryEnabled } from './backend/emailService.js';
+import app from '../backend/server.js';
+import db from '../backend/db.js';
+import { sendPasswordRecoveryEmail, isPasswordRecoveryEnabled } from '../backend/emailService.js';
 
 let server;
 let baseUrl;

@@ -66,7 +66,7 @@ describe('FinSight Admin & User Strict Session Separation Suite', () => {
     }
   });
   it('1. App.jsx eliminates separate admin login page and redirects /admin/login to /login', () => {
-    const appPath = path.join(__dirname, 'src/App.jsx');
+    const appPath = path.join(__dirname, '../src/App.jsx');
     const appContent = fs.readFileSync(appPath, 'utf8');
 
     assert.ok(
@@ -80,7 +80,7 @@ describe('FinSight Admin & User Strict Session Separation Suite', () => {
   });
 
   it('2. AdminPortal.jsx eliminates AdminLoginPage and navigates unauthenticated users to /login', () => {
-    const portalPath = path.join(__dirname, 'src/pages/admin/AdminPortal.jsx');
+    const portalPath = path.join(__dirname, '../src/pages/admin/AdminPortal.jsx');
     const portalContent = fs.readFileSync(portalPath, 'utf8');
 
     assert.ok(
@@ -94,7 +94,7 @@ describe('FinSight Admin & User Strict Session Separation Suite', () => {
   });
 
   it('3. AuthPage.jsx has clean UI with no separate admin pills or extra badges', () => {
-    const authPagePath = path.join(__dirname, 'src/pages/AuthPage.jsx');
+    const authPagePath = path.join(__dirname, '../src/pages/AuthPage.jsx');
     const authPageContent = fs.readFileSync(authPagePath, 'utf8');
 
     assert.ok(
@@ -150,7 +150,7 @@ describe('FinSight Admin & User Strict Session Separation Suite', () => {
   });
 
   it('6. AdminContext decouples from AppContext.user and checks exclusively finsight_admin_user and finsight_admin_token', () => {
-    const adminContextPath = path.join(__dirname, 'src/context/AdminContext.jsx');
+    const adminContextPath = path.join(__dirname, '../src/context/AdminContext.jsx');
     const adminContextContent = fs.readFileSync(adminContextPath, 'utf8');
 
     assert.ok(
@@ -168,7 +168,7 @@ describe('FinSight Admin & User Strict Session Separation Suite', () => {
   });
 
   it('7. AppContext initializes user to INITIAL_USER when only finsight_admin_token is present', () => {
-    const appContextPath = path.join(__dirname, 'src/context/AppContext.jsx');
+    const appContextPath = path.join(__dirname, '../src/context/AppContext.jsx');
     const appContextContent = fs.readFileSync(appContextPath, 'utf8');
 
     assert.ok(

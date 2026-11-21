@@ -4,8 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import http from 'node:http';
 import { fileURLToPath } from 'node:url';
-import app from './backend/server.js';
-import db from './backend/db.js';
+import app from '../backend/server.js';
+import db from '../backend/db.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -34,7 +34,7 @@ describe('Phase 7: Supabase Database Migrations & Multi-Tenant Security Suite', 
 
   // Test 1: Migration file existence and structural validity
   test('Check 1: Supabase migration file exists and defines all 3 analyzer tables', () => {
-    const migrationPath = path.resolve(__dirname, 'supabase/migrations/20261120000000_personal_finance_analyzer.sql');
+    const migrationPath = path.resolve(__dirname, '../supabase/migrations/20261120000000_personal_finance_analyzer.sql');
     assert.ok(fs.existsSync(migrationPath), 'Migration file must exist at supabase/migrations/');
 
     const sqlContent = fs.readFileSync(migrationPath, 'utf8');
@@ -55,7 +55,7 @@ describe('Phase 7: Supabase Database Migrations & Multi-Tenant Security Suite', 
 
   // Test 2: Row Level Security (RLS) enforcement
   test('Check 2: Migration file enables RLS and declares tenant isolation policies on all 3 tables', () => {
-    const migrationPath = path.resolve(__dirname, 'supabase/migrations/20261120000000_personal_finance_analyzer.sql');
+    const migrationPath = path.resolve(__dirname, '../supabase/migrations/20261120000000_personal_finance_analyzer.sql');
     const sql = fs.readFileSync(migrationPath, 'utf8');
 
     // RLS Activation
@@ -74,7 +74,7 @@ describe('Phase 7: Supabase Database Migrations & Multi-Tenant Security Suite', 
 
   // Test 3: Central schema file incorporates analyzer extensions
   test('Check 3: supabase/schema.sql contains analyzer tables and triggers', () => {
-    const schemaPath = path.resolve(__dirname, 'supabase/schema.sql');
+    const schemaPath = path.resolve(__dirname, '../supabase/schema.sql');
     assert.ok(fs.existsSync(schemaPath), 'Central schema.sql must exist');
 
     const schema = fs.readFileSync(schemaPath, 'utf8');

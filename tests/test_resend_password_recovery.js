@@ -4,14 +4,14 @@ import http from 'node:http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import app from './backend/server.js';
-import { db } from './backend/db.js';
-import { isPasswordRecoveryEnabled } from './backend/emailService.js';
+import app from '../backend/server.js';
+import { db } from '../backend/db.js';
+import { isPasswordRecoveryEnabled } from '../backend/emailService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const SESSIONS_FILE = path.join(__dirname, 'backend', 'data', 'sessions.json');
-const USERS_FILE = path.join(__dirname, 'backend', 'data', 'users.json');
+const SESSIONS_FILE = path.join(__dirname, '..', 'backend', 'data', 'sessions.json');
+const USERS_FILE = path.join(__dirname, '..', 'backend', 'data', 'users.json');
 
 let server;
 let baseUrl;

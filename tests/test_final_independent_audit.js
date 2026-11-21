@@ -3,8 +3,8 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import app from './backend/server.js';
-import { db } from './backend/db.js';
+import app from '../backend/server.js';
+import { db } from '../backend/db.js';
 import {
   calculateCurrentBalance,
   calculateSafeToSpend,
@@ -13,7 +13,7 @@ import {
   rankBills,
   calculateLeanWeekSavings,
   formatINR
-} from './src/services/financialEngine.js';
+} from '../src/services/financialEngine.js';
 import {
   getCurrentLocalDate,
   toISODate,
@@ -22,8 +22,8 @@ import {
   classifyBillStatus,
   classifyIncomeStatus,
   resolveDynamicNotification
-} from './src/services/dateService.js';
-import { isSupabaseConfigured, testSupabaseCloudConnection } from './backend/supabase.js';
+} from '../src/services/dateService.js';
+import { isSupabaseConfigured, testSupabaseCloudConnection } from '../backend/supabase.js';
 
 let server;
 let baseUrl;

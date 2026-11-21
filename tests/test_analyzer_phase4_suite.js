@@ -1,7 +1,7 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
-import app from './backend/server.js';
+import app from '../backend/server.js';
 import {
   retrieveFinancialContext,
   validateAndSanitizeResponse,
@@ -10,7 +10,7 @@ import {
   runMultiAgentAnalysis,
   runAnalysis,
   getLlmProviderConfig
-} from './backend/aiAnalyzerEngine.js';
+} from '../backend/aiAnalyzerEngine.js';
 
 let server;
 let baseUrl;

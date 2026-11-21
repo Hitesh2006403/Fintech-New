@@ -15,8 +15,8 @@ import assert from 'node:assert/strict';
 import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
-import app from './backend/server.js';
-import db from './backend/db.js';
+import app from '../backend/server.js';
+import db from '../backend/db.js';
 
 let server;
 let baseUrl;
